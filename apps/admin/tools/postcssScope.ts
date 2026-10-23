@@ -60,7 +60,10 @@ export function rewriteSelector(selector: string, scope: string, darkClass: stri
 export function swbiScope(options: ScopeOptions = {}): Plugin {
   const scope = options.scope ?? '.swbi-root';
   const darkClass = options.darkClass ?? 'swbi-dark';
-  const patterns = options.filePatterns ?? ['/node_modules/quasar/', '/node_modules/@quasar/extras/'];
+  const patterns = options.filePatterns ?? [
+    '/node_modules/quasar/',
+    '/node_modules/@quasar/extras/',
+  ];
   return {
     postcssPlugin: 'swbi-scope',
     Once(root) {

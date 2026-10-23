@@ -36,7 +36,10 @@ describe('swbiScope plugin', () => {
       .then((res) => res.css);
 
   it('rewrites only Quasar files and leaves keyframes alone', async () => {
-    const q = await run('.a, body { x: 1 } @keyframes k { from { a: b } }', '/app/node_modules/quasar/dist/q.css');
+    const q = await run(
+      '.a, body { x: 1 } @keyframes k { from { a: b } }',
+      '/app/node_modules/quasar/dist/q.css',
+    );
     expect(q).toContain('.swbi-root .a');
     expect(q).toContain('.swbi-root {');
     expect(q).toContain('from { a: b }');

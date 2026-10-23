@@ -3,7 +3,14 @@ import { appendBounded } from '../src/composables/useJobMonitor';
 import type { JobLogEntry } from '../src/types/api';
 import { isActive, isTerminal, nextPollDelay, normalisePhase } from '../src/utils/jobs';
 
-const entry = (id: number): JobLogEntry => ({ id, time: '2026-10-24T12:00:00Z', severity: 'info', phase: 'archiving', message: `m${id}`, context: {} });
+const entry = (id: number): JobLogEntry => ({
+  id,
+  time: '2026-10-24T12:00:00Z',
+  severity: 'info',
+  phase: 'archiving',
+  message: `m${id}`,
+  context: {},
+});
 
 describe('job utils', () => {
   it('classifies statuses', () => {

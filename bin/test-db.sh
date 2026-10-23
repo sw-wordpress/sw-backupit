@@ -19,6 +19,7 @@ case "${1:-}" in
       mariadb-admin --socket="$SOCKET" ping >/dev/null 2>&1 && break; sleep 0.5
     done
     mariadb --socket="$SOCKET" -uroot -e "CREATE USER IF NOT EXISTS 'swbi'@'%' IDENTIFIED BY 'swbi'; GRANT ALL ON *.* TO 'swbi'@'%'; CREATE USER IF NOT EXISTS 'swbi'@'localhost' IDENTIFIED BY 'swbi'; GRANT ALL ON *.* TO 'swbi'@'localhost'; FLUSH PRIVILEGES;"
+    mariadb --socket="$SOCKET" -uroot -e "CREATE DATABASE IF NOT EXISTS swbi_wp_tests CHARACTER SET utf8mb4"
     echo "started on 127.0.0.1:$PORT (user swbi / swbi)"
     ;;
   stop)

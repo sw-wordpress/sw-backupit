@@ -10,7 +10,11 @@ function jsonResponse(body: unknown, init: ResponseInit = {}): Response {
 }
 
 function makeClient(fetchImpl: typeof fetch): ApiClient {
-  return new ApiClient({ restRoot: 'https://x.test/wp-json/swbackupit/v1/', nonce: 'abc', fetchImpl });
+  return new ApiClient({
+    restRoot: 'https://x.test/wp-json/swbackupit/v1/',
+    nonce: 'abc',
+    fetchImpl,
+  });
 }
 
 describe('ApiClient', () => {
@@ -30,14 +34,19 @@ describe('ApiClient', () => {
 
   it('builds query strings, skipping empty values', () => {
     const client = makeClient(vi.fn() as unknown as typeof fetch);
-    expect(client.url('/backups', { page: 2, search: '', type: undefined, status: 'verified' })).toBe(
-      'https://x.test/wp-json/swbackupit/v1/backups?page=2&status=verified',
-    );
+    expect(
+      client.url('/backups', { page: 2, search: '', type: undefined, status: 'verified' }),
+    ).toBe('https://x.test/wp-json/swbackupit/v1/backups?page=2&status=verified');
   });
 
   it('appends to a root that already has a query (plain permalinks)', () => {
-    const client = new ApiClient({ restRoot: 'https://x.test/?rest_route=/swbackupit/v1/', nonce: 'n' });
-    expect(client.url('jobs', { page: 1 })).toBe('https://x.test/?rest_route=/swbackupit/v1/jobs&page=1');
+    const client = new ApiClient({
+      restRoot: 'https://x.test/?rest_route=/swbackupit/v1/',
+      nonce: 'n',
+    });
+    expect(client.url('jobs', { page: 1 })).toBe(
+      'https://x.test/?rest_route=/swbackupit/v1/jobs&page=1',
+    );
   });
 
   it('adds the nonce as _wpnonce for download links', () => {
@@ -46,8 +55,13 @@ describe('ApiClient', () => {
   });
 
   it('normalises WP_Error bodies into ApiError', async () => {
-    const body = { code: 'swbi_invalid_param', message: 'Invalid', data: { status: 400, params: { name: 'Required' } } };
-    const client = makeClient((async () => jsonResponse(body, { status: 400 })) as unknown as typeof fetch);
+    const body = {
+      code: 'swbi_invalid_param',
+      message: 'Invalid',
+      data: { status: 400, params: { name: 'Required' } },
+    };
+    const client = makeClient((async () =>
+      jsonResponse(body, { status: 400 })) as unknown as typeof fetch);
     const error = await client.get('profiles').catch((e: unknown) => e);
     expect(error).toBeInstanceOf(ApiError);
     const api = error as ApiError;
@@ -58,7 +72,9 @@ describe('ApiClient', () => {
   });
 
   it('handles non-JSON error responses', async () => {
-    const client = makeClient((async () => new Response('<html>boom</html>', { status: 502 })) as unknown as typeof fetch);
+    const client = makeClient(
+      (async () => new Response('<html>boom</html>', { status: 502 })) as unknown as typeof fetch,
+    );
     const error = (await client.get('health').catch((e: unknown) => e)) as ApiError;
     expect(error.code).toBe('swbi_http_502');
     expect(error.status).toBe(502);
@@ -68,7 +84,9 @@ describe('ApiClient', () => {
     const down = makeClient((async () => {
       throw new TypeError('failed');
     }) as unknown as typeof fetch);
-    expect(((await down.get('health').catch((e: unknown) => e)) as ApiError).code).toBe('swbi_network');
+    expect(((await down.get('health').catch((e: unknown) => e)) as ApiError).code).toBe(
+      'swbi_network',
+    );
 
     const aborted = makeClient((async () => {
       throw new DOMException('x', 'AbortError');
@@ -81,7 +99,12 @@ describe('ApiClient', () => {
     let call = 0;
     const fetchMock = vi.fn(async () => {
       call += 1;
-      return jsonResponse({}, call === 1 ? { headers: { 'Content-Type': 'application/json', 'X-WP-Nonce': 'fresh' } } : {});
+      return jsonResponse(
+        {},
+        call === 1
+          ? { headers: { 'Content-Type': 'application/json', 'X-WP-Nonce': 'fresh' } }
+          : {},
+      );
     });
     const client = makeClient(fetchMock as unknown as typeof fetch);
     await client.get('health');
@@ -91,7 +114,9 @@ describe('ApiClient', () => {
   });
 
   it('returns null for empty 204 bodies', async () => {
-    const client = makeClient((async () => new Response(null, { status: 204 })) as unknown as typeof fetch);
+    const client = makeClient(
+      (async () => new Response(null, { status: 204 })) as unknown as typeof fetch,
+    );
     expect(await client.delete('profiles/1', { confirm: true })).toBeNull();
   });
 });
