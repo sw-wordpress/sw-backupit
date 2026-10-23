@@ -13,6 +13,8 @@ use SWBackupIt\Core\Support\Bytes;
 use SWBackupIt\Core\Support\ResourceBudget;
 use SWBackupIt\Restore\Backup\BackupSet;
 use SWBackupIt\Restore\Backup\Verifier;
+use SWBackupIt\Restore\Files\Comparator;
+use SWBackupIt\Restore\Files\ComparisonResult;
 use SWBackupIt\Restore\Files\OverwriteMode;
 use SWBackupIt\Restore\Files\Selection;
 use SWBackupIt\Restore\RestoreEngine;
@@ -41,8 +43,8 @@ final class RestoreCli
     {
         $args = new ArgumentParser(
             $argv,
-            ['target', 'confirm-target', 'state-dir', 'db-host', 'db-name', 'db-user', 'db-password-file', 'confirm-database', 'overwrite', 'format', 'db-port', 'db-socket', 'key', 'key-file'],
-            ['path', 'pattern'],
+            ['target', 'confirm-target', 'state-dir', 'db-host', 'db-name', 'db-user', 'db-password-file', 'confirm-database', 'overwrite', 'format', 'db-port', 'db-socket', 'key', 'key-file', 'new-prefix', 'mode'],
+            ['path', 'pattern', 'replace'],
         );
         $command = $args->positional[0] ?? 'help';
         $json = $args->string('format') === 'json';
@@ -53,6 +55,7 @@ final class RestoreCli
                 'verify' => $this->verify($args, $json),
                 'list' => $this->list($args),
                 'restore' => $this->restore($args, $json),
+                'compare' => $this->compare($args, $json),
                 'help', '--help' => $this->help(),
                 default => $this->usage('Unknown command: ' . $command),
             };
@@ -164,6 +167,9 @@ final class RestoreCli
             $args->flag('dry-run'),
             !$args->flag('skip-verify'),
             keys: $this->keys($args),
+            replacements: $this->replacements($args),
+            newTablePrefix: $args->string('new-prefix') !== '' ? $args->string('new-prefix') : null,
+            migrationDryRun: $args->flag('migration-dry-run'),
         );
         $engine = new RestoreEngine(new ConsoleLogger($this->stderr, $args->flag('verbose')));
         do {
@@ -191,6 +197,54 @@ final class RestoreCli
         }
 
         return $outcome->isSuccess() ? 0 : 1;
+    }
+
+    /**
+     * @return array<string, string>
+     */
+    private function replacements(ArgumentParser $args): array
+    {
+        $pairs = [];
+        foreach ($args->list('replace') as $pair) {
+            $position = strpos($pair, '=>');
+            if ($position === false || $position === 0) {
+                throw new \SWBackupIt\Core\Exception\ConfigurationException('--replace expects "old=>new" (e.g. --replace="https://old.example=>https://new.example/wp").');
+            }
+            $pairs[substr($pair, 0, $position)] = substr($pair, $position + 2);
+        }
+
+        return $pairs;
+    }
+
+    private function compare(ArgumentParser $args, bool $json): int
+    {
+        $target = $args->string('target');
+        if ($target === '' || !is_dir($target)) {
+            return $this->usage('--target must be an existing directory.');
+        }
+        $mode = $args->string('mode', Comparator::MODE_METADATA);
+        if (!in_array($mode, [Comparator::MODE_METADATA, Comparator::MODE_SHA256], true)) {
+            return $this->usage('--mode must be metadata or sha256.');
+        }
+        $set = BackupSet::open($this->backupArgument($args), $this->keys($args));
+        try {
+            $result = (new Comparator())->compare($set, $target, $mode, new Selection($args->list('path'), $args->list('pattern')));
+        } finally {
+            $set->close();
+        }
+        if ($json) {
+            $this->out(json_encode($result->toArray(), JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES) . "\n");
+
+            return 0;
+        }
+        foreach (ComparisonResult::CATEGORIES as $category) {
+            $this->out(sprintf("%-15s %d\n", $category, $result->counts[$category]));
+            foreach (array_slice($result->samples[$category], 0, 10) as $path) {
+                $this->out('    ' . $path . "\n");
+            }
+        }
+
+        return 0;
     }
 
     private function databaseConfig(ArgumentParser $args): ConnectionConfig
@@ -226,10 +280,12 @@ Usage:
   swbackupit-restore info    <backup-dir> [--format=json]
   swbackupit-restore verify  <backup-dir> [--deep] [--format=json]
   swbackupit-restore list    <backup-dir> [--path=wp-content/uploads] [--pattern='**/*.jpg']
+  swbackupit-restore compare <backup-dir> --target=/var/www/site [--mode=metadata|sha256] [--path=...] [--format=json]
   swbackupit-restore restore <backup-dir> --target=/var/www/site --confirm-target=/var/www/site
         [--db-host=localhost --db-name=NAME --db-user=USER --confirm-database=NAME]
         [--overwrite=always|never|if_different] [--path=...] [--pattern=...]
         [--no-files] [--no-database] [--keep-wp-config] [--skip-verify] [--dry-run] [--state-dir=DIR] [--format=json]
+        [--replace='https://old.example=>https://new.example/wp' ...] [--new-prefix=blog_] [--migration-dry-run]
         [--key=PASSPHRASE|base64:KEY | --key-file=FILE]      (encrypted backups; or env SWBI_KEY / SWBACKUPIT_KEY_<KEYID>)
 
 The database password is read from the SWBI_DB_PASSWORD environment variable or --db-password-file.

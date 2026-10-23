@@ -18,6 +18,8 @@ use SWBackupIt\Restore\Backup\Verifier;
 use SWBackupIt\Restore\Config\WpConfigEditor;
 use SWBackupIt\Restore\Files\FileRestorer;
 use SWBackupIt\Restore\Files\RestoreOptions;
+use SWBackupIt\Restore\Migration\DatabaseMigrator;
+use SWBackupIt\Restore\Migration\TablePrefixMigrator;
 use SWBackupIt\Restore\Sql\SqlImporter;
 use Throwable;
 
@@ -95,6 +97,15 @@ final class RestoreEngine
 
                             return new RestoreOutcome(RestoreOutcome::CONTINUE, 'database', [], $state);
                         }
+                    }
+                    $state['phase'] = 'migrate';
+                    $store->save($state);
+                } elseif ($phase === 'migrate') {
+                    $migrated = $this->migrate($request, $set, $state, $store, $budget);
+                    if (!$migrated) {
+                        $set->close();
+
+                        return new RestoreOutcome(RestoreOutcome::CONTINUE, 'migrate', [], $state);
                     }
                     $state['phase'] = 'config';
                     $store->save($state);
@@ -206,6 +217,41 @@ final class RestoreEngine
     }
 
     /**
+     * URL/path and table prefix migration (after the import). Resumable; see DatabaseMigrator.
+     *
+     * @param array<string, mixed> $state
+     * @return bool true when complete
+     */
+    private function migrate(RestoreRequest $request, BackupSet $set, array &$state, RestoreStateStore $store, ResourceBudget $budget): bool
+    {
+        $wanted = $request->replacements !== [] || $request->newTablePrefix !== null;
+        if (!$wanted || !$request->restoreDatabase || $request->database === null || !$set->manifest()->hasDatabase()) {
+            return true;
+        }
+        $pdo = ConnectionFactory::create($request->database);
+        $oldPrefix = (string) ($set->manifest()->section('source')['table_prefix'] ?? '');
+        $prefix = $oldPrefix;
+        if ($request->newTablePrefix !== null && $request->newTablePrefix !== $oldPrefix && !$request->migrationDryRun) {
+            if (($state['prefix_migrated'] ?? false) !== true) {
+                $count = (new TablePrefixMigrator($pdo))->migrate($oldPrefix, $request->newTablePrefix);
+                $state['prefix_migrated'] = true;
+                $store->save($state);
+                $this->logger->info('Table prefix migrated.', ['tables' => $count]);
+            }
+            $prefix = $request->newTablePrefix;
+        }
+        if ($request->replacements !== []) {
+            $result = (new DatabaseMigrator($pdo, $this->logger))->run($request->replacements, $prefix, [], $request->migrationDryRun, $budget);
+            $state['migration'] = $result->toArray();
+            $store->save($state);
+
+            return $result->finished;
+        }
+
+        return true;
+    }
+
+    /**
      * @return list<string> Warnings/notes for the user.
      */
     private function updateConfig(RestoreRequest $request, BackupSet $set, string $target): array
@@ -222,13 +268,16 @@ final class RestoreEngine
         }
         $db = $request->database;
         $host = $db->socket !== null ? $db->host . ':' . $db->socket : ($db->port !== 3306 ? $db->host . ':' . $db->port : $db->host);
-        $prefix = (string) ($set->manifest()->section('source')['table_prefix'] ?? '');
-        $changed = (new WpConfigEditor($path))->update([
-            'DB_NAME' => $db->name,
-            'DB_USER' => $db->user,
-            'DB_PASSWORD' => $db->password,
-            'DB_HOST' => $host,
-        ], $prefix !== '' ? $prefix : null);
+        $prefix = $request->newTablePrefix ?? (string) ($set->manifest()->section('source')['table_prefix'] ?? '');
+        $constants = ['DB_NAME' => $db->name, 'DB_USER' => $db->user, 'DB_PASSWORD' => $db->password, 'DB_HOST' => $host];
+        $source = $set->manifest()->section('source');
+        foreach (['WP_HOME' => 'home_url', 'WP_SITEURL' => 'site_url'] as $constant => $key) {
+            $old = (string) ($source[$key] ?? '');
+            if ($old !== '' && isset($request->replacements[$old])) {
+                $constants[$constant] = $request->replacements[$old];
+            }
+        }
+        $changed = (new WpConfigEditor($path))->update($constants, $prefix !== '' ? $prefix : null);
         $this->logger->info('wp-config.php updated.', ['changed' => $changed]);
 
         return $messages;
