@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace SWBackupIt\Restore\Backup;
 
 use SWBackupIt\Core\Archive\VolumeReader;
+use SWBackupIt\Core\Exception\CryptoException;
 use SWBackupIt\Core\Exception\IntegrityException;
 use SWBackupIt\Core\Exception\ManifestException;
 use ZipArchive;
@@ -22,8 +23,13 @@ final class Verifier
         $report = new VerificationReport();
         $manifest = $set->manifest();
 
+        if ($set->isLocalCopyRemoved()) {
+            $report->addError('The local data files were removed after upload; download the backup from a storage target first.');
+
+            return $report;
+        }
         if ($manifest->hasFiles()) {
-            $indexHash = is_file($set->indexPath()) ? hash_file('sha256', $set->indexPath()) : false;
+            $indexHash = is_file($set->storedIndexPath()) ? hash_file('sha256', $set->storedIndexPath()) : false;
             if ($indexHash === false || !hash_equals((string) $manifest->filesIndexSha256(), $indexHash)) {
                 $report->addError('The file index is missing or does not match the manifest checksum.');
             }
@@ -33,14 +39,18 @@ final class Verifier
         foreach ($manifest->volumes() as $volume) {
             $volumeEntries += $volume->entries;
             try {
-                $reader->verify($set->volumePath($volume->name), $volume);
+                if ($set->isEncrypted()) {
+                    $reader->verifyStored($set->storedVolumePath($volume->name), $volume);
+                } else {
+                    $reader->verify($set->volumePath($volume->name), $volume);
+                }
                 $report->volumesChecked++;
             } catch (IntegrityException $exception) {
                 $report->addError($exception->getMessage() . ' (' . $volume->name . ')');
             }
         }
         foreach ($manifest->databaseParts() as $part) {
-            $path = $set->databasePartPath((string) $part['name']);
+            $path = $set->storedDatabasePartPath((string) $part['name']);
             $hash = is_file($path) ? hash_file('sha256', $path) : false;
             if ($hash === false || !hash_equals((string) $part['sha256'], $hash)) {
                 $report->addError('Database part is missing or corrupt: ' . $part['name']);
@@ -48,10 +58,10 @@ final class Verifier
                 $report->databasePartsChecked++;
             }
         }
-        if ($manifest->hasFiles() && is_file($set->indexPath()) && $report->isOk()) {
+        if ($manifest->hasFiles() && $report->isOk() && (!$set->isEncrypted() || $set->hasKeys())) {
             try {
                 $this->verifyIndex($set, $report, $deep, $volumeEntries);
-            } catch (ManifestException $exception) {
+            } catch (ManifestException | CryptoException $exception) {
                 $report->addError($exception->getMessage());
             }
         }
@@ -63,8 +73,8 @@ final class Verifier
     {
         $maxVolume = count($set->manifest()->volumes());
         $references = 0;
-        /** @var array<int, ZipArchive> $zips */
-        $zips = [];
+        $zip = null;
+        $zipVolume = null;
         try {
             foreach ($set->indexReader()->read() as [$entry]) {
                 if ($entry['t'] !== 'f' || in_array($entry['st'] ?? 'ok', ['unreadable', 'vanished'], true)) {
@@ -83,7 +93,11 @@ final class Verifier
                     if (!$deep) {
                         continue;
                     }
-                    $zip = $zips[$volume] ??= $this->openZip($set, $volume);
+                    if ($zip === null || $zipVolume !== $volume) {
+                        $zip?->close();
+                        $zip = $this->openZip($set, $volume);
+                        $zipVolume = $volume;
+                    }
                     $stream = $zip->getStream((string) $chunk['a']);
                     if ($stream === false) {
                         $report->addError('Archive entry is missing: ' . $chunk['a']);
@@ -111,9 +125,7 @@ final class Verifier
                 }
             }
         } finally {
-            foreach ($zips as $zip) {
-                $zip->close();
-            }
+            $zip?->close();
         }
         if ($references !== $volumeEntries) {
             $report->addError(sprintf('Index (%d archive entries) and volumes (%d entries) are inconsistent.', $references, $volumeEntries));

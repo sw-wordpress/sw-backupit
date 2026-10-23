@@ -12,7 +12,9 @@
         "ext-zlib": "*",
         "dragonmantank/cron-expression": "^3.3",
         "league/flysystem": "^3.28",
+        "league/flysystem-aws-s3-v3": "^3.28",
         "league/flysystem-local": "^3.28",
+        "league/flysystem-sftp-v3": "^3.28",
         "maennchen/zipstream-php": "^3.1",
         "psr/log": "^3.0"
     },
@@ -38,7 +40,10 @@
     },
     "autoload-dev": {
         "psr-4": {
-            "SWBackupIt\\Tests\\": "tests/"
+            "SWBackupIt\\Tests\\Support\\": "tests/Support/",
+            "SWBackupIt\\Tests\\Unit\\": "tests/Unit/",
+            "SWBackupIt\\Tests\\Integration\\": "tests/Integration/",
+            "SWBackupIt\\Tests\\E2e\\": "tests/E2e/"
         }
     },
     "config": {

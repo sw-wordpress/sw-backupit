@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace SWBackupIt\Restore;
 
+use SWBackupIt\Core\Crypto\KeyProviderInterface;
 use SWBackupIt\Core\Database\ConnectionConfig;
 use SWBackupIt\Restore\Files\OverwriteMode;
 use SWBackupIt\Restore\Files\RestoreLimits;
@@ -35,6 +36,7 @@ final readonly class RestoreRequest
         public bool $dryRun = false,
         public bool $verifyFirst = true,
         public RestoreLimits $limits = new RestoreLimits(),
+        public ?KeyProviderInterface $keys = null,
     ) {
     }
 }

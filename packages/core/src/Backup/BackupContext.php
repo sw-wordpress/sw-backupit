@@ -6,6 +6,7 @@ namespace SWBackupIt\Core\Backup;
 
 use Closure;
 use PDO;
+use SWBackupIt\Core\Crypto\KeyProviderInterface;
 use SWBackupIt\Core\Database\ConnectionFactory;
 use SWBackupIt\Core\Domain\BackupProfile;
 use SWBackupIt\Core\Event\EventDispatcherInterface;
@@ -13,6 +14,7 @@ use SWBackupIt\Core\Exception\ConfigurationException;
 use SWBackupIt\Core\Job\Job;
 use SWBackupIt\Core\Log\JobLogger;
 use SWBackupIt\Core\Support\ClockInterface;
+use SWBackupIt\Core\Storage\StorageManager;
 use SWBackupIt\Core\Support\ResourceBudget;
 
 /**
@@ -36,6 +38,8 @@ final class BackupContext
         public readonly ClockInterface $clock,
         public readonly ResourceBudget $budget,
         private readonly Closure $commit,
+        public readonly ?KeyProviderInterface $keys = null,
+        public readonly ?StorageManager $storage = null,
     ) {
     }
 

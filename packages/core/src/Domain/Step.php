@@ -13,6 +13,7 @@ enum Step: string
     case Archive = 'archive';
     case Encrypt = 'encrypt';
     case VerifyLocal = 'verify_local';
+    case Manifest = 'manifest';
     case Upload = 'upload';
     case VerifyRemote = 'verify_remote';
     case Finalize = 'finalize';
@@ -22,7 +23,7 @@ enum Step: string
     public function status(): JobStatus
     {
         return match ($this) {
-            self::Preflight, self::Finalize => JobStatus::Preparing,
+            self::Preflight, self::Finalize, self::Manifest => JobStatus::Preparing,
             self::Scan => JobStatus::Scanning,
             self::Export => JobStatus::Exporting,
             self::Archive => JobStatus::Archiving,
@@ -41,15 +42,16 @@ enum Step: string
     {
         return match ($this) {
             self::Preflight => [0, 2],
-            self::Scan => [2, 10],
-            self::Export => [10, 30],
-            self::Archive => [30, 70],
-            self::Encrypt => [70, 75],
-            self::VerifyLocal => [75, 85],
-            self::Upload => [85, 93],
-            self::VerifyRemote => [93, 96],
-            self::Finalize => [96, 98],
-            self::Retention => [98, 99],
+            self::Scan => [2, 8],
+            self::Export => [8, 25],
+            self::Archive => [25, 60],
+            self::Encrypt => [60, 68],
+            self::VerifyLocal => [68, 76],
+            self::Manifest => [76, 78],
+            self::Upload => [78, 90],
+            self::VerifyRemote => [90, 95],
+            self::Finalize => [95, 97],
+            self::Retention => [97, 99],
             self::Notify => [99, 100],
         };
     }

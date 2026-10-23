@@ -11,17 +11,13 @@ use SWBackupIt\Core\Domain\BackupProfile;
 use SWBackupIt\Core\Domain\Step;
 use SWBackupIt\Core\Exception\IntegrityException;
 use SWBackupIt\Core\Manifest\Manifest;
-use SWBackupIt\Core\Scanner\FileIndexReader;
-use SWBackupIt\Core\Support\AtomicFile;
 
 /**
- * Writes the global manifest as the very last artifact. A backup without manifest.json is
- * by definition incomplete; the presence of a valid manifest marks it complete.
+ * Decides whether the backup counts as successful (PLAN.md §29): required storage targets confirmed according to the
+ * profile's success policy, local manifest valid. Cleans temporary data. Never turns a failed replication into success.
  */
 final class FinalizeStep implements BackupStepInterface
 {
-    public const GENERATOR_VERSION = '0.1.0';
-
     public function step(): Step
     {
         return Step::Finalize;
@@ -34,80 +30,53 @@ final class FinalizeStep implements BackupStepInterface
 
     public function run(BackupContext $context): StepOutcome
     {
-        $job = $context->job;
         $profile = $context->profile;
-        $archive = $job->checkpoint(Step::Archive);
-        $export = $job->checkpoint(Step::Export);
-
-        $files = null;
-        if ($profile->type->includesFiles()) {
-            $entries = 0;
-            $bytes = 0;
-            foreach ((new FileIndexReader($context->layout->indexPath()))->read() as [$entry]) {
-                $entries++;
-                $bytes += $entry['t'] === 'f' ? (int) $entry['s'] : 0;
+        $manifest = Manifest::read($context->layout->root());
+        $targets = $context->job->checkpoint(Step::VerifyRemote)['targets'] ?? [];
+        $verified = 0;
+        $failed = [];
+        foreach ($profile->storageTargetIds as $targetId) {
+            $status = (string) ($targets[(string) $targetId]['status'] ?? 'pending');
+            if ($status === 'verified') {
+                $verified++;
+            } else {
+                $failed[] = $targetId;
             }
-            $scan = $job->checkpoint(Step::Scan);
-            if ($entries !== (int) ($scan['count'] ?? -1)) {
-                throw new IntegrityException('File index entry count differs from the inventory.', ['index' => $entries, 'inventory' => (int) ($scan['count'] ?? 0)]);
-            }
-            $indexHash = hash_file('sha256', $context->layout->indexPath());
-            if ($indexHash === false) {
-                throw new IntegrityException('Cannot hash the file index.');
-            }
-            $files = ['index' => 'files.ndjson', 'sha256' => $indexHash, 'count' => $entries, 'bytes' => $bytes];
         }
-
-        $database = null;
-        if ($profile->type->includesDatabase()) {
-            $database = [
-                'parts' => $export['parts'] ?? [],
-                'tables' => array_map(static fn (array $table): array => $table + ['exported_rows' => $export['table_rows'][$table['name']] ?? null], $export['tables'] ?? []),
-                'consistent_snapshot' => $profile->dbConsistentSnapshot,
-                'table_prefix' => $context->source->tablePrefix,
-                'include_foreign_tables' => $profile->dbIncludeForeignTables,
-            ];
+        $required = match ($profile->successPolicy) {
+            'all' => count($profile->storageTargetIds),
+            'any' => min(1, count($profile->storageTargetIds)),
+            default => 0,
+        };
+        foreach ($failed as $targetId) {
+            $context->logger->warning('Storage target does not hold a verified copy.', ['target' => $targetId]);
         }
-
-        $snapshot = $profile->toArray();
-        $data = [
-            'format' => Manifest::FORMAT,
-            'format_version' => Manifest::FORMAT_VERSION,
-            'backup_id' => $job->backupId,
-            'job_id' => $job->id,
-            'created_at' => ($job->startedAt ?? $job->createdAt)->format('Y-m-d\TH:i:s\Z'),
-            'finished_at' => $context->clock->now()->format('Y-m-d\TH:i:s\Z'),
-            'type' => $profile->type->value,
-            'status' => 'complete',
-            'generator' => ['name' => 'swbackupit', 'version' => self::GENERATOR_VERSION, 'php' => PHP_VERSION],
-            'source' => [
-                'site_url' => $context->source->siteUrl,
-                'home_url' => $context->source->homeUrl,
-                'wp_version' => $context->source->wpVersion,
-                'table_prefix' => $context->source->tablePrefix,
-                'root_path' => $context->source->rootPath,
-                'multisite' => $context->source->multisite,
-                'extra' => $context->source->extra,
-            ],
-            'profile' => $snapshot,
-            'parent' => null,
-            'files' => $files,
-            'volumes' => $archive['volumes'] ?? [],
-            'database' => $database,
-            'encryption' => null,
-            'checksums' => $profile->checksums,
-            'volume_size_bytes' => $profile->volumeSizeBytes,
-            'warnings_count' => $job->warningsCount,
-        ];
-        // Validate before publishing: never write a manifest we could not read ourselves.
-        Manifest::fromArray($data);
-        AtomicFile::writeJson($context->layout->manifestPath(), $data);
-        $hash = hash_file('sha256', $context->layout->manifestPath());
-        $job->setCheckpoint(Step::Finalize, ['manifest_sha256' => $hash]);
-        $context->commit();
+        if ($verified < $required) {
+            throw new IntegrityException(
+                sprintf('Success policy "%s" not met: %d of %d required storage targets hold a verified copy.', $profile->successPolicy, $verified, $required),
+                ['policy' => $profile->successPolicy],
+            );
+        }
         $context->layout->removeWork();
-        $context->logger->info('Backup finalized.', ['backup_id' => $job->backupId]);
+        if ($verified > 0 && (bool) ($profile->retention['delete_local_after_upload'] ?? false)) {
+            $this->deleteLocalCopy($context, $manifest);
+        }
+        $context->logger->info('Backup finalized.', ['verified_targets' => $verified, 'backup_id' => $manifest->backupId()]);
 
         return StepOutcome::Done;
+    }
+
+    /** Keeps only the manifest locally; the data lives on the verified remote targets. */
+    private function deleteLocalCopy(BackupContext $context, Manifest $manifest): void
+    {
+        foreach ($manifest->volumes() as $volume) {
+            @unlink($context->layout->volumesDirectory() . '/' . $volume->name);
+        }
+        foreach ($manifest->databaseParts() as $part) {
+            @unlink($context->layout->databaseDirectory() . '/' . $part['name']);
+        }
+        @unlink($context->layout->root() . '/' . $manifest->indexFileName());
+        file_put_contents($context->layout->root() . '/.local-copy-removed', "Data files were removed after verified upload; restore from a storage target.\n");
+        $context->logger->notice('Local copy removed after verified upload (manifest kept).');
     }
 }

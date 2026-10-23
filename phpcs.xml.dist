@@ -14,7 +14,7 @@
     <file>packages/restore/src</file>
     <file>packages/restore/bin</file>
     <file>tests</file>
-    <exclude-pattern>*/tests/wp/vendor/*</exclude-pattern>
+    <exclude-pattern>*/tests/wp/*</exclude-pattern>
     <rule ref="PSR12"/>
     <rule ref="Generic.Files.LineLength">
         <properties>

@@ -41,6 +41,22 @@ final class VolumeReader
     }
 
     /**
+     * Verifies size and checksum of a stored volume without opening it (used for encrypted volumes).
+     *
+     * @throws IntegrityException
+     */
+    public function verifyStored(string $path, VolumeInfo $info): void
+    {
+        if (!is_file($path) || filesize($path) !== $info->size) {
+            throw new IntegrityException('Archive volume is missing or has an unexpected size.', ['volume' => $info->name]);
+        }
+        $hash = hash_file('sha256', $path);
+        if ($hash === false || !hash_equals($info->sha256, $hash)) {
+            throw new IntegrityException('Archive volume checksum mismatch.', ['volume' => $info->name]);
+        }
+    }
+
+    /**
      * Opens a volume for reading entries.
      */
     public function open(string $path): ZipArchive

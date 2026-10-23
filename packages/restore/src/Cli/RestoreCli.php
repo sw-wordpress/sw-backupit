@@ -4,6 +4,9 @@ declare(strict_types=1);
 
 namespace SWBackupIt\Restore\Cli;
 
+use SWBackupIt\Core\Crypto\EnvironmentKeyProvider;
+use SWBackupIt\Core\Crypto\KeyProviderInterface;
+use SWBackupIt\Core\Crypto\StaticKeyProvider;
 use SWBackupIt\Core\Database\ConnectionConfig;
 use SWBackupIt\Core\Exception\SwbiException;
 use SWBackupIt\Core\Support\Bytes;
@@ -38,7 +41,7 @@ final class RestoreCli
     {
         $args = new ArgumentParser(
             $argv,
-            ['target', 'confirm-target', 'state-dir', 'db-host', 'db-name', 'db-user', 'db-password-file', 'confirm-database', 'overwrite', 'format', 'db-port', 'db-socket'],
+            ['target', 'confirm-target', 'state-dir', 'db-host', 'db-name', 'db-user', 'db-password-file', 'confirm-database', 'overwrite', 'format', 'db-port', 'db-socket', 'key', 'key-file'],
             ['path', 'pattern'],
         );
         $command = $args->positional[0] ?? 'help';
@@ -56,6 +59,21 @@ final class RestoreCli
         } catch (SwbiException $exception) {
             return $this->fail($exception->getMessage(), $json);
         }
+    }
+
+    private function keys(ArgumentParser $args): KeyProviderInterface
+    {
+        $value = $args->string('key');
+        $file = $args->string('key-file');
+        if ($file !== '') {
+            $contents = is_file($file) ? file_get_contents($file) : false;
+            $value = $contents === false ? '' : rtrim($contents, "\r\n");
+        }
+        if ($value === '' && is_string(getenv('SWBI_KEY')) && getenv('SWBI_KEY') !== '') {
+            $value = (string) getenv('SWBI_KEY');
+        }
+
+        return $value !== '' ? new StaticKeyProvider($value) : new EnvironmentKeyProvider();
     }
 
     private function info(ArgumentParser $args, bool $json): int
@@ -89,7 +107,7 @@ final class RestoreCli
 
     private function verify(ArgumentParser $args, bool $json): int
     {
-        $report = (new Verifier())->verify(BackupSet::open($this->backupArgument($args)), $args->flag('deep'));
+        $report = (new Verifier())->verify(BackupSet::open($this->backupArgument($args), $this->keys($args)), $args->flag('deep'));
         if ($json) {
             $this->out(json_encode($report->toArray(), JSON_PRETTY_PRINT) . "\n");
         } elseif ($report->isOk()) {
@@ -105,7 +123,7 @@ final class RestoreCli
 
     private function list(ArgumentParser $args): int
     {
-        $set = BackupSet::open($this->backupArgument($args));
+        $set = BackupSet::open($this->backupArgument($args), $this->keys($args));
         $selection = new Selection($args->list('path'), $args->list('pattern'));
         foreach ($set->indexReader()->read() as [$entry]) {
             if ($selection->matches((string) $entry['p'])) {
@@ -145,6 +163,7 @@ final class RestoreCli
             new Selection($args->list('path'), $args->list('pattern')),
             $args->flag('dry-run'),
             !$args->flag('skip-verify'),
+            keys: $this->keys($args),
         );
         $engine = new RestoreEngine(new ConsoleLogger($this->stderr, $args->flag('verbose')));
         do {
@@ -211,6 +230,7 @@ Usage:
         [--db-host=localhost --db-name=NAME --db-user=USER --confirm-database=NAME]
         [--overwrite=always|never|if_different] [--path=...] [--pattern=...]
         [--no-files] [--no-database] [--keep-wp-config] [--skip-verify] [--dry-run] [--state-dir=DIR] [--format=json]
+        [--key=PASSPHRASE|base64:KEY | --key-file=FILE]      (encrypted backups; or env SWBI_KEY / SWBACKUPIT_KEY_<KEYID>)
 
 The database password is read from the SWBI_DB_PASSWORD environment variable or --db-password-file.
 Destructive actions need --confirm-target (the canonical target path) and --confirm-database (the database name).

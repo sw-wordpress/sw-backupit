@@ -56,7 +56,7 @@ final class Manifest
         }
         $files = $data['files'] ?? null;
         if ($files !== null) {
-            if (!is_array($files) || !isset($files['index'], $files['sha256']) || $files['index'] !== 'files.ndjson') {
+            if (!is_array($files) || !isset($files['index'], $files['sha256']) || !in_array($files['index'], ['files.ndjson', 'files.ndjson.swbe'], true)) {
                 throw new ManifestException('Manifest file index description is invalid.');
             }
         }
@@ -163,6 +163,14 @@ final class Manifest
         $value = $this->data[$name] ?? [];
 
         return is_array($value) ? $value : [];
+    }
+
+    /** Stored (possibly encrypted) file name of the index. */
+    public function indexFileName(): string
+    {
+        $files = $this->data['files'] ?? null;
+
+        return is_array($files) ? (string) $files['index'] : 'files.ndjson';
     }
 
     public function filesIndexSha256(): ?string

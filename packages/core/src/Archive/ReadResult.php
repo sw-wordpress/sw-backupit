@@ -12,6 +12,8 @@ final class ReadResult
     public int $bytes = 0;
     private HashContext $hash;
     private HashContext $segment;
+    /** @var (callable(int): void)|null Invoked with the number of bytes of every read. */
+    public $progress = null;
 
     public function __construct(?HashContext $hash = null)
     {
@@ -39,6 +41,9 @@ final class ReadResult
     public function update(string $data): void
     {
         $this->bytes += strlen($data);
+        if ($this->progress !== null) {
+            ($this->progress)(strlen($data));
+        }
         hash_update($this->hash, $data);
         hash_update($this->segment, $data);
     }

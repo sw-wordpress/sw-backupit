@@ -46,8 +46,9 @@ final class RestoreEngine
         $store = new RestoreStateStore($request->stateDirectory);
         $state = $store->load();
         $phase = (string) ($state['phase'] ?? 'start');
+        $set = null;
         try {
-            $set = BackupSet::open($request->backupDirectory);
+            $set = BackupSet::open($request->backupDirectory, $request->keys, rtrim($request->stateDirectory, '/') . '/decrypted');
             $target = $this->confirmTarget($request, $set);
             if ($phase === 'start') {
                 $this->events->dispatch(Events::BEFORE_RESTORE, ['backup_id' => $set->manifest()->backupId(), 'target' => $target]);
@@ -79,6 +80,7 @@ final class RestoreEngine
                         }
                         if (!$result->finished) {
                             $store->save($state);
+                            $set->close();
 
                             return new RestoreOutcome(RestoreOutcome::CONTINUE, 'files', [], $state);
                         }
@@ -89,6 +91,8 @@ final class RestoreEngine
                     if ($request->restoreDatabase && $set->manifest()->hasDatabase() && !$request->dryRun) {
                         $done = $this->importDatabase($request, $set, $state, $store, $budget, $onProgress);
                         if (!$done) {
+                            $set->close();
+
                             return new RestoreOutcome(RestoreOutcome::CONTINUE, 'database', [], $state);
                         }
                     }
@@ -105,10 +109,12 @@ final class RestoreEngine
             }
             $this->events->dispatch(Events::AFTER_RESTORE, ['backup_id' => $set->manifest()->backupId(), 'target' => $target]);
             $summary = $state;
+            $set->close();
             $store->clear();
 
             return new RestoreOutcome(RestoreOutcome::COMPLETED, 'done', $state['messages'] ?? [], $summary);
         } catch (Throwable $throwable) {
+            $set?->close();
             $message = $throwable instanceof SwbiException ? $throwable->getMessage() : 'Unexpected restore error.';
             $this->logger->error($message, ['exception' => $throwable::class]);
             $this->events->dispatch(Events::RESTORE_FAILED, ['error' => $message]);
