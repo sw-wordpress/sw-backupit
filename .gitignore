@@ -10,3 +10,6 @@
 .phpcs.cache
 *.log
 .env
+.phpstan.cache/
+.phpcs-wp.cache
+/tests/wp/vendor/
