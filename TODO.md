@@ -3,20 +3,22 @@
 See `docs/implementation-plan.md` for context. `[x]` items are mirrored in `DONE.md`.
 
 ## Phase 1 – Core / MVP
-- [x] Repo, composer, tooling skeleton
-- [ ] Core domain model (enums, profile, job, state machine)
-- [ ] Support layer (path guard, atomic file writes, resource budget)
-- [ ] File scanner + rules + NDJSON index
-- [ ] Database exporter (streaming, resumable)
-- [ ] ZIP volume writer/reader/verifier (ZIP64, chunking)
-- [ ] Manifest manager v1
-- [ ] Backup engine + job runner (checkpoints, lease, pause/cancel)
-- [ ] Standalone restore CLI (verify, extract, DB import, wp-config)
-- [ ] Restore web wizard (token auth)
-- [ ] WP adapter: bootstrap, schema, repositories, REST, scheduler, WP-CLI
-- [ ] Admin SPA (Vue/Quasar) + build into plugin ZIP
-- [ ] E2E test: backup → wipe → restore
-- [ ] Docs (user guide, architecture, backup format, security, wp-cli, development)
+- [x] Repo, composer, tooling (PHPUnit, PHPStan L8, PHPCS PSR-12 + WPCS)
+- [x] Core domain model, job state machine, repositories (file + wpdb)
+- [x] Support layer (path guard, atomic writes, resource budget)
+- [x] File scanner (resumable, canonical order), rules
+- [x] Database exporter (streaming, resumable, optional consistent snapshot)
+- [x] ZIP64 volumes, chunking of huge files, verification
+- [x] Manifest v1 + file index
+- [x] Backup runner (checkpoints, lease, pause/cancel/retry)
+- [x] Standalone restore engine + CLI (verify, list, restore, selective, dry-run)
+- [x] WP adapter: bootstrap, schema, repositories, REST, scheduler, WP-CLI
+- [x] Admin SPA (Vue/Quasar) built to assets/admin
+- [x] E2E backup → wipe → restore, security and reliability tests
+- [x] Docs (user guide, architecture, backup format, security, wp-cli, development)
+- [ ] Restore web wizard (token auth) – scheduled with Phase 2
+- [ ] Add docblocks to all adapter methods (documented WPCS exception, `phpcs-wordpress.xml.dist`)
+- [ ] Adapt SPA to final API (real phase names, schedule weekday/monthday, retry, target_path) – after Phase 2 API is complete
 
 ## Phase 2 – Storage & Recovery
 - [ ] Flysystem storage manager, local/SFTP/S3, capability interfaces
