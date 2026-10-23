@@ -62,9 +62,9 @@ final class VolumeWriter
     /**
      * Adds a byte range of a local file as one archive entry and returns size/hash of what was read.
      */
-    public function addFileRange(string $entryName, string $absolutePath, int $offset, ?int $length, int $mtime, int $fullSize): ReadResult
+    public function addFileRange(string $entryName, string $absolutePath, int $offset, ?int $length, int $mtime, int $fullSize, ?ReadResult $result = null): ReadResult
     {
-        $result = new ReadResult();
+        $result ??= new ReadResult();
         try {
             $stream = RangeStream::open($absolutePath, $offset, $length, $result);
             try {
