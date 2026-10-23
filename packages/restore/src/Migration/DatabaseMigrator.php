@@ -43,7 +43,7 @@ final class DatabaseMigrator
         $tables = $tables !== [] ? $tables : $this->tables($prefix);
         $progress = $dryRun ? [] : $this->loadProgress();
         $startIndex = (int) ($progress['table_index'] ?? 0);
-        $cursor = is_array($progress['pk'] ?? null) ? $progress['pk'] : null;
+        $cursor = is_array($progress['pk'] ?? null) ? array_values(array_map('strval', $progress['pk'])) : null;
 
         for ($index = $startIndex; $index < count($tables); $index++) {
             $table = $tables[$index];

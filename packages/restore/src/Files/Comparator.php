@@ -43,32 +43,41 @@ final class Comparator
             (new FileScanner($localRoot, $rules))->scan($inventory, [], ResourceBudget::unlimited());
             $backup = $set->indexReader()->read();
             $local = (new FileIndexReader($inventory))->read();
-            $b = $backup->current();
-            $l = $local->current();
+            $current = static fn (\Generator $generator): ?array => $generator->valid() ? $generator->current() : null;
+            $b = $current($backup);
+            $l = $current($local);
             while ($b !== null || $l !== null) {
-                $bPath = $b === null ? null : (string) $b[0]['p'];
-                $lPath = $l === null ? null : (string) $l[0]['p'];
-                $order = $bPath === null ? 1 : ($lPath === null ? -1 : PathOrder::compare($bPath, $lPath));
-                if ($order < 0) {
-                    if ($selection->matches((string) $bPath)) {
-                        $result->add($this->isRestorable($b[0]) ? 'only_in_backup' : 'incomparable', (string) $bPath);
-                    }
-                    $backup->next();
-                    $b = $backup->valid() ? $backup->current() : null;
-                } elseif ($order > 0) {
-                    if ($selection->matches((string) $lPath)) {
-                        $result->add('only_local', (string) $lPath);
-                    }
-                    $local->next();
-                    $l = $local->valid() ? $local->current() : null;
+                $order = 0;
+                if ($b === null) {
+                    $order = 1;
+                } elseif ($l === null) {
+                    $order = -1;
                 } else {
-                    if ($selection->matches((string) $bPath)) {
-                        $result->add($this->classify($b[0], $l[0], $localRoot, $mode), (string) $bPath);
+                    $order = PathOrder::compare((string) $b[0]['p'], (string) $l[0]['p']);
+                }
+                if ($order < 0) {
+                    $path = (string) ($b[0]['p'] ?? '');
+                    if ($selection->matches($path)) {
+                        $result->add($this->isRestorable($b[0] ?? []) ? 'only_in_backup' : 'incomparable', $path);
+                    }
+                    $backup->next();
+                    $b = $current($backup);
+                } elseif ($order > 0) {
+                    $path = (string) ($l[0]['p'] ?? '');
+                    if ($selection->matches($path)) {
+                        $result->add('only_local', $path);
+                    }
+                    $local->next();
+                    $l = $current($local);
+                } else {
+                    $path = (string) ($b[0]['p'] ?? '');
+                    if ($selection->matches($path)) {
+                        $result->add($this->classify($b[0] ?? [], $l[0] ?? [], $localRoot, $mode), $path);
                     }
                     $backup->next();
                     $local->next();
-                    $b = $backup->valid() ? $backup->current() : null;
-                    $l = $local->valid() ? $local->current() : null;
+                    $b = $current($backup);
+                    $l = $current($local);
                 }
             }
         } finally {

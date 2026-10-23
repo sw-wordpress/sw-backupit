@@ -6,6 +6,7 @@ namespace SWBackupIt\Restore\Migration;
 
 use PDO;
 use SWBackupIt\Core\Database\DatabaseExporter;
+use SWBackupIt\Core\Database\PdoHelper;
 use SWBackupIt\Core\Exception\ConfigurationException;
 
 /**
@@ -32,7 +33,7 @@ final class TablePrefixMigrator
             return 0;
         }
         $tables = [];
-        foreach ($this->pdo->query('SHOW TABLES')->fetchAll(PDO::FETCH_NUM) as $row) {
+        foreach (PdoHelper::query($this->pdo, 'SHOW TABLES')->fetchAll(PDO::FETCH_NUM) as $row) {
             $name = (string) $row[0];
             if (str_starts_with($name, $oldPrefix)) {
                 $tables[] = $name;

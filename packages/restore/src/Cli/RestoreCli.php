@@ -20,6 +20,7 @@ use SWBackupIt\Restore\Files\Selection;
 use SWBackupIt\Restore\RestoreEngine;
 use SWBackupIt\Restore\RestoreOutcome;
 use SWBackupIt\Restore\RestoreRequest;
+use SWBackupIt\Restore\Web\WebSetup;
 
 /**
  * Standalone restore command line (no WordPress, no WP-CLI).
@@ -43,8 +44,8 @@ final class RestoreCli
     {
         $args = new ArgumentParser(
             $argv,
-            ['target', 'confirm-target', 'state-dir', 'db-host', 'db-name', 'db-user', 'db-password-file', 'confirm-database', 'overwrite', 'format', 'db-port', 'db-socket', 'key', 'key-file', 'new-prefix', 'mode'],
-            ['path', 'pattern', 'replace'],
+            ['target', 'confirm-target', 'state-dir', 'db-host', 'db-name', 'db-user', 'db-password-file', 'confirm-database', 'overwrite', 'format', 'db-port', 'db-socket', 'key', 'key-file', 'new-prefix', 'mode', 'app-dir', 'backups', 'ttl', 'allow-target'],
+            ['path', 'pattern', 'replace', 'allow-target'],
         );
         $command = $args->positional[0] ?? 'help';
         $json = $args->string('format') === 'json';
@@ -56,6 +57,7 @@ final class RestoreCli
                 'list' => $this->list($args),
                 'restore' => $this->restore($args, $json),
                 'compare' => $this->compare($args, $json),
+                'web-init' => $this->webInit($args),
                 'help', '--help' => $this->help(),
                 default => $this->usage('Unknown command: ' . $command),
             };
@@ -247,6 +249,16 @@ final class RestoreCli
         return 0;
     }
 
+    private function webInit(ArgumentParser $args): int
+    {
+        $app = $args->string('app-dir', dirname(__DIR__, 2));
+        $token = WebSetup::initialize($app, $args->string('backups'), (int) $args->string('ttl', '3600'), null, $args->list('allow-target'));
+        $this->out("Web restore wizard initialised in {$app}.\nOne-time token (shown only now, valid " . intdiv((int) $args->string('ttl', '3600'), 60) . " minutes):\n\n    {$token}\n\n");
+        $this->out("Open the wizard in your browser (over HTTPS if possible). It locks itself after a successful restore.\n");
+
+        return 0;
+    }
+
     private function databaseConfig(ArgumentParser $args): ConnectionConfig
     {
         $password = getenv('SWBI_DB_PASSWORD');
@@ -280,6 +292,7 @@ Usage:
   swbackupit-restore info    <backup-dir> [--format=json]
   swbackupit-restore verify  <backup-dir> [--deep] [--format=json]
   swbackupit-restore list    <backup-dir> [--path=wp-content/uploads] [--pattern='**/*.jpg']
+  swbackupit-restore web-init --backups=/path/to/backups [--app-dir=DIR] [--ttl=3600] [--allow-target=/var/www]   (prepares the web wizard)
   swbackupit-restore compare <backup-dir> --target=/var/www/site [--mode=metadata|sha256] [--path=...] [--format=json]
   swbackupit-restore restore <backup-dir> --target=/var/www/site --confirm-target=/var/www/site
         [--db-host=localhost --db-name=NAME --db-user=USER --confirm-database=NAME]

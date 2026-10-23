@@ -1,0 +1,5 @@
+# Deny direct access to internals; only index.php is a public entry point.
+<FilesMatch "^(config\.php|.*\.json)$">
+    Require all denied
+</FilesMatch>
+Options -Indexes
