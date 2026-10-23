@@ -1,0 +1,29 @@
+#!/usr/bin/env php
+<?php
+
+declare(strict_types=1);
+
+/**
+ * Standalone restore CLI. Works without WordPress and without WP-CLI.
+ * Autoloader lookup: monorepo vendor dir or the self-contained restore distribution.
+ */
+
+if (PHP_SAPI !== 'cli') {
+    exit(1);
+}
+$candidates = [
+    __DIR__ . '/../vendor/autoload.php',
+    __DIR__ . '/../../../vendor/autoload.php',
+];
+foreach ($candidates as $candidate) {
+    if (is_file($candidate)) {
+        require $candidate;
+        break;
+    }
+}
+if (!class_exists(\SWBackupIt\Restore\Cli\RestoreCli::class)) {
+    fwrite(STDERR, "Autoloader not found. Run composer install or use the restore distribution.\n");
+    exit(2);
+}
+
+exit((new \SWBackupIt\Restore\Cli\RestoreCli())->run(array_slice($argv, 1)));
