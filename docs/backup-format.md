@@ -79,6 +79,36 @@ and UTC time zone. Binary columns are hex literals, text is escaped by the drive
   It cannot be resumed (a crash restarts the export) and ignores the time budget, so use it from the CLI.
 * Tables without primary key are paged with LIMIT/OFFSET (unstable under concurrent writes).
 
+## Encryption (SWBE1)
+
+Optional client side encryption of volumes, database parts and the file index (the manifest stays readable and contains no
+secrets: only `encryption.key_id`, cipher and KDF names). Each file `X` becomes `X.swbe`:
+
+```
+"SWBE" | version(1) | kdf(1: 0 raw key, 1 argon2id) | reserved(0) | keyIdLen(1) | keyId
+       | [salt(16) | opsLimit u32 | memLimitKiB u32]   (kdf = 1)
+       | secretstream header (24)
+then repeated: u32 big endian ciphertext length | ciphertext   (1 MiB plaintext per chunk)
+```
+
+* Cipher: libsodium `crypto_secretstream_xchacha20poly1305` (authenticated, streaming, constant memory).
+* The complete header is bound to every chunk as additional data; the last chunk carries the FINAL tag, so truncation,
+  reordering, header tampering and trailing data fail authentication. A wrong key fails on the first chunk and no plaintext
+  file is created.
+* Keys: a random 32 byte key (`base64:…`) or a passphrase stretched with Argon2id (default 3 ops / 64 MiB; parameters live in
+  the header and are bounded on read so a malicious file cannot demand unbounded resources).
+* Checksums in the manifest refer to the stored (encrypted) files, so integrity can be verified **without any key**.
+* The encrypt step proves every encrypted file by a decrypt round trip against the plain checksum before the plain file is deleted.
+* Key management is separate from the backup: keys come from a `SWBACKUPIT_KEY_<ID>` constant/environment variable or are stored
+  (encrypted) in the options table; generated keys are shown once and must be stored by the user, because a backup must not depend
+  on a secret that only exists in the database it protects.
+
+## Upload layout on storage targets
+
+`<prefix>/<backup-id>/{volumes/*, database/*, files.ndjson[.swbe], manifest.json}`; the manifest is uploaded last, so a remote
+directory without manifest is an incomplete upload. Objects are uploaded under a temporary name and renamed (S3: atomic PUT /
+multipart completion). S3 objects carry the SHA-256 as metadata so verification is a HEAD request.
+
 ## Compatibility
 
 Every format version needs at least one automated restore compatibility test (`tests/E2e`, `tests/Integration`).

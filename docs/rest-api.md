@@ -161,3 +161,39 @@ Job:
   "pre_update_backup": { "core": false, "plugins": false, "themes": false, "profile_id": null }
 }
 ```
+
+---
+
+# Implementation notes (authoritative – the backend implements exactly this)
+
+## Jobs
+* `phase` is the current **step** id: `preflight | scan | export | archive | encrypt | verify_local | manifest | upload | verify_remote | finalize | retention | notify` (or `null` before the first step). `status` is the state machine value.
+* Extra fields: `trigger` (`manual|schedule|cli`), `next_retry_at`.
+* `POST /jobs/{id}/retry` retries a `failed` job from its checkpoints. `pause|resume|cancel|retry|tick` return the updated Job; invalid transitions return `400 swbi_error`, running parallel backups `409 swbi_conflict`.
+* `GET /jobs?status=running` = all non-terminal states incl. `paused`/`retry_waiting`; `finished` = completed/failed/cancelled. `per_page` max 100.
+* Job logs: `after` is the last seen `id`; the server caps a response at `limit` (max 1000) from that position (oldest first).
+
+## Schedules
+Weekly/monthly schedules additionally use `weekday` (0 = Sunday … 6) and `monthday` (1–31, clamped to the month length); all schedules use `time_of_day` (`HH:MM`) and `timezone`. `hourly` uses the minute of `time_of_day`. `POST /schedules/{id}/run` returns the started Job (`409` if another backup runs).
+
+## Backups
+* `GET /backups/{id}/download?part=volume|manifest|index|database&volume=N&_wpnonce=<rest nonce>` streams one file (`volume` is the 1-based number for `volume` and `database`).
+* `POST /backups/{id}/compare` body `{ "mode": "metadata|sha256" }` → `{ only_in_backup, only_local, modified, identical, incomparable, samples: { <category>: [path…] } }` (synchronous; use the CLI for very large sites).
+* `POST /backups/{id}/restore/prepare` → `{ restore_url, token, token_expires_at, target_path, warnings[] }`. **The token is shown once.** The restore itself runs in the standalone web wizard behind `restore_url` (or the restore CLI); `POST /backups/{id}/restore` always answers `501 swbi_use_wizard`.
+* `POST /backups/{id}/protect` body `{ "protected": true|false }` returns the Backup. `DELETE /backups/{id}?confirm=<id>` needs the exact id; protected backups answer `409`.
+* Backup `status`: `complete | verified | corrupt`.
+
+## Storage targets
+Config keys: `local`: `path`; `sftp`: `host, port, username, root, host_fingerprint, trust_unknown_host, allow_private_network, timeout`; `s3`: `endpoint, region, bucket, prefix, path_style, allow_private_network`. Credentials (write-only): `sftp`: `password, private_key, passphrase`; `s3`: `access_key, secret_key`. Updating without `credentials` keeps the stored secrets.
+* `GET …/{id}/discover` → list envelope of `{ backup_id, created_at, size_bytes, type, profile_name, already_imported, error }`.
+* `POST …/{id}/import` body `{ "backup_ids": [uuid…], "download": false }` → `{ "imported": n }` (registers backups in the catalog; with `download` the data is fetched into the local staging area).
+* `DELETE` answers `409` while a profile uses the target. Private/loopback endpoints are refused unless `allow_private_network` is set (SSRF protection).
+
+## Encryption keys
+`GET /encryption-keys` → `{ items: [{ id, source }] }` (never secrets). `POST /encryption-keys` body `{ "id": "prod", "passphrase": "optional" }` → `201 { id, secret, warning }` – the **secret is returned once**; without a passphrase a random 256 bit key is generated. `DELETE /encryption-keys/{id}`. Profiles reference keys through `encryption: { enabled, key_id }`.
+
+## Profile additions
+`db_consistent_snapshot` (bool, single-invocation transactional snapshot, InnoDB only), `retention.delete_local_after_upload` (bool), `success_policy` `all|any|local_only`.
+
+## Error codes
+`swbi_invalid_param` (400, with `data.params`), `swbi_confirmation_required` (400), `swbi_not_found` (404), `swbi_conflict` (409), `swbi_not_implemented`/`swbi_use_wizard` (501), `swbi_storage_error` (502), `swbi_vetoed`/`swbi_integrity`/`swbi_transient`… appear in `job.error.code`.
