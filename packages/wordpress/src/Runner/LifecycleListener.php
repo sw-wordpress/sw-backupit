@@ -16,6 +16,7 @@ use SWBackupIt\Core\Manifest\Manifest;
 use SWBackupIt\WordPress\Repository\BackupRepository;
 use SWBackupIt\WordPress\Repository\ScheduleCalculator;
 use SWBackupIt\WordPress\Repository\ScheduleRepository;
+use SWBackupIt\WordPress\Support\Notifier;
 use SWBackupIt\WordPress\Support\Settings;
 use SWBackupIt\WordPress\Support\Time;
 
@@ -24,7 +25,8 @@ final class LifecycleListener {
 	public function __construct(
 		private readonly JobRepositoryInterface $jobs,
 		private readonly BackupRepository $backups,
-		private readonly ScheduleRepository $schedules
+		private readonly ScheduleRepository $schedules,
+		private readonly ?Notifier $notifier = null
 	) {
 	}
 
@@ -40,6 +42,36 @@ final class LifecycleListener {
 		$job = $this->jobs->find( (string) $payload['job_id'] );
 		$dir = Settings::staging_dir() . '/' . $job->backupId;
 		$this->backups->register( Manifest::read( $dir ), $job->profileId, $job->id, $dir );
+		$this->record_locations( $job );
+		$notifications = (array) ( $job->profileSnapshot['notifications'] ?? array() );
+		$profile       = $job->profileName();
+		if ( $job->warningsCount > 0 ) {
+			$this->notifier?->notify(
+				'backup_warnings',
+				(string) $job->profileId,
+				sprintf( /* translators: %s: profile name */ __( 'Backup "%s" completed with warnings', 'swbackupit' ), $profile ),
+				sprintf( /* translators: 1: profile name, 2: number of warnings */ __( 'The backup "%1$s" completed with %2$d warning(s). Check the job log.', 'swbackupit' ), $profile, $job->warningsCount ),
+				$notifications
+			);
+		} else {
+			$this->notifier?->notify(
+				'backup_success',
+				(string) $job->profileId,
+				sprintf( /* translators: %s: profile name */ __( 'Backup "%s" completed', 'swbackupit' ), $profile ),
+				sprintf( /* translators: %s: profile name */ __( 'The backup "%s" completed successfully.', 'swbackupit' ), $profile ),
+				$notifications
+			);
+		}
+		$failed_targets = $this->failed_targets( $job );
+		if ( array() !== $failed_targets ) {
+			$this->notifier?->notify(
+				'upload_failed',
+				$job->profileId . '|' . implode( ',', $failed_targets ),
+				sprintf( /* translators: %s: profile name */ __( 'Upload failed for backup "%s"', 'swbackupit' ), $profile ),
+				__( 'The backup was created, but at least one storage target does not hold a verified copy.', 'swbackupit' ),
+				$notifications
+			);
+		}
 		if ( null !== $job->scheduleId ) {
 			$this->schedules->update(
 				$job->scheduleId,
@@ -54,10 +86,42 @@ final class LifecycleListener {
 	}
 
 	/**
+	 * @return list<int>
+	 */
+	private function failed_targets( \SWBackupIt\Core\Job\Job $job ): array {
+		$state  = $job->checkpoint( \SWBackupIt\Core\Domain\Step::VerifyRemote )['targets'] ?? array();
+		$failed = array();
+		foreach ( (array) ( $job->profileSnapshot['storage_target_ids'] ?? array() ) as $target_id ) {
+			if ( 'verified' !== ( $state[ (string) $target_id ]['status'] ?? '' ) ) {
+				$failed[] = (int) $target_id;
+			}
+		}
+		return $failed;
+	}
+
+	private function record_locations( \SWBackupIt\Core\Job\Job $job ): void {
+		$state = $job->checkpoint( \SWBackupIt\Core\Domain\Step::VerifyRemote )['targets'] ?? array();
+		foreach ( (array) ( $job->profileSnapshot['storage_target_ids'] ?? array() ) as $target_id ) {
+			$entry = $state[ (string) $target_id ] ?? array(
+				'status' => 'failed',
+				'error'  => 'not uploaded',
+			);
+			$this->backups->set_location( $job->backupId, (int) $target_id, 'verified' === $entry['status'] ? 'verified' : 'failed', (string) ( $entry['error'] ?? '' ), $job->backupId );
+		}
+	}
+
+	/**
 	 * @param array<string, mixed> $payload
 	 */
 	public function on_failed( array $payload ): void {
 		$job = $this->jobs->find( (string) $payload['job_id'] );
+		$this->notifier?->notify(
+			'backup_failed',
+			$job->profileId . '|' . (string) ( $payload['code'] ?? '' ),
+			sprintf( /* translators: %s: profile name */ __( 'Backup "%s" failed', 'swbackupit' ), $job->profileName() ),
+			sprintf( /* translators: 1: profile name, 2: error message */ __( 'The backup "%1$s" failed: %2$s', 'swbackupit' ), $job->profileName(), (string) ( $payload['error'] ?? '' ) ),
+			(array) ( $job->profileSnapshot['notifications'] ?? array() )
+		);
 		if ( null === $job->scheduleId ) {
 			return;
 		}

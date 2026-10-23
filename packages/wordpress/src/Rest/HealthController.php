@@ -111,7 +111,7 @@ final class HealthController extends BaseController {
 				),
 				'backup_count'    => $backups['count'],
 				'storage_bytes'   => $backups['size'],
-				'storage_targets' => array(),
+				'storage_targets' => $this->storage_targets(),
 				'warnings'        => $warnings,
 				'cron'            => array(
 					'mode'             => (string) Settings::all()['cron']['mode'],
@@ -121,6 +121,23 @@ final class HealthController extends BaseController {
 				),
 			)
 		);
+	}
+
+	/**
+	 * @return list<array<string, mixed>>
+	 */
+	private function storage_targets(): array {
+		$items = array();
+		foreach ( $this->services()->storage_targets()->all() as $row ) {
+			$items[] = array(
+				'id'      => (int) $row['id'],
+				'name'    => (string) $row['name'],
+				'type'    => (string) $row['type'],
+				'status'  => in_array( $row['status'], array( 'ok', 'error' ), true ) ? ( 'ok' === $row['status'] ? 'ok' : 'error' ) : 'warning',
+				'message' => (string) ( $row['message'] ?? '' ),
+			);
+		}
+		return $items;
 	}
 
 	/**

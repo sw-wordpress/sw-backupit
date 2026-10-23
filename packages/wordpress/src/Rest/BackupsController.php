@@ -12,6 +12,8 @@ namespace SWBackupIt\WordPress\Rest;
 use SWBackupIt\Core\Backup\BackupLayout;
 use SWBackupIt\Core\Exception\SwbiException;
 use SWBackupIt\Restore\Backup\BackupSet;
+use SWBackupIt\Restore\Files\Comparator;
+use SWBackupIt\WordPress\Runner\RestorePreparer;
 use SWBackupIt\Restore\Backup\Verifier;
 use SWBackupIt\WordPress\Support\Capabilities;
 use SWBackupIt\WordPress\Support\Settings;
@@ -133,17 +135,77 @@ final class BackupsController extends BaseController {
 				),
 			)
 		);
-		foreach ( array( 'compare', 'restore/prepare', 'restore' ) as $route ) {
-			register_rest_route(
-				self::NAMESPACE,
-				'/backups/(?P<id>[0-9a-f-]{36})/' . $route,
-				array(
-					'methods'             => \WP_REST_Server::CREATABLE,
-					'callback'            => fn () => $this->error( 'swbi_not_implemented', __( 'This feature is planned for a later release. Use the standalone restore application.', 'swbackupit' ), 501 ),
-					'permission_callback' => $this->can( 'compare' === $route ? Capabilities::VIEW : Capabilities::RESTORE ),
-					'args'                => $id,
-				)
-			);
+		register_rest_route(
+			self::NAMESPACE,
+			'/backups/(?P<id>[0-9a-f-]{36})/compare',
+			array(
+				'methods'             => \WP_REST_Server::CREATABLE,
+				'callback'            => array( $this, 'compare' ),
+				'permission_callback' => $this->can( Capabilities::VIEW ),
+				'args'                => $id,
+			)
+		);
+		register_rest_route(
+			self::NAMESPACE,
+			'/backups/(?P<id>[0-9a-f-]{36})/restore/prepare',
+			array(
+				'methods'             => \WP_REST_Server::CREATABLE,
+				'callback'            => array( $this, 'restore_prepare' ),
+				'permission_callback' => $this->can( Capabilities::RESTORE ),
+				'args'                => $id,
+			)
+		);
+		register_rest_route(
+			self::NAMESPACE,
+			'/backups/(?P<id>[0-9a-f-]{36})/restore',
+			array(
+				'methods'             => \WP_REST_Server::CREATABLE,
+				'callback'            => fn () => $this->error( 'swbi_use_wizard', __( 'A restore is never executed inside WordPress. Use "Prepare restore" and continue in the standalone restore application (or the restore CLI).', 'swbackupit' ), 501 ),
+				'permission_callback' => $this->can( Capabilities::RESTORE ),
+				'args'                => $id,
+			)
+		);
+	}
+
+	/**
+	 * Compares the backup file index with the files of this installation (nothing is changed).
+	 */
+	public function compare( \WP_REST_Request $request ) {
+		$id = (string) $request['id'];
+		if ( null === $this->services()->backups()->find_row( $id ) ) {
+			return $this->error( 'swbi_not_found', __( 'Backup not found.', 'swbackupit' ), 404 );
+		}
+		$mode = (string) ( $this->body( $request )['mode'] ?? 'metadata' );
+		if ( ! in_array( $mode, array( 'metadata', 'sha256' ), true ) ) {
+			return $this->error( 'swbi_invalid_param', __( 'The mode must be metadata or sha256.', 'swbackupit' ), 400 );
+		}
+		$work = untrailingslashit( Settings::staging_dir() ) . '/tmp/compare-' . bin2hex( random_bytes( 4 ) );
+		try {
+			wp_raise_memory_limit( 'admin' );
+			$set = BackupSet::open( Settings::staging_dir() . '/' . $id, $this->services()->keys(), $work );
+			try {
+				$result = ( new Comparator() )->compare( $set, untrailingslashit( ABSPATH ), $mode, null, dirname( $work ) );
+			} finally {
+				$set->close();
+			}
+		} catch ( SwbiException $exception ) {
+			return $this->error( 'swbi_compare_failed', $exception->getMessage(), 422 );
+		}
+		return new \WP_REST_Response( $result->toArray() );
+	}
+
+	/**
+	 * Prepares the standalone restore wizard (token shown once).
+	 */
+	public function restore_prepare( \WP_REST_Request $request ) {
+		$id = (string) $request['id'];
+		if ( null === $this->services()->backups()->find_row( $id ) ) {
+			return $this->error( 'swbi_not_found', __( 'Backup not found.', 'swbackupit' ), 404 );
+		}
+		try {
+			return new \WP_REST_Response( ( new RestorePreparer() )->prepare( $id ) );
+		} catch ( SwbiException $exception ) {
+			return $this->error( 'swbi_restore_prepare_failed', $exception->getMessage(), 422 );
 		}
 	}
 
@@ -231,8 +293,9 @@ final class BackupsController extends BaseController {
 		if ( null === $this->services()->backups()->find_row( $id ) ) {
 			return $this->error( 'swbi_not_found', __( 'Backup not found.', 'swbackupit' ), 404 );
 		}
+		$work = untrailingslashit( Settings::staging_dir() ) . '/tmp/browse-' . bin2hex( random_bytes( 4 ) );
 		try {
-			$set = BackupSet::open( Settings::staging_dir() . '/' . $id );
+			$set = BackupSet::open( Settings::staging_dir() . '/' . $id, $this->services()->keys(), $work );
 		} catch ( SwbiException $exception ) {
 			return $this->error( 'swbi_backup_unavailable', $exception->getMessage(), 404 );
 		}
@@ -243,9 +306,10 @@ final class BackupsController extends BaseController {
 		$skip     = ( $page - 1 ) * $per_page;
 		$total    = 0;
 		$items    = array();
-		if ( $set->manifest()->hasFiles() ) {
+		try {
+			$entries = $set->manifest()->hasFiles() ? $set->indexReader()->read() : array();
 			// Streams the index; memory stays constant regardless of the number of files.
-			foreach ( $set->indexReader()->read() as [ $entry ] ) {
+			foreach ( $entries as [ $entry ] ) {
 				$path = (string) $entry['p'];
 				if ( '' !== $search ) {
 					if ( ! str_contains( strtolower( $path ), $search ) ) {
@@ -265,6 +329,10 @@ final class BackupsController extends BaseController {
 					);
 				}
 			}
+		} catch ( SwbiException $exception ) {
+			return $this->error( 'swbi_backup_unavailable', $exception->getMessage(), 422 );
+		} finally {
+			$set->close();
 		}
 		return $this->collection( $items, $total, $page, $per_page );
 	}

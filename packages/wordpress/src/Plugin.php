@@ -13,6 +13,7 @@ use SWBackupIt\WordPress\Admin\AdminPage;
 use SWBackupIt\WordPress\Database\Schema;
 use SWBackupIt\WordPress\Repository\WpdbJobEventStore;
 use SWBackupIt\WordPress\Rest\BackupsController;
+use SWBackupIt\WordPress\Rest\EncryptionKeysController;
 use SWBackupIt\WordPress\Rest\HealthController;
 use SWBackupIt\WordPress\Rest\JobsController;
 use SWBackupIt\WordPress\Rest\ProfilesController;
@@ -51,11 +52,13 @@ final class Plugin {
 		}
 		if ( defined( 'WP_CLI' ) && WP_CLI ) {
 			foreach ( array(
-				'profile'  => Cli\ProfileCommand::class,
-				'backup'   => Cli\BackupCommand::class,
-				'job'      => Cli\JobCommand::class,
-				'schedule' => Cli\ScheduleCommand::class,
-				'catalog'  => Cli\CatalogCommand::class,
+				'profile'   => Cli\ProfileCommand::class,
+				'backup'    => Cli\BackupCommand::class,
+				'job'       => Cli\JobCommand::class,
+				'schedule'  => Cli\ScheduleCommand::class,
+				'catalog'   => Cli\CatalogCommand::class,
+				'storage'   => Cli\StorageCommand::class,
+				'retention' => Cli\RetentionCommand::class,
 			) as $name => $class ) {
 				\WP_CLI::add_command( 'swbackupit ' . $name, $class );
 			}
@@ -88,6 +91,7 @@ final class Plugin {
 			new JobsController(),
 			new BackupsController(),
 			new StorageTargetsController(),
+			new EncryptionKeysController(),
 			new SettingsController(),
 		) as $controller ) {
 			$controller->register_routes();

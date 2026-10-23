@@ -13,9 +13,13 @@ use SWBackupIt\Core\Backup\BackupRunner;
 use SWBackupIt\Core\Backup\BackupRunnerFactory;
 use SWBackupIt\Core\Event\EventDispatcher;
 use SWBackupIt\Core\Event\EventDispatcherInterface;
+use SWBackupIt\Core\Storage\StorageFactory;
+use SWBackupIt\Core\Storage\StorageManager;
 use SWBackupIt\WordPress\Repository\BackupRepository;
 use SWBackupIt\WordPress\Repository\ProfileRepository;
 use SWBackupIt\WordPress\Repository\ScheduleRepository;
+use SWBackupIt\WordPress\Repository\StorageTargetRepository;
+use SWBackupIt\WordPress\Repository\WpBackupCatalog;
 use SWBackupIt\WordPress\Repository\WpdbJobEventStore;
 use SWBackupIt\WordPress\Repository\WpdbJobRepository;
 use SWBackupIt\WordPress\Runner\CronManager;
@@ -24,7 +28,9 @@ use SWBackupIt\WordPress\Runner\JobService;
 use SWBackupIt\WordPress\Runner\LifecycleListener;
 use SWBackupIt\WordPress\Runner\ScheduleRunner;
 use SWBackupIt\WordPress\Runner\WpSourceInfoProvider;
+use SWBackupIt\WordPress\Support\Notifier;
 use SWBackupIt\WordPress\Support\Settings;
+use SWBackupIt\WordPress\Support\WpKeyProvider;
 
 final class Services {
 
@@ -75,6 +81,26 @@ final class Services {
 		return $this->get( BackupRepository::class, static fn () => new BackupRepository() );
 	}
 
+	public function storage_targets(): StorageTargetRepository {
+		return $this->get( StorageTargetRepository::class, static fn () => new StorageTargetRepository() );
+	}
+
+	public function keys(): WpKeyProvider {
+		return $this->get( WpKeyProvider::class, static fn () => new WpKeyProvider() );
+	}
+
+	public function storage_manager(): StorageManager {
+		return $this->get( StorageManager::class, fn () => new StorageManager( $this->storage_targets(), new StorageFactory() ) );
+	}
+
+	public function catalog(): WpBackupCatalog {
+		return $this->get( WpBackupCatalog::class, fn () => new WpBackupCatalog( $this->backups(), $this->storage_targets() ) );
+	}
+
+	public function notifier(): Notifier {
+		return $this->get( Notifier::class, static fn () => new Notifier() );
+	}
+
 	public function cron(): CronManager {
 		return $this->get( CronManager::class, static fn () => new CronManager() );
 	}
@@ -85,7 +111,7 @@ final class Services {
 			function (): EventDispatcher {
 				$dispatcher = new EventDispatcher();
 				( new HookBridge() )->register( $dispatcher );
-				( new LifecycleListener( $this->jobs(), $this->backups(), $this->schedules() ) )->register( $dispatcher );
+				( new LifecycleListener( $this->jobs(), $this->backups(), $this->schedules(), $this->notifier() ) )->register( $dispatcher );
 				return $dispatcher;
 			}
 		);
@@ -101,7 +127,10 @@ final class Services {
 				BackupRunnerFactory::defaultSteps(),
 				$this->dispatcher(),
 				new \SWBackupIt\Core\Support\SystemClock(),
-				(string) Settings::all()['logging']['level']
+				(string) Settings::all()['logging']['level'],
+				$this->keys(),
+				$this->storage_manager(),
+				$this->catalog()
 			)
 		);
 	}
