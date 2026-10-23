@@ -1,0 +1,18 @@
+import { createI18n } from 'vue-i18n';
+import { resolveUiLocale } from '@/config';
+import de from './de';
+import en from './en';
+
+export type UiLocale = 'de' | 'en';
+
+export function createAppI18n(wpLocale: string) {
+  return createI18n({
+    legacy: false,
+    locale: resolveUiLocale(wpLocale),
+    fallbackLocale: 'en',
+    messages: { de, en },
+    // Pluralisation uses the pipe syntax; numbers are formatted by Intl via useFormat().
+    missingWarn: import.meta.env.DEV,
+    fallbackWarn: false,
+  });
+}

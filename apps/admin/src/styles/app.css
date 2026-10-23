@@ -1,0 +1,516 @@
+/*
+ * SWBackupIt admin styles. Everything is namespaced with `swbi-` / `.swbi-root` so nothing
+ * leaks into wp-admin. Quasar's own CSS is scoped to `.swbi-root` at build time
+ * (tools/postcssScope.ts).
+ */
+
+/* ---------- design tokens ---------- */
+.swbi-root {
+  --swbi-primary: #4f46e5;
+  --swbi-primary-strong: #4338ca;
+  --swbi-primary-soft: #eef2ff;
+  --swbi-accent: #0d9488;
+  --swbi-accent-bright: #14b8a6;
+  --swbi-success: #16a34a;
+  --swbi-warning: #f59e0b;
+  --swbi-danger: #dc2626;
+  --swbi-info: #0284c7;
+
+  --swbi-success-text: #166534;
+  --swbi-warning-text: #92400e;
+  --swbi-danger-text: #b91c1c;
+  --swbi-info-text: #075985;
+  --swbi-neutral-text: #334155;
+  --swbi-success-bg: #dcfce7;
+  --swbi-warning-bg: #fef3c7;
+  --swbi-danger-bg: #fee2e2;
+  --swbi-info-bg: #e0f2fe;
+  --swbi-neutral-bg: #eef1f6;
+  --swbi-primary-text: #3730a3;
+  --swbi-primary-bg: #e0e7ff;
+
+  --swbi-bg: #f3f4fa;
+  --swbi-surface: #ffffff;
+  --swbi-surface-2: #f8f9fc;
+  --swbi-surface-3: #eef0f7;
+  --swbi-border: #e1e5ee;
+  --swbi-text: #0f172a;
+  --swbi-muted: #475569;
+  --swbi-rail-bg: #ffffff;
+  --swbi-focus: #4f46e5;
+  --swbi-overlay: rgba(15, 23, 42, 0.45);
+
+  --swbi-gradient: linear-gradient(135deg, #4f46e5 0%, #0d9488 100%);
+  --swbi-gradient-soft: linear-gradient(135deg, rgba(79, 70, 229, 0.1) 0%, rgba(20, 184, 166, 0.1) 100%);
+
+  --swbi-radius: 16px;
+  --swbi-radius-sm: 10px;
+  --swbi-shadow-1: 0 1px 2px rgba(15, 23, 42, 0.05), 0 2px 6px rgba(15, 23, 42, 0.04);
+  --swbi-shadow-2:
+    0 1px 2px rgba(15, 23, 42, 0.04), 0 6px 16px rgba(15, 23, 42, 0.06),
+    0 18px 40px rgba(15, 23, 42, 0.05);
+  --swbi-font: 'Inter Variable', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+  --swbi-mono: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+
+  /* map to Quasar brand variables (set here instead of Quasar's runtime brand plugin) */
+  --q-primary: var(--swbi-primary);
+  --q-secondary: var(--swbi-accent);
+  --q-accent: var(--swbi-accent-bright);
+  --q-positive: var(--swbi-success);
+  --q-negative: var(--swbi-danger);
+  --q-info: var(--swbi-info);
+  --q-warning: var(--swbi-warning);
+  --q-dark: var(--swbi-surface);
+  --q-dark-page: var(--swbi-bg);
+
+  color-scheme: light;
+  font-family: var(--swbi-font);
+  font-size: 15px;
+  line-height: 1.5;
+  color: var(--swbi-text);
+  font-feature-settings: 'cv11', 'ss03';
+  -webkit-font-smoothing: antialiased;
+  box-sizing: border-box;
+  text-align: left;
+}
+
+.swbi-root.swbi-dark {
+  --swbi-primary: #818cf8;
+  --swbi-primary-strong: #a5b4fc;
+  --swbi-primary-soft: rgba(129, 140, 248, 0.14);
+  --swbi-accent: #2dd4bf;
+  --swbi-accent-bright: #2dd4bf;
+  --swbi-success: #4ade80;
+  --swbi-warning: #fbbf24;
+  --swbi-danger: #f87171;
+  --swbi-info: #38bdf8;
+
+  --swbi-success-text: #86efac;
+  --swbi-warning-text: #fcd34d;
+  --swbi-danger-text: #fca5a5;
+  --swbi-info-text: #7dd3fc;
+  --swbi-neutral-text: #cbd5e1;
+  --swbi-primary-text: #c7d2fe;
+  --swbi-success-bg: rgba(74, 222, 128, 0.14);
+  --swbi-warning-bg: rgba(251, 191, 36, 0.14);
+  --swbi-danger-bg: rgba(248, 113, 113, 0.16);
+  --swbi-info-bg: rgba(56, 189, 248, 0.14);
+  --swbi-neutral-bg: rgba(148, 163, 184, 0.16);
+  --swbi-primary-bg: rgba(129, 140, 248, 0.2);
+
+  --swbi-bg: #0a0f1f;
+  --swbi-surface: #131a2e;
+  --swbi-surface-2: #182038;
+  --swbi-surface-3: #1f2946;
+  --swbi-border: #263250;
+  --swbi-text: #e8ecf8;
+  --swbi-muted: #a3aecb;
+  --swbi-rail-bg: #0e1427;
+  --swbi-focus: #a5b4fc;
+  --swbi-overlay: rgba(2, 6, 20, 0.65);
+
+  --swbi-gradient: linear-gradient(135deg, #6366f1 0%, #14b8a6 100%);
+  --swbi-gradient-soft: linear-gradient(135deg, rgba(99, 102, 241, 0.18) 0%, rgba(20, 184, 166, 0.14) 100%);
+  --swbi-shadow-1: 0 1px 2px rgba(0, 0, 0, 0.4);
+  --swbi-shadow-2: 0 1px 2px rgba(0, 0, 0, 0.4), 0 10px 30px rgba(0, 0, 0, 0.35);
+  color-scheme: dark;
+}
+
+/* ---------- isolation reset (wp-admin styles bleeding in) ---------- */
+.swbi-root *,
+.swbi-root *::before,
+.swbi-root *::after {
+  box-sizing: border-box;
+}
+.swbi-root h1,
+.swbi-root h2,
+.swbi-root h3,
+.swbi-root h4,
+.swbi-root h5,
+.swbi-root h6,
+.swbi-root p,
+.swbi-root ul,
+.swbi-root ol,
+.swbi-root dl,
+.swbi-root dd,
+.swbi-root figure {
+  margin: 0;
+  padding: 0;
+  color: inherit;
+  font-family: inherit;
+  letter-spacing: normal;
+  text-transform: none;
+}
+.swbi-root ul,
+.swbi-root ol {
+  list-style: none;
+}
+.swbi-root a {
+  color: var(--swbi-primary);
+  text-decoration: none;
+}
+.swbi-root a:hover {
+  text-decoration: underline;
+}
+.swbi-root button,
+.swbi-root input,
+.swbi-root select,
+.swbi-root textarea {
+  font-family: inherit;
+}
+.swbi-root table {
+  border-collapse: collapse;
+  border-spacing: 0;
+  margin: 0;
+  width: 100%;
+  background: transparent;
+  border: 0;
+}
+.swbi-root th,
+.swbi-root td {
+  padding: 0;
+  border: 0;
+  background: transparent;
+  text-align: left;
+  vertical-align: middle;
+}
+.swbi-root code {
+  font-family: var(--swbi-mono);
+  font-size: 0.9em;
+  background: var(--swbi-surface-3);
+  padding: 0.1em 0.4em;
+  border-radius: 6px;
+}
+.swbi-root label {
+  display: inline;
+  margin: 0;
+  font-weight: inherit;
+}
+
+/* Standalone pseudo-roots created by Quasar for dialogs/menus/notifications */
+.swbi-root.q-portal--dialog,
+.swbi-root.q-portal--menu {
+  font-size: 15px;
+}
+
+/* ---------- WordPress integration ---------- */
+.swbi-fullbleed {
+  margin: 0 0 0 -20px;
+}
+@media screen and (max-width: 782px) {
+  .swbi-fullbleed {
+    margin-left: -10px;
+  }
+}
+body.swbi-admin-page #wpfooter {
+  display: none;
+}
+body.swbi-admin-page #wpbody-content {
+  padding-bottom: 0;
+}
+/* Quasar locks scroll with a class on body when a dialog is open */
+body.q-body--prevent-scroll {
+  overflow: hidden;
+}
+/* Dialogs/menus/notifications must sit above the WP admin bar (99999) and admin menu */
+.swbi-root.q-portal--dialog .q-dialog,
+.swbi-root.q-portal--menu .q-menu,
+.swbi-root.q-portal--dialog .q-dialog__backdrop {
+  z-index: 100100;
+}
+.swbi-root .q-notifications__list {
+  z-index: 100200;
+}
+.swbi-root .q-menu,
+.swbi-root.q-portal--menu .q-menu {
+  z-index: 100150;
+}
+.swbi-root.q-portal--tooltip .q-tooltip,
+.swbi-root .q-tooltip {
+  z-index: 100300;
+}
+
+/* ---------- utilities ---------- */
+.swbi-sr-only {
+  position: absolute !important;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  padding: 0;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+.swbi-num {
+  font-variant-numeric: tabular-nums;
+}
+.swbi-muted {
+  color: var(--swbi-muted);
+}
+.swbi-mono {
+  font-family: var(--swbi-mono);
+  font-size: 0.88em;
+}
+.swbi-truncate {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  min-width: 0;
+}
+.swbi-stack {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+.swbi-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+.swbi-grid {
+  display: grid;
+  gap: 16px;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 220px), 1fr));
+}
+.swbi-grid--wide {
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 320px), 1fr));
+}
+.swbi-eyebrow {
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--swbi-muted);
+}
+
+/* ---------- focus ---------- */
+.swbi-root :focus-visible {
+  outline: 3px solid var(--swbi-focus);
+  outline-offset: 2px;
+  border-radius: 6px;
+}
+.swbi-root .q-btn:focus-visible,
+.swbi-root .q-field:focus-within .q-field__control {
+  outline: 3px solid var(--swbi-focus);
+  outline-offset: 1px;
+}
+.swbi-root .q-field__native:focus-visible,
+.swbi-root .q-field__input:focus-visible {
+  outline: none;
+}
+
+/* ---------- Quasar tuning ---------- */
+.swbi-root .q-btn {
+  font-weight: 600;
+  letter-spacing: 0;
+  text-transform: none;
+  border-radius: 10px;
+}
+.swbi-root .q-btn--standard.bg-primary,
+.swbi-root .q-btn.swbi-btn-gradient {
+  background: var(--swbi-gradient) !important;
+}
+.swbi-root .q-btn.bg-primary {
+  color: #fff !important;
+}
+.swbi-root .q-field--outlined .q-field__control {
+  border-radius: 10px;
+}
+.swbi-root .q-field--outlined .q-field__control:before {
+  border-color: var(--swbi-border);
+}
+.swbi-root .q-field--outlined:not(.q-field--readonly) .q-field__control:hover:before {
+  border-color: var(--swbi-muted);
+}
+.swbi-root .q-field__label,
+.swbi-root .q-field__bottom {
+  color: var(--swbi-muted);
+}
+.swbi-root .q-field--dark .q-field__native,
+.swbi-root .q-field--dark .q-field__prefix,
+.swbi-root .q-field--dark .q-field__suffix,
+.swbi-root .q-field--dark .q-field__input {
+  color: var(--swbi-text);
+}
+.swbi-root .q-card {
+  background: var(--swbi-surface);
+  color: var(--swbi-text);
+  box-shadow: var(--swbi-shadow-2);
+  border-radius: var(--swbi-radius);
+}
+.swbi-root .q-menu {
+  background: var(--swbi-surface);
+  color: var(--swbi-text);
+  border: 1px solid var(--swbi-border);
+  border-radius: 12px;
+  box-shadow: var(--swbi-shadow-2);
+}
+.swbi-root .q-item--active,
+.swbi-root .q-item.q-router-link--active {
+  color: var(--swbi-primary);
+}
+.swbi-root .q-tooltip {
+  background: var(--swbi-text);
+  color: var(--swbi-surface);
+  font-size: 13px;
+  border-radius: 8px;
+}
+.swbi-root .q-tab {
+  text-transform: none;
+  font-weight: 600;
+}
+.swbi-root .q-tabs {
+  color: var(--swbi-muted);
+}
+.swbi-root .q-tab--active {
+  color: var(--swbi-primary);
+}
+.swbi-root .q-skeleton {
+  background: var(--swbi-surface-3);
+}
+.swbi-root .q-skeleton--type-text,
+.swbi-root .q-skeleton--type-rect {
+  border-radius: 8px;
+}
+.swbi-root .q-notification {
+  border-radius: 12px;
+  box-shadow: var(--swbi-shadow-2);
+  font-size: 14px;
+}
+.swbi-root .q-linear-progress {
+  border-radius: 999px;
+}
+.swbi-root .q-toggle__label,
+.swbi-root .q-checkbox__label {
+  font-size: 14px;
+}
+.swbi-root .q-dialog__backdrop {
+  background: var(--swbi-overlay);
+}
+.swbi-root .q-drawer {
+  background: var(--swbi-surface);
+}
+.swbi-root .q-separator {
+  background: var(--swbi-border);
+}
+
+/* ---------- native tables that stack on small screens ---------- */
+.swbi-table {
+  font-variant-numeric: tabular-nums;
+}
+.swbi-table th {
+  padding: 10px 14px;
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: var(--swbi-muted);
+  border-bottom: 1px solid var(--swbi-border);
+  white-space: nowrap;
+}
+.swbi-table td {
+  padding: 12px 14px;
+  border-bottom: 1px solid var(--swbi-border);
+  font-size: 14px;
+}
+.swbi-table tbody tr {
+  transition: background-color 0.15s ease;
+}
+.swbi-table tbody tr:hover {
+  background: var(--swbi-surface-2);
+}
+.swbi-table tbody tr:last-child td {
+  border-bottom: 0;
+}
+@media (max-width: 760px) {
+  .swbi-table thead {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+  }
+  .swbi-table,
+  .swbi-table tbody,
+  .swbi-table tr,
+  .swbi-table td {
+    display: block;
+  }
+  .swbi-table tr {
+    padding: 10px 6px;
+    border-bottom: 1px solid var(--swbi-border);
+  }
+  .swbi-table tbody tr:last-child {
+    border-bottom: 0;
+  }
+  .swbi-table td {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 12px;
+    padding: 6px 8px;
+    border: 0;
+    text-align: right;
+  }
+  .swbi-table td::before {
+    content: attr(data-label);
+    flex: none;
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--swbi-muted);
+    text-align: left;
+  }
+  .swbi-table td[data-label=''] {
+    justify-content: flex-end;
+  }
+  .swbi-table td[data-label='']::before {
+    display: none;
+  }
+}
+
+/* ---------- motion ---------- */
+@keyframes swbi-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+@keyframes swbi-pulse {
+  50% {
+    opacity: 0.55;
+  }
+}
+@keyframes swbi-fade-up {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+.swbi-fade-enter-active,
+.swbi-fade-leave-active {
+  transition:
+    opacity 0.18s ease,
+    transform 0.18s ease;
+}
+.swbi-fade-enter-from {
+  opacity: 0;
+  transform: translateY(6px);
+}
+.swbi-fade-leave-to {
+  opacity: 0;
+}
+@media (prefers-reduced-motion: reduce) {
+  .swbi-root *,
+  .swbi-root *::before,
+  .swbi-root *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+    scroll-behavior: auto !important;
+  }
+}
