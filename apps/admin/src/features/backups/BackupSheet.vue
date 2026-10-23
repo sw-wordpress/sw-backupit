@@ -48,7 +48,9 @@ watch(
   { immediate: true },
 );
 
-const volumes = computed(() => Array.from({ length: backup.value?.volume_count ?? 0 }, (_, i) => i + 1));
+const volumes = computed(() =>
+  Array.from({ length: backup.value?.volume_count ?? 0 }, (_, i) => i + 1),
+);
 
 function setBackup(b: Backup): void {
   detail.data.value = b;
@@ -100,12 +102,25 @@ async function doDelete(): Promise<void> {
   }
 }
 
-const verifyOk = computed(() => verifyResult.value !== null && 'ok' in verifyResult.value && verifyResult.value.ok);
+const verifyOk = computed(
+  () => verifyResult.value !== null && 'ok' in verifyResult.value && verifyResult.value.ok,
+);
 </script>
 
 <template>
-  <SideSheet v-model="open" :title="backup ? `${backup.profile_name} · ${fmt.dateTime(backup.created_at)}` : t('backups.detail')" :subtitle="backup ? backup.id : undefined" :width="780">
-    <ErrorState v-if="detail.error.value && !backup" :error="detail.error.value" @retry="detail.load()" />
+  <SideSheet
+    v-model="open"
+    :title="
+      backup ? `${backup.profile_name} · ${fmt.dateTime(backup.created_at)}` : t('backups.detail')
+    "
+    :subtitle="backup ? backup.id : undefined"
+    :width="780"
+  >
+    <ErrorState
+      v-if="detail.error.value && !backup"
+      :error="detail.error.value"
+      @retry="detail.load()"
+    />
     <div v-else-if="!backup" aria-busy="true" class="swbi-stack swbi-bs__skel">
       <q-skeleton type="text" width="50%" height="28px" />
       <q-skeleton height="120px" />
@@ -116,45 +131,133 @@ const verifyOk = computed(() => verifyResult.value !== null && 'ok' in verifyRes
       <div class="swbi-row">
         <StatusChip domain="backup" :status="backup.status" />
         <StatusChip kind="primary" icon="r_inventory_2" :label="t(`types.${backup.type}`)" />
-        <StatusChip v-if="backup.encrypted" kind="info" icon="r_lock" :label="t('backups.encrypted')" />
-        <StatusChip v-if="backup.protected" kind="warning" icon="r_shield" :label="t('backups.protected')" />
+        <StatusChip
+          v-if="backup.encrypted"
+          kind="info"
+          icon="r_lock"
+          :label="t('backups.encrypted')"
+        />
+        <StatusChip
+          v-if="backup.protected"
+          kind="warning"
+          icon="r_shield"
+          :label="t('backups.protected')"
+        />
       </div>
 
       <div class="swbi-row swbi-bs__actions" role="toolbar" :aria-label="t('common.actions')">
-        <q-btn v-if="can('swbi_run')" outline no-caps icon="r_fact_check" :label="t('backups.verify')" :loading="verifying" @click="verify" />
-        <q-btn v-if="can('swbi_download')" outline no-caps icon="r_download" :label="t('backups.download')" :disable="volumes.length === 0">
+        <q-btn
+          v-if="can('swbi_run')"
+          outline
+          no-caps
+          icon="r_fact_check"
+          :label="t('backups.verify')"
+          :loading="verifying"
+          @click="verify"
+        />
+        <q-btn
+          v-if="can('swbi_download')"
+          outline
+          no-caps
+          icon="r_download"
+          :label="t('backups.download')"
+          :disable="volumes.length === 0"
+        >
           <q-menu auto-close>
             <q-list style="min-width: 200px">
               <q-item-label header>{{ t('backups.downloadVolume') }}</q-item-label>
-              <q-item v-for="v in volumes" :key="v" clickable tag="a" :href="api.backups.downloadUrl(backup.id, v)" rel="noopener">
+              <q-item
+                v-for="v in volumes"
+                :key="v"
+                clickable
+                tag="a"
+                :href="api.backups.downloadUrl(backup.id, v)"
+                rel="noopener"
+              >
                 <q-item-section avatar><q-icon name="r_folder_zip" /></q-item-section>
-                <q-item-section>{{ t('backups.volumeN', { n: v, total: backup.volume_count }) }}</q-item-section>
+                <q-item-section>{{
+                  t('backups.volumeN', { n: v, total: backup.volume_count })
+                }}</q-item-section>
               </q-item>
             </q-list>
           </q-menu>
         </q-btn>
-        <q-btn outline no-caps icon="r_compare_arrows" :label="t('backups.compare.open')" @click="compareOpen = true" />
-        <q-btn v-if="can('swbi_restore')" outline no-caps color="negative" icon="r_restore" :label="t('backups.restore.open')" @click="restoreOpen = true" />
-        <q-btn v-if="can('swbi_delete')" flat no-caps color="negative" icon="r_delete" :label="t('common.delete')" :disable="backup.protected" @click="deleteOpen = true">
+        <q-btn
+          outline
+          no-caps
+          icon="r_compare_arrows"
+          :label="t('backups.compare.open')"
+          @click="compareOpen = true"
+        />
+        <q-btn
+          v-if="can('swbi_restore')"
+          outline
+          no-caps
+          color="negative"
+          icon="r_restore"
+          :label="t('backups.restore.open')"
+          @click="restoreOpen = true"
+        />
+        <q-btn
+          v-if="can('swbi_delete')"
+          flat
+          no-caps
+          color="negative"
+          icon="r_delete"
+          :label="t('common.delete')"
+          :disable="backup.protected"
+          @click="deleteOpen = true"
+        >
           <q-tooltip v-if="backup.protected">{{ t('backups.protectedNoDelete') }}</q-tooltip>
         </q-btn>
       </div>
 
-      <div v-if="verifyResult" class="swbi-bs__verify" :class="verifyOk || 'job' in verifyResult ? 'is-ok' : 'is-bad'" role="status">
+      <div
+        v-if="verifyResult"
+        class="swbi-bs__verify"
+        :class="verifyOk || 'job' in verifyResult ? 'is-ok' : 'is-bad'"
+        role="status"
+      >
         <template v-if="'job' in verifyResult">
           <q-icon name="r_sync" size="20px" aria-hidden="true" />
-          <span>{{ t('backups.verifyJob') }} <router-link :to="{ name: 'job', params: { id: verifyResult.job.id } }">{{ t('jobs.open') }}</router-link></span>
+          <span
+            >{{ t('backups.verifyJob') }}
+            <router-link :to="{ name: 'job', params: { id: verifyResult.job.id } }">{{
+              t('jobs.open')
+            }}</router-link></span
+          >
         </template>
         <template v-else>
-          <q-icon :name="verifyResult.ok ? 'r_verified' : 'r_error'" size="20px" aria-hidden="true" />
+          <q-icon
+            :name="verifyResult.ok ? 'r_verified' : 'r_error'"
+            size="20px"
+            aria-hidden="true"
+          />
           <div>
-            <strong>{{ verifyResult.ok ? t('backups.verifyOk', { n: verifyResult.checked_volumes }, verifyResult.checked_volumes) : t('backups.verifyFailed') }}</strong>
-            <ul v-if="verifyResult.errors.length > 0"><li v-for="(err, i) in verifyResult.errors" :key="i">{{ err }}</li></ul>
+            <strong>{{
+              verifyResult.ok
+                ? t(
+                    'backups.verifyOk',
+                    { n: verifyResult.checked_volumes },
+                    verifyResult.checked_volumes,
+                  )
+                : t('backups.verifyFailed')
+            }}</strong>
+            <ul v-if="verifyResult.errors.length > 0">
+              <li v-for="(err, i) in verifyResult.errors" :key="i">{{ err }}</li>
+            </ul>
           </div>
         </template>
       </div>
 
-      <q-tabs v-model="tab" dense align="left" no-caps active-color="primary" indicator-color="primary">
+      <q-tabs
+        v-model="tab"
+        dense
+        align="left"
+        no-caps
+        active-color="primary"
+        indicator-color="primary"
+      >
         <q-tab name="overview" :label="t('backups.tabs.overview')" />
         <q-tab name="files" :label="t('backups.tabs.files')" />
       </q-tabs>
@@ -168,30 +271,83 @@ const verifyOk = computed(() => verifyResult.value !== null && 'ok' in verifyRes
           :label="t('backups.protectToggle')"
           @update:model-value="toggleProtect"
         />
-        <p v-if="can('swbi_delete')" class="swbi-muted swbi-bs__small">{{ t('backups.protectHint') }}</p>
+        <p v-if="can('swbi_delete')" class="swbi-muted swbi-bs__small">
+          {{ t('backups.protectHint') }}
+        </p>
 
         <dl class="swbi-bs__meta">
-          <div><dt>{{ t('backups.meta.id') }}</dt><dd class="swbi-mono">{{ backup.id }}</dd></div>
-          <div><dt>{{ t('backups.meta.created') }}</dt><dd>{{ fmt.dateTime(backup.created_at) }}</dd></div>
-          <div><dt>{{ t('backups.meta.profile') }}</dt><dd>{{ backup.profile_name }}</dd></div>
-          <div><dt>{{ t('backups.meta.size') }}</dt><dd class="swbi-num">{{ fmt.bytes(backup.size_bytes) }}</dd></div>
-          <div><dt>{{ t('backups.meta.files') }}</dt><dd class="swbi-num">{{ fmt.number(backup.file_count) }}</dd></div>
-          <div><dt>{{ t('backups.meta.volumes') }}</dt><dd class="swbi-num">{{ backup.volume_count }}</dd></div>
-          <div><dt>{{ t('backups.meta.wp') }}</dt><dd>{{ backup.wp_version }}</dd></div>
-          <div><dt>{{ t('backups.meta.site') }}</dt><dd class="swbi-mono">{{ backup.site_url }}</dd></div>
-          <div v-if="backup.parent_id"><dt>{{ t('backups.meta.parent') }}</dt><dd><router-link class="swbi-mono" :to="{ name: 'backups', params: { id: backup.parent_id } }">{{ fmt.shortId(backup.parent_id) }}</router-link></dd></div>
-          <div><dt>{{ t('backups.meta.verified') }}</dt><dd>{{ backup.verified_at ? fmt.dateTime(backup.verified_at) : t('common.never') }}</dd></div>
-          <div><dt>{{ t('backups.meta.restoreTested') }}</dt><dd>{{ backup.restore_tested_at ? fmt.dateTime(backup.restore_tested_at) : t('common.never') }}</dd></div>
+          <div>
+            <dt>{{ t('backups.meta.id') }}</dt>
+            <dd class="swbi-mono">{{ backup.id }}</dd>
+          </div>
+          <div>
+            <dt>{{ t('backups.meta.created') }}</dt>
+            <dd>{{ fmt.dateTime(backup.created_at) }}</dd>
+          </div>
+          <div>
+            <dt>{{ t('backups.meta.profile') }}</dt>
+            <dd>{{ backup.profile_name }}</dd>
+          </div>
+          <div>
+            <dt>{{ t('backups.meta.size') }}</dt>
+            <dd class="swbi-num">{{ fmt.bytes(backup.size_bytes) }}</dd>
+          </div>
+          <div>
+            <dt>{{ t('backups.meta.files') }}</dt>
+            <dd class="swbi-num">{{ fmt.number(backup.file_count) }}</dd>
+          </div>
+          <div>
+            <dt>{{ t('backups.meta.volumes') }}</dt>
+            <dd class="swbi-num">{{ backup.volume_count }}</dd>
+          </div>
+          <div>
+            <dt>{{ t('backups.meta.wp') }}</dt>
+            <dd>{{ backup.wp_version }}</dd>
+          </div>
+          <div>
+            <dt>{{ t('backups.meta.site') }}</dt>
+            <dd class="swbi-mono">{{ backup.site_url }}</dd>
+          </div>
+          <div v-if="backup.parent_id">
+            <dt>{{ t('backups.meta.parent') }}</dt>
+            <dd>
+              <router-link
+                class="swbi-mono"
+                :to="{ name: 'backups', params: { id: backup.parent_id } }"
+                >{{ fmt.shortId(backup.parent_id) }}</router-link
+              >
+            </dd>
+          </div>
+          <div>
+            <dt>{{ t('backups.meta.verified') }}</dt>
+            <dd>{{ backup.verified_at ? fmt.dateTime(backup.verified_at) : t('common.never') }}</dd>
+          </div>
+          <div>
+            <dt>{{ t('backups.meta.restoreTested') }}</dt>
+            <dd>
+              {{
+                backup.restore_tested_at
+                  ? fmt.dateTime(backup.restore_tested_at)
+                  : t('common.never')
+              }}
+            </dd>
+          </div>
         </dl>
 
         <section>
           <h3 class="swbi-bs__h">{{ t('backups.locations') }}</h3>
-          <p v-if="backup.locations.length === 0" class="swbi-muted">{{ t('backups.noLocations') }}</p>
+          <p v-if="backup.locations.length === 0" class="swbi-muted">
+            {{ t('backups.noLocations') }}
+          </p>
           <ul v-else class="swbi-bs__locs">
             <li v-for="loc in backup.locations" :key="loc.target_id">
-              <span class="swbi-bs__locname"><q-icon name="r_dns" size="18px" aria-hidden="true" />{{ loc.name }}</span>
+              <span class="swbi-bs__locname"
+                ><q-icon name="r_dns" size="18px" aria-hidden="true" />{{ loc.name }}</span
+              >
               <StatusChip domain="location" :status="loc.status" dense />
-              <span class="swbi-muted swbi-bs__small">{{ loc.verified_at ? fmt.relative(loc.verified_at) : '' }}</span>
+              <span class="swbi-muted swbi-bs__small">{{
+                loc.verified_at ? fmt.relative(loc.verified_at) : ''
+              }}</span>
             </li>
           </ul>
         </section>
@@ -207,7 +363,11 @@ const verifyOk = computed(() => verifyResult.value !== null && 'ok' in verifyRes
       v-model="deleteOpen"
       :title="t('backups.deleteTitle')"
       :target="`${backup.profile_name} · ${fmt.dateTime(backup.created_at)} (${fmt.shortId(backup.id)})`"
-      :consequences="[t('backups.deleteConsequence1', { n: backup.locations.length }, backup.locations.length), t('backups.deleteConsequence2'), t('common.irreversible')]"
+      :consequences="[
+        t('backups.deleteConsequence1', { n: backup.locations.length }, backup.locations.length),
+        t('backups.deleteConsequence2'),
+        t('common.irreversible'),
+      ]"
       :confirm-label="t('backups.deleteConfirm')"
       :require-text="fmt.shortId(backup.id)"
       :loading="deleting"

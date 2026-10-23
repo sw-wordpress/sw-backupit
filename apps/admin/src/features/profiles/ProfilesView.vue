@@ -82,10 +82,13 @@ async function duplicate(p: Profile): Promise<void> {
 }
 function retentionSummary(p: Profile): string {
   const parts: string[] = [];
-  if (p.retention.max_count > 0) parts.push(t('profiles.keepCount', { n: p.retention.max_count }, p.retention.max_count));
-  if (p.retention.max_age_days > 0) parts.push(t('profiles.keepDays', { n: p.retention.max_age_days }, p.retention.max_age_days));
+  if (p.retention.max_count > 0)
+    parts.push(t('profiles.keepCount', { n: p.retention.max_count }, p.retention.max_count));
+  if (p.retention.max_age_days > 0)
+    parts.push(t('profiles.keepDays', { n: p.retention.max_age_days }, p.retention.max_age_days));
   const g = p.retention.gfs;
-  if (g.daily + g.weekly + g.monthly + g.yearly > 0) parts.push(t('profiles.gfsShort', { d: g.daily, w: g.weekly, m: g.monthly, y: g.yearly }));
+  if (g.daily + g.weekly + g.monthly + g.yearly > 0)
+    parts.push(t('profiles.gfsShort', { d: g.daily, w: g.weekly, m: g.monthly, y: g.yearly }));
   return parts.length > 0 ? parts.join(' · ') : t('profiles.keepAll');
 }
 </script>
@@ -93,14 +96,40 @@ function retentionSummary(p: Profile): string {
 <template>
   <div>
     <PageHeader :title="t('nav.profiles')" :subtitle="t('profiles.subtitle')">
-      <q-btn v-if="canManage" unelevated no-caps color="primary" icon="r_add" :label="t('profiles.create')" @click="openCreate" />
+      <q-btn
+        v-if="canManage"
+        unelevated
+        no-caps
+        color="primary"
+        icon="r_add"
+        :label="t('profiles.create')"
+        @click="openCreate"
+      />
     </PageHeader>
 
-    <DataState :loading="list.loading.value" :error="list.error.value" :empty="items.length === 0" variant="cards" @retry="list.load()">
+    <DataState
+      :loading="list.loading.value"
+      :error="list.error.value"
+      :empty="items.length === 0"
+      variant="cards"
+      @retry="list.load()"
+    >
       <template #empty>
         <SwbiCard>
-          <EmptyState illustration="profiles" :title="t('profiles.emptyTitle')" :text="t('profiles.emptyText')">
-            <q-btn v-if="canManage" unelevated no-caps color="primary" icon="r_add" :label="t('profiles.create')" @click="openCreate" />
+          <EmptyState
+            illustration="profiles"
+            :title="t('profiles.emptyTitle')"
+            :text="t('profiles.emptyText')"
+          >
+            <q-btn
+              v-if="canManage"
+              unelevated
+              no-caps
+              color="primary"
+              icon="r_add"
+              :label="t('profiles.create')"
+              @click="openCreate"
+            />
           </EmptyState>
         </SwbiCard>
       </template>
@@ -113,41 +142,126 @@ function retentionSummary(p: Profile): string {
               <StatusChip kind="primary" icon="r_inventory_2" :label="t(`types.${p.type}`)" dense />
             </div>
             <p v-if="p.description" class="swbi-pcard__desc">{{ p.description }}</p>
-            <p v-if="(ADVANCED_TYPES as readonly string[]).includes(p.type)" class="swbi-pcard__adv">
-              <q-icon name="r_info" size="16px" aria-hidden="true" /> {{ t('profiles.advancedChip') }}
+            <p
+              v-if="(ADVANCED_TYPES as readonly string[]).includes(p.type)"
+              class="swbi-pcard__adv"
+            >
+              <q-icon name="r_info" size="16px" aria-hidden="true" />
+              {{ t('profiles.advancedChip') }}
             </p>
             <dl class="swbi-pcard__facts">
-              <div><dt>{{ t('profiles.facts.targets') }}</dt><dd>{{ t('profiles.targetCount', { n: p.storage_target_ids.length }, p.storage_target_ids.length) }}</dd></div>
-              <div><dt>{{ t('profiles.facts.retention') }}</dt><dd>{{ retentionSummary(p) }}</dd></div>
+              <div>
+                <dt>{{ t('profiles.facts.targets') }}</dt>
+                <dd>
+                  {{
+                    t(
+                      'profiles.targetCount',
+                      { n: p.storage_target_ids.length },
+                      p.storage_target_ids.length,
+                    )
+                  }}
+                </dd>
+              </div>
+              <div>
+                <dt>{{ t('profiles.facts.retention') }}</dt>
+                <dd>{{ retentionSummary(p) }}</dd>
+              </div>
               <div>
                 <dt>{{ t('profiles.facts.security') }}</dt>
                 <dd>
-                  <q-icon :name="p.encryption.enabled ? 'r_lock' : 'r_lock_open'" size="16px" aria-hidden="true" />
+                  <q-icon
+                    :name="p.encryption.enabled ? 'r_lock' : 'r_lock_open'"
+                    size="16px"
+                    aria-hidden="true"
+                  />
                   {{ p.encryption.enabled ? t('profiles.encrypted') : t('profiles.notEncrypted') }}
-                  · {{ p.compression.method === 'store' ? t('profiles.methodStoreShort') : t('profiles.levelShort', { n: p.compression.level }) }}
+                  ·
+                  {{
+                    p.compression.method === 'store'
+                      ? t('profiles.methodStoreShort')
+                      : t('profiles.levelShort', { n: p.compression.level })
+                  }}
                 </dd>
               </div>
-              <div><dt>{{ t('common.updated') }}</dt><dd>{{ fmt.relative(p.updated_at) }}</dd></div>
+              <div>
+                <dt>{{ t('common.updated') }}</dt>
+                <dd>{{ fmt.relative(p.updated_at) }}</dd>
+              </div>
             </dl>
             <template #footer>
               <div class="swbi-pcard__actions">
-                <q-btn v-if="can('swbi_run')" unelevated no-caps dense color="primary" icon="r_play_arrow" :label="t('profiles.runNow')" :loading="busyId === p.id" class="swbi-pcard__run" @click="runProfile(p.id)" />
+                <q-btn
+                  v-if="can('swbi_run')"
+                  unelevated
+                  no-caps
+                  dense
+                  color="primary"
+                  icon="r_play_arrow"
+                  :label="t('profiles.runNow')"
+                  :loading="busyId === p.id"
+                  class="swbi-pcard__run"
+                  @click="runProfile(p.id)"
+                />
                 <span class="swbi-pcard__spacer" />
                 <template v-if="canManage">
-                  <q-btn flat round dense icon="r_edit" :aria-label="t('profiles.editNamed', { name: p.name })" @click="openEdit(p)"><q-tooltip>{{ t('common.edit') }}</q-tooltip></q-btn>
-                  <q-btn flat round dense icon="r_content_copy" :loading="duplicatingId === p.id" :aria-label="t('profiles.duplicateNamed', { name: p.name })" @click="duplicate(p)"><q-tooltip>{{ t('common.duplicate') }}</q-tooltip></q-btn>
-                  <q-btn flat round dense icon="r_delete" color="negative" :aria-label="t('profiles.deleteNamed', { name: p.name })" @click="askDelete(p)"><q-tooltip>{{ t('common.delete') }}</q-tooltip></q-btn>
+                  <q-btn
+                    flat
+                    round
+                    dense
+                    icon="r_edit"
+                    :aria-label="t('profiles.editNamed', { name: p.name })"
+                    @click="openEdit(p)"
+                    ><q-tooltip>{{ t('common.edit') }}</q-tooltip></q-btn
+                  >
+                  <q-btn
+                    flat
+                    round
+                    dense
+                    icon="r_content_copy"
+                    :loading="duplicatingId === p.id"
+                    :aria-label="t('profiles.duplicateNamed', { name: p.name })"
+                    @click="duplicate(p)"
+                    ><q-tooltip>{{ t('common.duplicate') }}</q-tooltip></q-btn
+                  >
+                  <q-btn
+                    flat
+                    round
+                    dense
+                    icon="r_delete"
+                    color="negative"
+                    :aria-label="t('profiles.deleteNamed', { name: p.name })"
+                    @click="askDelete(p)"
+                    ><q-tooltip>{{ t('common.delete') }}</q-tooltip></q-btn
+                  >
                 </template>
-                <q-btn v-else flat round dense icon="r_visibility" :aria-label="t('common.details')" @click="openEdit(p)" />
+                <q-btn
+                  v-else
+                  flat
+                  round
+                  dense
+                  icon="r_visibility"
+                  :aria-label="t('common.details')"
+                  @click="openEdit(p)"
+                />
               </div>
             </template>
           </SwbiCard>
         </li>
       </ul>
-      <PaginationBar v-if="list.data.value" v-model:page="page" :pages="list.data.value.pages" :total="list.data.value.total" />
+      <PaginationBar
+        v-if="list.data.value"
+        v-model:page="page"
+        :pages="list.data.value.pages"
+        :total="list.data.value.total"
+      />
     </DataState>
 
-    <ProfileSheet v-model="sheetOpen" :profile="editing" :readonly="!canManage" @saved="list.load()" />
+    <ProfileSheet
+      v-model="sheetOpen"
+      :profile="editing"
+      :readonly="!canManage"
+      @saved="list.load()"
+    />
 
     <ConfirmDialog
       v-model="deleteOpen"

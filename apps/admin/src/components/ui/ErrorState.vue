@@ -10,9 +10,23 @@ const { t } = useI18n();
 
 <template>
   <div role="alert">
-    <EmptyState illustration="error" :title="t('errors.loadFailed')" :text="error.message" :compact="compact">
-      <q-btn color="primary" unelevated no-caps icon="r_refresh" :label="t('common.retry')" @click="emit('retry')" />
-      <span class="swbi-muted swbi-mono">{{ error.code }}<template v-if="error.status"> · {{ error.status }}</template></span>
+    <EmptyState
+      illustration="error"
+      :title="t('errors.loadFailed')"
+      :text="error.message"
+      :compact="compact"
+    >
+      <q-btn
+        color="primary"
+        unelevated
+        no-caps
+        icon="r_refresh"
+        :label="t('common.retry')"
+        @click="emit('retry')"
+      />
+      <span class="swbi-muted swbi-mono"
+        >{{ error.code }}<template v-if="error.status"> · {{ error.status }}</template></span
+      >
     </EmptyState>
   </div>
 </template>

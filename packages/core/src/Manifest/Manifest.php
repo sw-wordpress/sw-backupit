@@ -124,7 +124,14 @@ final class Manifest
      */
     public function volumes(): array
     {
-        return array_map(static fn (array $volume): VolumeInfo => VolumeInfo::fromArray($volume), self::listOf($this->data, 'volumes'));
+        $volumes = [];
+        foreach (self::listOf($this->data, 'volumes') as $volume) {
+            if (is_array($volume)) {
+                $volumes[] = VolumeInfo::fromArray($volume);
+            }
+        }
+
+        return $volumes;
     }
 
     /**
@@ -133,8 +140,19 @@ final class Manifest
     public function databaseParts(): array
     {
         $database = $this->data['database'] ?? null;
+        $parts = [];
+        foreach (is_array($database) ? self::listOf($database, 'parts') : [] as $part) {
+            if (is_array($part)) {
+                $parts[] = [
+                    'name' => (string) $part['name'],
+                    'size' => (int) ($part['size'] ?? 0),
+                    'sha256' => (string) $part['sha256'],
+                    'raw_bytes' => (int) ($part['raw_bytes'] ?? 0),
+                ];
+            }
+        }
 
-        return is_array($database) ? self::listOf($database, 'parts') : [];
+        return $parts;
     }
 
     /**
@@ -174,7 +192,7 @@ final class Manifest
 
     /**
      * @param array<string, mixed> $data
-     * @return list<array<string, mixed>>
+     * @return list<mixed>
      */
     private static function listOf(array $data, string $key): array
     {

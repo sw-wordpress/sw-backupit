@@ -6,6 +6,7 @@ namespace SWBackupIt\Restore\Backup;
 
 use SWBackupIt\Core\Archive\VolumeReader;
 use SWBackupIt\Core\Exception\IntegrityException;
+use SWBackupIt\Core\Exception\ManifestException;
 use ZipArchive;
 
 /**
@@ -47,8 +48,12 @@ final class Verifier
                 $report->databasePartsChecked++;
             }
         }
-        if ($manifest->hasFiles() && is_file($set->indexPath())) {
-            $this->verifyIndex($set, $report, $deep, $volumeEntries);
+        if ($manifest->hasFiles() && is_file($set->indexPath()) && $report->isOk()) {
+            try {
+                $this->verifyIndex($set, $report, $deep, $volumeEntries);
+            } catch (ManifestException $exception) {
+                $report->addError($exception->getMessage());
+            }
         }
 
         return $report;

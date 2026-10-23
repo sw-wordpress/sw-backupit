@@ -6,5 +6,9 @@ const { t } = useI18n();
 </script>
 
 <template>
-  <EmptyState illustration="error" :title="t('errors.noAccessTitle')" :text="t('errors.noAccessText')" />
+  <EmptyState
+    illustration="error"
+    :title="t('errors.noAccessTitle')"
+    :text="t('errors.noAccessText')"
+  />
 </template>

@@ -32,13 +32,27 @@ function remove(value: string): void {
       @blur="add"
     >
       <template #append>
-        <q-btn flat round dense icon="r_add" :aria-label="t('common.add')" :disable="disable || input.trim() === ''" @click="add" />
+        <q-btn
+          flat
+          round
+          dense
+          icon="r_add"
+          :aria-label="t('common.add')"
+          :disable="disable || input.trim() === ''"
+          @click="add"
+        />
       </template>
     </q-input>
     <ul v-if="model.length > 0" class="swbi-tags__list" :aria-label="label">
       <li v-for="value in model" :key="value" class="swbi-tags__item">
         <span class="swbi-mono swbi-truncate">{{ value }}</span>
-        <button v-if="!disable" type="button" class="swbi-tags__remove" :aria-label="t('common.removeItem', { item: value })" @click="remove(value)">
+        <button
+          v-if="!disable"
+          type="button"
+          class="swbi-tags__remove"
+          :aria-label="t('common.removeItem', { item: value })"
+          @click="remove(value)"
+        >
           <q-icon name="r_close" size="16px" aria-hidden="true" />
         </button>
       </li>

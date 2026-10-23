@@ -9,7 +9,11 @@ import { useLookupsStore } from '@/stores/lookups';
 import type { Frequency, Schedule, ScheduleInput } from '@/types/api';
 
 const open = defineModel<boolean>({ required: true });
-const props = defineProps<{ schedule: Schedule | null; readonly?: boolean; defaultTimezone: string }>();
+const props = defineProps<{
+  schedule: Schedule | null;
+  readonly?: boolean;
+  defaultTimezone: string;
+}>();
 const emit = defineEmits<{ (e: 'saved', schedule: Schedule): void }>();
 
 const { t } = useI18n();
@@ -17,7 +21,8 @@ const notify = useNotify();
 const lookups = useLookupsStore();
 const saving = ref(false);
 const form = ref<ScheduleInput>(blank());
-const allTimezones = typeof Intl.supportedValuesOf === 'function' ? Intl.supportedValuesOf('timeZone') : ['UTC'];
+const allTimezones =
+  typeof Intl.supportedValuesOf === 'function' ? Intl.supportedValuesOf('timeZone') : ['UTC'];
 const tzOptions = ref<string[]>(allTimezones);
 
 function blank(): ScheduleInput {
@@ -41,7 +46,14 @@ watch(open, async (isOpen) => {
     notify.error(e);
   }
   if (props.schedule) {
-    const { id: _id, next_run_at: _n, last_run_at: _l, last_status: _s, last_error: _e, ...rest } = props.schedule;
+    const {
+      id: _id,
+      next_run_at: _n,
+      last_run_at: _l,
+      last_status: _s,
+      last_error: _e,
+      ...rest
+    } = props.schedule;
     form.value = JSON.parse(JSON.stringify(rest)) as ScheduleInput;
   } else {
     form.value = blank();
@@ -49,11 +61,15 @@ watch(open, async (isOpen) => {
   tzOptions.value = allTimezones;
 });
 
-const profileOptions = computed(() => lookups.profiles.map((p) => ({ value: p.id, label: p.name })));
+const profileOptions = computed(() =>
+  lookups.profiles.map((p) => ({ value: p.id, label: p.name })),
+);
 const frequencies: Frequency[] = ['hourly', 'daily', 'weekly', 'monthly', 'cron'];
 const needsTime = computed(() => ['daily', 'weekly', 'monthly'].includes(form.value.frequency));
-const cronRule = (v: string): true | string => /^\s*(\S+\s+){4}\S+\s*$/.test(v) || t('schedules.cronInvalid');
-const positive = (v: number): true | string => (Number.isFinite(v) && v >= 1) || t('common.minValue', { n: 1 });
+const cronRule = (v: string): true | string =>
+  /^\s*(\S+\s+){4}\S+\s*$/.test(v) || t('schedules.cronInvalid');
+const positive = (v: number): true | string =>
+  (Number.isFinite(v) && v >= 1) || t('common.minValue', { n: 1 });
 
 function filterTz(val: string, update: (fn: () => void) => void): void {
   update(() => {
@@ -66,8 +82,13 @@ async function save(): Promise<void> {
   saving.value = true;
   try {
     const api = useApi();
-    const payload: ScheduleInput = { ...form.value, cron_expression: form.value.frequency === 'cron' ? form.value.cron_expression.trim() : '' };
-    const saved = props.schedule ? await api.schedules.update(props.schedule.id, payload) : await api.schedules.create(payload);
+    const payload: ScheduleInput = {
+      ...form.value,
+      cron_expression: form.value.frequency === 'cron' ? form.value.cron_expression.trim() : '',
+    };
+    const saved = props.schedule
+      ? await api.schedules.update(props.schedule.id, payload)
+      : await api.schedules.create(payload);
     notify.success(t('common.saved'));
     emit('saved', saved);
     open.value = false;
@@ -80,21 +101,81 @@ async function save(): Promise<void> {
 </script>
 
 <template>
-  <FormSheet v-model="open" :title="schedule ? t('schedules.edit') : t('schedules.create')" :subtitle="schedule?.name" :loading="saving" :readonly="readonly" :width="640" @submit="save">
+  <FormSheet
+    v-model="open"
+    :title="schedule ? t('schedules.edit') : t('schedules.create')"
+    :subtitle="schedule?.name"
+    :loading="saving"
+    :readonly="readonly"
+    :width="640"
+    @submit="save"
+  >
     <fieldset class="swbi-fieldset" :disabled="readonly">
       <FormSection :title="t('schedules.sections.general')">
-        <q-input v-model="form.name" outlined dense :label="t('common.name')" maxlength="120" :rules="[(v: string) => v.trim() !== '' || t('common.required')]" lazy-rules="ondemand" />
-        <q-select v-model="form.profile_id" outlined dense emit-value map-options :options="profileOptions" :label="t('schedules.profile')" :rules="[(v: number) => v > 0 || t('common.required')]" lazy-rules="ondemand" />
+        <q-input
+          v-model="form.name"
+          outlined
+          dense
+          :label="t('common.name')"
+          maxlength="120"
+          :rules="[(v: string) => v.trim() !== '' || t('common.required')]"
+          lazy-rules="ondemand"
+        />
+        <q-select
+          v-model="form.profile_id"
+          outlined
+          dense
+          emit-value
+          map-options
+          :options="profileOptions"
+          :label="t('schedules.profile')"
+          :rules="[(v: number) => v > 0 || t('common.required')]"
+          lazy-rules="ondemand"
+        />
         <q-toggle v-model="form.enabled" :label="t('schedules.enabled')" />
       </FormSection>
-      <FormSection :title="t('schedules.sections.timing')" :description="t('schedules.sections.timingDesc')">
-        <q-select v-model="form.frequency" outlined dense emit-value map-options :options="frequencies.map((v) => ({ value: v, label: t(`schedules.frequency.${v}`) }))" :label="t('schedules.frequencyLabel')" />
-        <q-input v-if="needsTime" v-model="form.time_of_day" outlined dense type="time" :label="t('schedules.timeOfDay')" :rules="[(v: string) => /^\d{2}:\d{2}$/.test(v) || t('common.required')]" lazy-rules="ondemand" />
+      <FormSection
+        :title="t('schedules.sections.timing')"
+        :description="t('schedules.sections.timingDesc')"
+      >
+        <q-select
+          v-model="form.frequency"
+          outlined
+          dense
+          emit-value
+          map-options
+          :options="frequencies.map((v) => ({ value: v, label: t(`schedules.frequency.${v}`) }))"
+          :label="t('schedules.frequencyLabel')"
+        />
+        <q-input
+          v-if="needsTime"
+          v-model="form.time_of_day"
+          outlined
+          dense
+          type="time"
+          :label="t('schedules.timeOfDay')"
+          :rules="[(v: string) => /^\d{2}:\d{2}$/.test(v) || t('common.required')]"
+          lazy-rules="ondemand"
+        />
         <template v-if="form.frequency === 'cron'">
-          <q-input v-model="form.cron_expression" outlined dense class="swbi-mono" :label="t('schedules.cronExpression')" placeholder="30 2 * * *" autocomplete="off" :rules="[cronRule]" lazy-rules="ondemand" />
+          <q-input
+            v-model="form.cron_expression"
+            outlined
+            dense
+            class="swbi-mono"
+            :label="t('schedules.cronExpression')"
+            placeholder="30 2 * * *"
+            autocomplete="off"
+            :rules="[cronRule]"
+            lazy-rules="ondemand"
+          />
           <div class="swbi-cron-help" role="note">
             <p>{{ t('schedules.cronHelp') }}</p>
-            <code>┌ {{ t('schedules.cronMinute') }} ┬ {{ t('schedules.cronHour') }} ┬ {{ t('schedules.cronDom') }} ┬ {{ t('schedules.cronMonth') }} ┬ {{ t('schedules.cronDow') }}</code>
+            <code
+              >┌ {{ t('schedules.cronMinute') }} ┬ {{ t('schedules.cronHour') }} ┬
+              {{ t('schedules.cronDom') }} ┬ {{ t('schedules.cronMonth') }} ┬
+              {{ t('schedules.cronDow') }}</code
+            >
             <ul>
               <li><code>30 2 * * *</code> {{ t('schedules.cronEx1') }}</li>
               <li><code>0 */6 * * *</code> {{ t('schedules.cronEx2') }}</li>
@@ -117,10 +198,32 @@ async function save(): Promise<void> {
           @filter="filterTz"
         />
       </FormSection>
-      <FormSection :title="t('schedules.sections.retry')" :description="t('schedules.sections.retryDesc')">
+      <FormSection
+        :title="t('schedules.sections.retry')"
+        :description="t('schedules.sections.retryDesc')"
+      >
         <div class="swbi-two">
-          <q-input v-model.number="form.retry.max_attempts" outlined dense type="number" min="1" :label="t('schedules.maxAttempts')" :rules="[positive]" lazy-rules="ondemand" />
-          <q-input v-model.number="form.retry.backoff_seconds" outlined dense type="number" min="1" suffix="s" :label="t('schedules.backoff')" :rules="[positive]" lazy-rules="ondemand" />
+          <q-input
+            v-model.number="form.retry.max_attempts"
+            outlined
+            dense
+            type="number"
+            min="1"
+            :label="t('schedules.maxAttempts')"
+            :rules="[positive]"
+            lazy-rules="ondemand"
+          />
+          <q-input
+            v-model.number="form.retry.backoff_seconds"
+            outlined
+            dense
+            type="number"
+            min="1"
+            suffix="s"
+            :label="t('schedules.backoff')"
+            :rules="[positive]"
+            lazy-rules="ondemand"
+          />
         </div>
       </FormSection>
     </fieldset>

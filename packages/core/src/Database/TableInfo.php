@@ -11,8 +11,7 @@ final readonly class TableInfo
         public bool $isView,
         public int $estimatedRows = 0,
         public string $engine = '',
-    )
-    {
+    ) {
     }
 
     /**

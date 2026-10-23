@@ -30,17 +30,30 @@ const steps = computed(() =>
     let state: State = 'pending';
     if (index < currentIndex.value) state = 'done';
     else if (index === currentIndex.value) {
-      state = props.job.status === 'failed' || props.job.status === 'cancelled' ? 'failed' : 'current';
+      state =
+        props.job.status === 'failed' || props.job.status === 'cancelled' ? 'failed' : 'current';
     }
-    return { phase, state, icon: state === 'done' ? 'r_check' : state === 'failed' ? 'r_close' : ICONS[phase] };
+    return {
+      phase,
+      state,
+      icon: state === 'done' ? 'r_check' : state === 'failed' ? 'r_close' : ICONS[phase],
+    };
   }),
 );
 </script>
 
 <template>
   <ol class="swbi-steps" :aria-label="t('jobs.phases')">
-    <li v-for="step in steps" :key="step.phase" class="swbi-step" :class="`swbi-step--${step.state}`" :aria-current="step.state === 'current' ? 'step' : undefined">
-      <span class="swbi-step__dot"><q-icon :name="step.icon" size="18px" aria-hidden="true" /></span>
+    <li
+      v-for="step in steps"
+      :key="step.phase"
+      class="swbi-step"
+      :class="`swbi-step--${step.state}`"
+      :aria-current="step.state === 'current' ? 'step' : undefined"
+    >
+      <span class="swbi-step__dot"
+        ><q-icon :name="step.icon" size="18px" aria-hidden="true"
+      /></span>
       <span class="swbi-step__label">{{ t(`phases.${step.phase}`) }}</span>
       <span class="swbi-sr-only">{{ t(`jobs.stepState.${step.state}`) }}</span>
     </li>

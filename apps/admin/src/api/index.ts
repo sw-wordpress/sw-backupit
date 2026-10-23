@@ -91,7 +91,8 @@ export function createApi(client: ApiClient) {
         client.post<Job>(`backups/${id}/restore`, { confirm: id, target_path_confirmed: true }),
     },
     storage: {
-      list: (q: PageQuery = {}) => client.get<Paginated<StorageTarget>>('storage-targets', q as Query),
+      list: (q: PageQuery = {}) =>
+        client.get<Paginated<StorageTarget>>('storage-targets', q as Query),
       create: (input: StorageTargetInput) => client.post<StorageTarget>('storage-targets', input),
       update: (id: number, input: StorageTargetInput) =>
         client.put<StorageTarget>(`storage-targets/${id}`, input),
@@ -106,7 +107,9 @@ export function createApi(client: ApiClient) {
       },
       /** Request/response shape assumed: `{ backup_ids: string[] }` -> `{ imported: number }`. */
       import: (id: number, backupIds: string[]) =>
-        client.post<{ imported: number }>(`storage-targets/${id}/import`, { backup_ids: backupIds }),
+        client.post<{ imported: number }>(`storage-targets/${id}/import`, {
+          backup_ids: backupIds,
+        }),
     },
     settings: {
       get: () => client.get<Settings>('settings'),

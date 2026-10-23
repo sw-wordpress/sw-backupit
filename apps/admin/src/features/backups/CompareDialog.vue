@@ -24,7 +24,9 @@ watch(open, (isOpen) => {
 
 const SAMPLE_KEYS = ['modified', 'only_in_backup', 'only_local'] as const;
 const samples = computed(() =>
-  SAMPLE_KEYS.map((key) => ({ key, items: result.value?.samples[key] ?? [] })).filter((s) => s.items.length > 0),
+  SAMPLE_KEYS.map((key) => ({ key, items: result.value?.samples[key] ?? [] })).filter(
+    (s) => s.items.length > 0,
+  ),
 );
 
 async function run(): Promise<void> {
@@ -41,7 +43,12 @@ async function run(): Promise<void> {
 </script>
 
 <template>
-  <SideSheet v-model="open" :title="t('backups.compare.title')" :subtitle="t('backups.compare.subtitle')" :width="620">
+  <SideSheet
+    v-model="open"
+    :title="t('backups.compare.title')"
+    :subtitle="t('backups.compare.subtitle')"
+    :width="620"
+  >
     <div class="swbi-stack swbi-cmp">
       <fieldset class="swbi-cmp__modes">
         <legend>{{ t('backups.compare.mode') }}</legend>
@@ -50,21 +57,59 @@ async function run(): Promise<void> {
         <q-radio v-model="mode" val="sha256" :label="t('backups.compare.sha256')" />
         <p class="swbi-muted swbi-cmp__hint">{{ t('backups.compare.sha256Hint') }}</p>
       </fieldset>
-      <div><q-btn unelevated no-caps color="primary" icon="r_compare_arrows" :label="t('backups.compare.run')" :loading="running" @click="run" /></div>
+      <div>
+        <q-btn
+          unelevated
+          no-caps
+          color="primary"
+          icon="r_compare_arrows"
+          :label="t('backups.compare.run')"
+          :loading="running"
+          @click="run"
+        />
+      </div>
 
       <div v-if="running" aria-busy="true"><q-skeleton height="120px" /></div>
       <template v-if="result">
-        <div class="swbi-grid swbi-cmp__tiles" role="group" :aria-label="t('backups.compare.result')">
-          <StatTile :label="t('backups.compare.modified')" :value="fmt.number(result.modified)" icon="r_edit_note" :tone="result.modified > 0 ? 'warning' : 'default'" />
-          <StatTile :label="t('backups.compare.onlyInBackup')" :value="fmt.number(result.only_in_backup)" icon="r_inventory_2" />
-          <StatTile :label="t('backups.compare.onlyLocal')" :value="fmt.number(result.only_local)" icon="r_computer" />
-          <StatTile :label="t('backups.compare.identical')" :value="fmt.number(result.identical)" icon="r_task_alt" tone="success" />
-          <StatTile :label="t('backups.compare.incomparable')" :value="fmt.number(result.incomparable)" icon="r_help" />
+        <div
+          class="swbi-grid swbi-cmp__tiles"
+          role="group"
+          :aria-label="t('backups.compare.result')"
+        >
+          <StatTile
+            :label="t('backups.compare.modified')"
+            :value="fmt.number(result.modified)"
+            icon="r_edit_note"
+            :tone="result.modified > 0 ? 'warning' : 'default'"
+          />
+          <StatTile
+            :label="t('backups.compare.onlyInBackup')"
+            :value="fmt.number(result.only_in_backup)"
+            icon="r_inventory_2"
+          />
+          <StatTile
+            :label="t('backups.compare.onlyLocal')"
+            :value="fmt.number(result.only_local)"
+            icon="r_computer"
+          />
+          <StatTile
+            :label="t('backups.compare.identical')"
+            :value="fmt.number(result.identical)"
+            icon="r_task_alt"
+            tone="success"
+          />
+          <StatTile
+            :label="t('backups.compare.incomparable')"
+            :value="fmt.number(result.incomparable)"
+            icon="r_help"
+          />
         </div>
         <section v-for="s in samples" :key="s.key" class="swbi-cmp__sample">
           <h3>{{ t(`backups.compare.sample.${s.key}`) }}</h3>
           <ul>
-            <li v-for="p in s.items" :key="p" class="swbi-mono swbi-truncate" :title="p">{{ p }}</li>
+            <li v-for="p in s.items" :key="p" class="swbi-mono swbi-truncate" :title="p">
+              {{ p }}
+            </li>
           </ul>
           <p class="swbi-muted">{{ t('backups.compare.sampleNote', { n: s.items.length }) }}</p>
         </section>

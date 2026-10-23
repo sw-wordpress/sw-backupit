@@ -38,7 +38,15 @@ final class FileJobRepository implements JobRepositoryInterface
             throw new JobNotFoundException('Job not found.', ['job' => $jobId]);
         }
 
-        return Job::fromArray(AtomicFile::readJson($file));
+        $job = Job::fromArray(AtomicFile::readJson($file));
+        $flagsFile = $this->directory . '/' . $jobId . '/flags.json';
+        if (is_file($flagsFile)) {
+            $flags = AtomicFile::readJson($flagsFile);
+            $job->cancelRequested = (bool) ($flags['cancel'] ?? false);
+            $job->pauseRequested = (bool) ($flags['pause'] ?? false);
+        }
+
+        return $job;
     }
 
     public function save(Job $job): void
@@ -47,8 +55,6 @@ final class FileJobRepository implements JobRepositoryInterface
             $file = $this->jobFile($job->id);
             if (is_file($file)) {
                 $stored = AtomicFile::readJson($file);
-                $job->cancelRequested = $job->cancelRequested || (bool) ($stored['cancel_requested'] ?? false);
-                $job->pauseRequested = $job->pauseRequested || (bool) ($stored['pause_requested'] ?? false);
                 // The lease belongs to the repository protocol, never overwritten by a stale entity.
                 $job->leaseOwner = is_string($stored['lease_owner'] ?? null) ? $stored['lease_owner'] : null;
                 $job->leaseExpiresAt = is_string($stored['lease_expires_at'] ?? null)
@@ -115,12 +121,19 @@ final class FileJobRepository implements JobRepositoryInterface
 
     public function requestCancel(string $jobId): void
     {
-        $this->setFlag($jobId, 'cancel_requested');
+        $this->setFlag($jobId, 'cancel');
     }
 
     public function requestPause(string $jobId): void
     {
-        $this->setFlag($jobId, 'pause_requested');
+        $this->setFlag($jobId, 'pause');
+    }
+
+    public function clearFlags(string $jobId): void
+    {
+        $this->withLock($jobId, function () use ($jobId): void {
+            @unlink($this->directory . '/' . $jobId . '/flags.json');
+        });
     }
 
     public function delete(string $jobId): void
@@ -147,13 +160,14 @@ final class FileJobRepository implements JobRepositoryInterface
     private function setFlag(string $jobId, string $flag): void
     {
         $this->withLock($jobId, function () use ($jobId, $flag): void {
-            $file = $this->jobFile($jobId);
-            if (!is_file($file)) {
+            if (!is_file($this->jobFile($jobId))) {
                 throw new JobNotFoundException('Job not found.', ['job' => $jobId]);
             }
-            $data = AtomicFile::readJson($file);
-            $data[$flag] = true;
-            AtomicFile::writeJson($file, $data);
+            // Flags live in their own file so a worker saving a stale job entity can never lose or resurrect them.
+            $file = $this->directory . '/' . $jobId . '/flags.json';
+            $flags = is_file($file) ? AtomicFile::readJson($file) : [];
+            $flags[$flag] = true;
+            AtomicFile::writeJson($file, $flags);
         });
     }
 

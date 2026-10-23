@@ -18,7 +18,15 @@ const props = withDefaults(
     requireText?: string;
     checkboxLabel?: string;
   }>(),
-  { message: undefined, target: undefined, consequences: () => [], danger: true, loading: false, requireText: undefined, checkboxLabel: undefined },
+  {
+    message: undefined,
+    target: undefined,
+    consequences: () => [],
+    danger: true,
+    loading: false,
+    requireText: undefined,
+    checkboxLabel: undefined,
+  },
 );
 const emit = defineEmits<{ (e: 'confirm'): void }>();
 const { t } = useI18n();
@@ -75,7 +83,14 @@ watch(open, (value) => {
         <slot />
       </q-card-section>
       <q-card-actions align="right" class="swbi-cd__actions">
-        <q-btn flat no-caps :label="t('common.cancel')" :disable="loading" data-autofocus @click="open = false" />
+        <q-btn
+          flat
+          no-caps
+          :label="t('common.cancel')"
+          :disable="loading"
+          data-autofocus
+          @click="open = false"
+        />
         <q-btn
           unelevated
           no-caps

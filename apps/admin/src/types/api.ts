@@ -230,8 +230,7 @@ export interface BackupFilters {
 }
 
 export type VerifyResult =
-  | { ok: boolean; checked_volumes: number; errors: string[] }
-  | { job: Job };
+  { ok: boolean; checked_volumes: number; errors: string[] } | { job: Job };
 
 export interface ArchiveEntry {
   path: string;

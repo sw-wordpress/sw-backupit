@@ -50,9 +50,23 @@ watch(
 
 const active = computed(() => job.value !== null && isActive(job.value));
 const paused = computed(() => job.value?.status === 'paused');
-const percent = computed(() => (job.value ? Math.min(100, Math.max(0, job.value.progress.percent)) : 0));
-const tone = computed(() => (job.value?.status === 'failed' ? 'danger' : job.value?.status === 'completed' ? 'success' : job.value?.status === 'paused' ? 'warning' : 'primary'));
-const phaseLabel = computed(() => (job.value && te(`phases.${normalisePhase(job.value.phase) ?? job.value.phase}`) ? t(`phases.${normalisePhase(job.value.phase) ?? job.value.phase}`) : (job.value?.phase ?? '')));
+const percent = computed(() =>
+  job.value ? Math.min(100, Math.max(0, job.value.progress.percent)) : 0,
+);
+const tone = computed(() =>
+  job.value?.status === 'failed'
+    ? 'danger'
+    : job.value?.status === 'completed'
+      ? 'success'
+      : job.value?.status === 'paused'
+        ? 'warning'
+        : 'primary',
+);
+const phaseLabel = computed(() =>
+  job.value && te(`phases.${normalisePhase(job.value.phase) ?? job.value.phase}`)
+    ? t(`phases.${normalisePhase(job.value.phase) ?? job.value.phase}`)
+    : (job.value?.phase ?? ''),
+);
 
 // ---- throttled screen-reader announcements (never every poll) ----
 let lastAnnounce = 0;
@@ -66,10 +80,18 @@ function announceProgress(j: Job): void {
   const bucket = Math.floor(j.progress.percent / 25);
   const bucketChange = bucket !== lastBucket && lastBucket !== -1;
   if (terminalChange) {
-    app.announce(t('jobs.announce.terminal', { name: j.profile_name, status: t(`status.job.${j.status}`) }));
+    app.announce(
+      t('jobs.announce.terminal', { name: j.profile_name, status: t(`status.job.${j.status}`) }),
+    );
     lastAnnounce = now;
   } else if ((phaseChange || bucketChange) && now - lastAnnounce > 15000) {
-    app.announce(t('jobs.announce.progress', { name: j.profile_name, phase: te(`phases.${j.phase}`) ? t(`phases.${j.phase}`) : j.phase, percent: Math.round(j.progress.percent) }));
+    app.announce(
+      t('jobs.announce.progress', {
+        name: j.profile_name,
+        phase: te(`phases.${j.phase}`) ? t(`phases.${j.phase}`) : j.phase,
+        percent: Math.round(j.progress.percent),
+      }),
+    );
     lastAnnounce = now;
   }
   lastPhase = j.phase;
@@ -109,10 +131,22 @@ const stats = computed(() => {
   if (!j) return [];
   const p = j.progress;
   return [
-    { label: t('jobs.stats.files'), value: t('jobs.filesOf', { done: fmt.number(p.files_done), total: fmt.number(p.files_total) }) },
-    { label: t('jobs.stats.bytes'), value: `${fmt.bytes(p.bytes_done)} / ${fmt.bytes(p.bytes_total)}` },
+    {
+      label: t('jobs.stats.files'),
+      value: t('jobs.filesOf', {
+        done: fmt.number(p.files_done),
+        total: fmt.number(p.files_total),
+      }),
+    },
+    {
+      label: t('jobs.stats.bytes'),
+      value: `${fmt.bytes(p.bytes_done)} / ${fmt.bytes(p.bytes_total)}`,
+    },
     { label: t('jobs.stats.compressed'), value: fmt.bytes(p.bytes_compressed) },
-    { label: t('jobs.stats.ratio'), value: p.compression_ratio > 0 ? fmt.percent(p.compression_ratio) : '–' },
+    {
+      label: t('jobs.stats.ratio'),
+      value: p.compression_ratio > 0 ? fmt.percent(p.compression_ratio) : '–',
+    },
     { label: t('jobs.stats.volumes'), value: String(p.volumes_done) },
     { label: t('jobs.stats.elapsed'), value: fmt.duration(p.elapsed_seconds) },
     { label: t('jobs.stats.eta'), value: active.value ? fmt.duration(p.eta_seconds) : '–' },
@@ -130,16 +164,62 @@ const showUpload = computed(() => {
 
 <template>
   <div>
-    <PageHeader :title="job ? job.profile_name : t('jobs.detail')" :subtitle="job ? `${t(`types.${job.type}`) === `types.${job.type}` ? job.type : t(`types.${job.type}`)} · ${job.id}` : undefined" back-to="/jobs" :back-label="t('nav.jobs')">
+    <PageHeader
+      :title="job ? job.profile_name : t('jobs.detail')"
+      :subtitle="
+        job
+          ? `${t(`types.${job.type}`) === `types.${job.type}` ? job.type : t(`types.${job.type}`)} · ${job.id}`
+          : undefined
+      "
+      back-to="/jobs"
+      :back-label="t('nav.jobs')"
+    >
       <template v-if="job">
-        <q-btn v-if="canRun && active" flat no-caps icon="r_pause" :label="t('jobs.pause')" :loading="acting === 'pause'" @click="act('pause')" />
-        <q-btn v-if="canRun && paused" unelevated no-caps color="primary" icon="r_play_arrow" :label="t('jobs.resume')" :loading="acting === 'resume'" @click="act('resume')" />
-        <q-btn v-if="canRun && (active || paused)" outline no-caps color="negative" icon="r_stop" :label="t('jobs.cancel')" @click="cancelOpen = true" />
-        <q-btn v-if="job.backup_id" unelevated no-caps color="primary" icon="r_inventory_2" :label="t('jobs.openBackup')" :to="{ name: 'backups', params: { id: job.backup_id } }" />
+        <q-btn
+          v-if="canRun && active"
+          flat
+          no-caps
+          icon="r_pause"
+          :label="t('jobs.pause')"
+          :loading="acting === 'pause'"
+          @click="act('pause')"
+        />
+        <q-btn
+          v-if="canRun && paused"
+          unelevated
+          no-caps
+          color="primary"
+          icon="r_play_arrow"
+          :label="t('jobs.resume')"
+          :loading="acting === 'resume'"
+          @click="act('resume')"
+        />
+        <q-btn
+          v-if="canRun && (active || paused)"
+          outline
+          no-caps
+          color="negative"
+          icon="r_stop"
+          :label="t('jobs.cancel')"
+          @click="cancelOpen = true"
+        />
+        <q-btn
+          v-if="job.backup_id"
+          unelevated
+          no-caps
+          color="primary"
+          icon="r_inventory_2"
+          :label="t('jobs.openBackup')"
+          :to="{ name: 'backups', params: { id: job.backup_id } }"
+        />
       </template>
     </PageHeader>
 
-    <ErrorState v-if="monitor.error.value && !job" :error="monitor.error.value" @retry="monitor.start()" />
+    <ErrorState
+      v-if="monitor.error.value && !job"
+      :error="monitor.error.value"
+      @retry="monitor.start()"
+    />
     <div v-else-if="!job" aria-busy="true" class="swbi-stack">
       <q-skeleton height="200px" /><q-skeleton height="90px" /><q-skeleton height="260px" />
     </div>
@@ -152,29 +232,52 @@ const showUpload = computed(() => {
 
       <SwbiCard accent>
         <div class="swbi-jd__top">
-          <ProgressRing :value="percent" :size="140" :stroke="12" :tone="tone" :label="t('jobs.progressOf', { name: job.profile_name })" />
+          <ProgressRing
+            :value="percent"
+            :size="140"
+            :stroke="12"
+            :tone="tone"
+            :label="t('jobs.progressOf', { name: job.profile_name })"
+          />
           <div class="swbi-jd__main">
             <div class="swbi-row">
               <StatusChip domain="job" :status="job.status" />
               <span class="swbi-jd__phase">{{ phaseLabel }}</span>
-              <span v-if="job.retry_count > 0" class="swbi-muted">{{ t('jobs.retries', { n: job.retry_count }, job.retry_count) }}</span>
-              <span v-if="job.warnings_count > 0" class="swbi-jd__warncount"><q-icon name="r_warning" size="16px" aria-hidden="true" /> {{ t('jobs.warnings', { n: job.warnings_count }, job.warnings_count) }}</span>
+              <span v-if="job.retry_count > 0" class="swbi-muted">{{
+                t('jobs.retries', { n: job.retry_count }, job.retry_count)
+              }}</span>
+              <span v-if="job.warnings_count > 0" class="swbi-jd__warncount"
+                ><q-icon name="r_warning" size="16px" aria-hidden="true" />
+                {{ t('jobs.warnings', { n: job.warnings_count }, job.warnings_count) }}</span
+              >
             </div>
-            <p v-if="job.progress.current_item && active" class="swbi-jd__current" :title="job.progress.current_item">
+            <p
+              v-if="job.progress.current_item && active"
+              class="swbi-jd__current"
+              :title="job.progress.current_item"
+            >
               <span class="swbi-eyebrow">{{ t('jobs.currentItem') }}</span>
               <span class="swbi-mono swbi-truncate">{{ job.progress.current_item }}</span>
             </p>
             <dl class="swbi-jd__stats">
-              <div v-for="s in stats" :key="s.label"><dt>{{ s.label }}</dt><dd class="swbi-num">{{ s.value }}</dd></div>
+              <div v-for="s in stats" :key="s.label">
+                <dt>{{ s.label }}</dt>
+                <dd class="swbi-num">{{ s.value }}</dd>
+              </div>
             </dl>
           </div>
         </div>
 
         <div v-if="job.error" class="swbi-jd__error" role="alert">
           <q-icon name="r_error" size="22px" aria-hidden="true" />
-          <div><strong>{{ t('jobs.failedWith') }}</strong><p>{{ job.error }}</p></div>
+          <div>
+            <strong>{{ t('jobs.failedWith') }}</strong>
+            <p>{{ job.error }}</p>
+          </div>
         </div>
-        <p v-if="job.status === 'retry_waiting'" class="swbi-muted swbi-jd__note"><q-icon name="r_schedule" size="16px" aria-hidden="true" /> {{ t('jobs.retryWaiting') }}</p>
+        <p v-if="job.status === 'retry_waiting'" class="swbi-muted swbi-jd__note">
+          <q-icon name="r_schedule" size="16px" aria-hidden="true" /> {{ t('jobs.retryWaiting') }}
+        </p>
       </SwbiCard>
 
       <SwbiCard :title="t('jobs.phases')" icon="r_timeline"><PhaseStepper :job="job" /></SwbiCard>
@@ -182,17 +285,36 @@ const showUpload = computed(() => {
       <SwbiCard v-if="canRun && (active || paused)" :title="t('jobs.driver.title')" icon="r_memory">
         <q-toggle v-model="app.driveJobs" :label="t('jobs.driver.label')" />
         <p class="swbi-muted swbi-jd__note">{{ t('jobs.driver.hint') }}</p>
-        <p v-if="app.driveJobs && monitor.driving.value" class="swbi-jd__driving"><q-icon name="r_autorenew" size="16px" aria-hidden="true" /> {{ t('jobs.driver.active') }}</p>
+        <p v-if="app.driveJobs && monitor.driving.value" class="swbi-jd__driving">
+          <q-icon name="r_autorenew" size="16px" aria-hidden="true" /> {{ t('jobs.driver.active') }}
+        </p>
       </SwbiCard>
 
       <SwbiCard v-if="showUpload" :title="t('jobs.upload.title')" icon="r_cloud_upload">
         <template v-if="job.progress.upload.bytes_total > 0">
-          <q-linear-progress :value="uploadPercent / 100" size="10px" rounded color="primary" class="swbi-jd__bar" role="progressbar" :aria-label="t('jobs.upload.title')" :aria-valuenow="Math.round(uploadPercent)" aria-valuemin="0" aria-valuemax="100" />
-          <p class="swbi-num swbi-jd__note">{{ fmt.bytes(job.progress.upload.bytes_done) }} / {{ fmt.bytes(job.progress.upload.bytes_total) }} · {{ fmt.rate(job.progress.upload.rate_bps) }}</p>
+          <q-linear-progress
+            :value="uploadPercent / 100"
+            size="10px"
+            rounded
+            color="primary"
+            class="swbi-jd__bar"
+            role="progressbar"
+            :aria-label="t('jobs.upload.title')"
+            :aria-valuenow="Math.round(uploadPercent)"
+            aria-valuemin="0"
+            aria-valuemax="100"
+          />
+          <p class="swbi-num swbi-jd__note">
+            {{ fmt.bytes(job.progress.upload.bytes_done) }} /
+            {{ fmt.bytes(job.progress.upload.bytes_total) }} ·
+            {{ fmt.rate(job.progress.upload.rate_bps) }}
+          </p>
         </template>
         <ul class="swbi-jd__targets">
           <li v-for="tg in job.progress.targets" :key="tg.target_id">
-            <span class="swbi-jd__tname"><q-icon name="r_dns" size="18px" aria-hidden="true" /> {{ tg.name }}</span>
+            <span class="swbi-jd__tname"
+              ><q-icon name="r_dns" size="18px" aria-hidden="true" /> {{ tg.name }}</span
+            >
             <StatusChip domain="upload" :status="tg.status" dense />
             <span v-if="tg.error" class="swbi-jd__terr">{{ tg.error }}</span>
           </li>

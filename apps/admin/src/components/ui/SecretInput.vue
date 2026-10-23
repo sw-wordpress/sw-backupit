@@ -24,7 +24,10 @@ const { t } = useI18n();
     lazy-rules="ondemand"
   >
     <template v-if="isSet" #append>
-      <span class="swbi-secret-badge"><q-icon name="r_lock" size="14px" aria-hidden="true" /> {{ t('storage.credentialsSet') }}</span>
+      <span class="swbi-secret-badge"
+        ><q-icon name="r_lock" size="14px" aria-hidden="true" />
+        {{ t('storage.credentialsSet') }}</span
+      >
     </template>
   </q-input>
 </template>

@@ -13,14 +13,34 @@ const titleId = uid('swbi-sheet');
 </script>
 
 <template>
-  <q-dialog v-model="open" position="right" full-height :persistent="persistent" :maximized="false" @hide="emit('hide')">
-    <q-card class="swbi-sheet" :style="{ '--sheet-w': `${width}px` }" role="dialog" aria-modal="true" :aria-labelledby="titleId">
+  <q-dialog
+    v-model="open"
+    position="right"
+    full-height
+    :persistent="persistent"
+    :maximized="false"
+    @hide="emit('hide')"
+  >
+    <q-card
+      class="swbi-sheet"
+      :style="{ '--sheet-w': `${width}px` }"
+      role="dialog"
+      aria-modal="true"
+      :aria-labelledby="titleId"
+    >
       <header class="swbi-sheet__head">
         <div class="swbi-sheet__titles">
           <h2 :id="titleId" class="swbi-sheet__title swbi-truncate">{{ title }}</h2>
           <p v-if="subtitle" class="swbi-sheet__subtitle swbi-truncate">{{ subtitle }}</p>
         </div>
-        <q-btn flat round dense icon="r_close" :aria-label="t('common.close')" @click="open = false" />
+        <q-btn
+          flat
+          round
+          dense
+          icon="r_close"
+          :aria-label="t('common.close')"
+          @click="open = false"
+        />
       </header>
       <div class="swbi-sheet__body"><slot /></div>
       <footer v-if="$slots.footer" class="swbi-sheet__foot"><slot name="footer" /></footer>

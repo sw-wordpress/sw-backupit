@@ -21,7 +21,9 @@ const jobsStore = useJobsStore();
 
 const filter = ref<JobFilter>('finished');
 const page = ref(1);
-const history = useAsyncData(() => api.jobs.list({ status: filter.value, page: page.value, per_page: 15 }));
+const history = useAsyncData(() =>
+  api.jobs.list({ status: filter.value, page: page.value, per_page: 15 }),
+);
 watch(filter, () => {
   page.value = 1;
   void history.load();
@@ -37,15 +39,30 @@ watch(
 
 const items = computed(() => history.data.value?.items ?? []);
 const filterOptions = computed(() =>
-  (['finished', 'completed', 'failed', 'cancelled'] as const).map((v) => ({ value: v, label: t(`jobs.filter.${v}`) })),
+  (['finished', 'completed', 'failed', 'cancelled'] as const).map((v) => ({
+    value: v,
+    label: t(`jobs.filter.${v}`),
+  })),
 );
-const typeLabel = (type: string): string => (['full', 'files', 'database', 'incremental', 'differential'].includes(type) ? t(`types.${type}`) : type);
+const typeLabel = (type: string): string =>
+  ['full', 'files', 'database', 'incremental', 'differential'].includes(type)
+    ? t(`types.${type}`)
+    : type;
 </script>
 
 <template>
   <div class="swbi-stack">
     <PageHeader :title="t('nav.jobs')" :subtitle="t('jobs.subtitle')">
-      <q-btn flat no-caps icon="r_refresh" :label="t('common.refresh')" @click="jobsStore.refresh(); history.load()" />
+      <q-btn
+        flat
+        no-caps
+        icon="r_refresh"
+        :label="t('common.refresh')"
+        @click="
+          jobsStore.refresh();
+          history.load();
+        "
+      />
     </PageHeader>
 
     <section :aria-label="t('jobs.running')">
@@ -54,17 +71,42 @@ const typeLabel = (type: string): string => (['full', 'files', 'database', 'incr
       <div v-else-if="jobsStore.running.length > 0" class="swbi-grid swbi-grid--wide">
         <RunningJobCard v-for="job in jobsStore.running" :key="job.id" :job="job" />
       </div>
-      <SwbiCard v-else><EmptyState compact illustration="jobs" :title="t('jobs.noneRunning')" :text="t('jobs.noneRunningText')" /></SwbiCard>
+      <SwbiCard v-else
+        ><EmptyState
+          compact
+          illustration="jobs"
+          :title="t('jobs.noneRunning')"
+          :text="t('jobs.noneRunningText')"
+      /></SwbiCard>
     </section>
 
     <section :aria-label="t('jobs.history')">
       <div class="swbi-jv__head">
         <h2 class="swbi-h2">{{ t('jobs.history') }}</h2>
-        <q-select v-model="filter" outlined dense emit-value map-options :options="filterOptions" :label="t('common.status')" class="swbi-jv__filter" />
+        <q-select
+          v-model="filter"
+          outlined
+          dense
+          emit-value
+          map-options
+          :options="filterOptions"
+          :label="t('common.status')"
+          class="swbi-jv__filter"
+        />
       </div>
       <SwbiCard :padding="false">
-        <DataState :loading="history.loading.value" :error="history.error.value" :empty="items.length === 0" @retry="history.load()">
-          <template #empty><EmptyState illustration="jobs" :title="t('jobs.emptyTitle')" :text="t('jobs.emptyText')" /></template>
+        <DataState
+          :loading="history.loading.value"
+          :error="history.error.value"
+          :empty="items.length === 0"
+          @retry="history.load()"
+        >
+          <template #empty
+            ><EmptyState
+              illustration="jobs"
+              :title="t('jobs.emptyTitle')"
+              :text="t('jobs.emptyText')"
+          /></template>
           <table class="swbi-table">
             <thead>
               <tr>
@@ -86,17 +128,32 @@ const typeLabel = (type: string): string => (['full', 'files', 'database', 'incr
                 </td>
                 <td :data-label="t('jobs.col.profile')">{{ j.profile_name }}</td>
                 <td :data-label="t('common.type')">{{ typeLabel(j.type) }}</td>
-                <td :data-label="t('common.status')"><StatusChip domain="job" :status="j.status" dense /></td>
-                <td class="swbi-num" :data-label="t('jobs.col.duration')">{{ fmt.duration(j.progress.elapsed_seconds) }}</td>
+                <td :data-label="t('common.status')">
+                  <StatusChip domain="job" :status="j.status" dense />
+                </td>
+                <td class="swbi-num" :data-label="t('jobs.col.duration')">
+                  {{ fmt.duration(j.progress.elapsed_seconds) }}
+                </td>
                 <td :data-label="t('jobs.col.result')">
-                  <router-link v-if="j.backup_id" :to="{ name: 'backups', params: { id: j.backup_id } }">{{ t('jobs.openBackup') }}</router-link>
-                  <span v-else-if="j.error" class="swbi-jv__err" :title="j.error">{{ j.error }}</span>
+                  <router-link
+                    v-if="j.backup_id"
+                    :to="{ name: 'backups', params: { id: j.backup_id } }"
+                    >{{ t('jobs.openBackup') }}</router-link
+                  >
+                  <span v-else-if="j.error" class="swbi-jv__err" :title="j.error">{{
+                    j.error
+                  }}</span>
                   <span v-else class="swbi-muted">–</span>
                 </td>
               </tr>
             </tbody>
           </table>
-          <PaginationBar v-if="history.data.value" v-model:page="page" :pages="history.data.value.pages" :total="history.data.value.total" />
+          <PaginationBar
+            v-if="history.data.value"
+            v-model:page="page"
+            :pages="history.data.value.pages"
+            :total="history.data.value.total"
+          />
         </DataState>
       </SwbiCard>
     </section>

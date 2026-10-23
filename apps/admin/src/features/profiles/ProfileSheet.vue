@@ -24,9 +24,12 @@ const targetsLoading = ref(false);
 
 const TABS = ['general', 'content', 'compression', 'storage', 'limits', 'notifications'] as const;
 const TYPES: BackupType[] = ['full', 'files', 'database', 'incremental', 'differential'];
-const emailRule = (v: string[]): true | string => v.every((a) => /^\S+@\S+\.\S+$/.test(a)) || t('profiles.invalidEmail');
-const positive = (v: number): true | string => (Number.isFinite(v) && v >= 1) || t('common.minValue', { n: 1 });
-const nonNegative = (v: number): true | string => (Number.isFinite(v) && v >= 0) || t('common.minValue', { n: 0 });
+const emailRule = (v: string[]): true | string =>
+  v.every((a) => /^\S+@\S+\.\S+$/.test(a)) || t('profiles.invalidEmail');
+const positive = (v: number): true | string =>
+  (Number.isFinite(v) && v >= 1) || t('common.minValue', { n: 1 });
+const nonNegative = (v: number): true | string =>
+  (Number.isFinite(v) && v >= 0) || t('common.minValue', { n: 0 });
 
 watch(open, async (isOpen) => {
   if (!isOpen) return;
@@ -50,7 +53,9 @@ async function save(): Promise<void> {
   saving.value = true;
   try {
     const api = useApi();
-    const saved = props.profile ? await api.profiles.update(props.profile.id, form.value) : await api.profiles.create(form.value);
+    const saved = props.profile
+      ? await api.profiles.update(props.profile.id, form.value)
+      : await api.profiles.create(form.value);
     notify.success(t('common.saved'));
     lookups.invalidate();
     emit('saved', saved);
@@ -64,19 +69,58 @@ async function save(): Promise<void> {
 </script>
 
 <template>
-  <FormSheet v-model="open" :title="title" :subtitle="profile?.name" :loading="saving" :readonly="readonly" @submit="save" @invalid-tab="tab = $event">
-    <q-tabs v-model="tab" dense align="left" mobile-arrows outside-arrows no-caps active-color="primary" indicator-color="primary" class="swbi-ptabs">
+  <FormSheet
+    v-model="open"
+    :title="title"
+    :subtitle="profile?.name"
+    :loading="saving"
+    :readonly="readonly"
+    @submit="save"
+    @invalid-tab="tab = $event"
+  >
+    <q-tabs
+      v-model="tab"
+      dense
+      align="left"
+      mobile-arrows
+      outside-arrows
+      no-caps
+      active-color="primary"
+      indicator-color="primary"
+      class="swbi-ptabs"
+    >
       <q-tab v-for="name in TABS" :key="name" :name="name" :label="t(`profiles.tabs.${name}`)" />
     </q-tabs>
     <q-separator />
 
     <fieldset class="swbi-fieldset" :disabled="readonly">
       <div v-show="tab === 'general'" data-tab="general" role="tabpanel">
-        <FormSection :title="t('profiles.sections.identity')" :description="t('profiles.sections.identityDesc')">
-          <q-input v-model="form.name" outlined dense :label="t('common.name')" maxlength="120" :rules="[(v: string) => v.trim() !== '' || t('common.required')]" lazy-rules="ondemand" />
-          <q-input v-model="form.description" outlined dense type="textarea" autogrow :label="t('common.description')" />
+        <FormSection
+          :title="t('profiles.sections.identity')"
+          :description="t('profiles.sections.identityDesc')"
+        >
+          <q-input
+            v-model="form.name"
+            outlined
+            dense
+            :label="t('common.name')"
+            maxlength="120"
+            :rules="[(v: string) => v.trim() !== '' || t('common.required')]"
+            lazy-rules="ondemand"
+          />
+          <q-input
+            v-model="form.description"
+            outlined
+            dense
+            type="textarea"
+            autogrow
+            :label="t('common.description')"
+          />
         </FormSection>
-        <FormSection :title="t('profiles.sections.type')" :description="t('profiles.sections.typeDesc')">
+        <FormSection
+          :title="t('profiles.sections.type')"
+          :description="t('profiles.sections.typeDesc')"
+        >
           <q-option-group
             v-model="form.type"
             type="radio"
@@ -87,35 +131,74 @@ async function save(): Promise<void> {
               <span class="swbi-type-opt">
                 <strong>{{ opt.label }}</strong>
                 <span class="swbi-muted">{{ t(`types.${opt.value as BackupType}Desc`) }}</span>
-                <span v-if="(ADVANCED_TYPES as readonly string[]).includes(opt.value as string)" class="swbi-adv-chip">
-                  <q-icon name="r_info" size="14px" aria-hidden="true" />{{ t('profiles.advancedChip') }}
+                <span
+                  v-if="(ADVANCED_TYPES as readonly string[]).includes(opt.value as string)"
+                  class="swbi-adv-chip"
+                >
+                  <q-icon name="r_info" size="14px" aria-hidden="true" />{{
+                    t('profiles.advancedChip')
+                  }}
                 </span>
               </span>
             </template>
           </q-option-group>
-          <p v-if="isAdvanced" class="swbi-note" role="note"><q-icon name="r_info" size="18px" aria-hidden="true" /> {{ t('profiles.advancedNote') }}</p>
+          <p v-if="isAdvanced" class="swbi-note" role="note">
+            <q-icon name="r_info" size="18px" aria-hidden="true" /> {{ t('profiles.advancedNote') }}
+          </p>
         </FormSection>
       </div>
 
       <div v-show="tab === 'content'" data-tab="content" role="tabpanel">
-        <FormSection :title="t('profiles.sections.paths')" :description="t('profiles.sections.pathsDesc')">
-          <TagInput v-model="form.include_paths" :label="t('profiles.includePaths')" :hint="t('profiles.pathsHint')" />
+        <FormSection
+          :title="t('profiles.sections.paths')"
+          :description="t('profiles.sections.pathsDesc')"
+        >
+          <TagInput
+            v-model="form.include_paths"
+            :label="t('profiles.includePaths')"
+            :hint="t('profiles.pathsHint')"
+          />
           <TagInput v-model="form.exclude_paths" :label="t('profiles.excludePaths')" />
-          <TagInput v-model="form.external_paths" :label="t('profiles.externalPaths')" :hint="t('profiles.externalPathsHint')" />
+          <TagInput
+            v-model="form.external_paths"
+            :label="t('profiles.externalPaths')"
+            :hint="t('profiles.externalPathsHint')"
+          />
         </FormSection>
-        <FormSection :title="t('profiles.sections.patterns')" :description="t('profiles.sections.patternsDesc')">
-          <TagInput v-model="form.include_patterns" :label="t('profiles.includePatterns')" placeholder="**/*.php" />
-          <TagInput v-model="form.exclude_patterns" :label="t('profiles.excludePatterns')" placeholder="**/*.log" />
+        <FormSection
+          :title="t('profiles.sections.patterns')"
+          :description="t('profiles.sections.patternsDesc')"
+        >
+          <TagInput
+            v-model="form.include_patterns"
+            :label="t('profiles.includePatterns')"
+            placeholder="**/*.php"
+          />
+          <TagInput
+            v-model="form.exclude_patterns"
+            :label="t('profiles.excludePatterns')"
+            placeholder="**/*.log"
+          />
         </FormSection>
-        <FormSection :title="t('profiles.sections.database')" :description="t('profiles.sections.databaseDesc')">
-          <TagInput v-model="form.db_tables_include" :label="t('profiles.tablesInclude')" :hint="t('profiles.tablesIncludeHint')" />
+        <FormSection
+          :title="t('profiles.sections.database')"
+          :description="t('profiles.sections.databaseDesc')"
+        >
+          <TagInput
+            v-model="form.db_tables_include"
+            :label="t('profiles.tablesInclude')"
+            :hint="t('profiles.tablesIncludeHint')"
+          />
           <TagInput v-model="form.db_tables_exclude" :label="t('profiles.tablesExclude')" />
           <q-toggle v-model="form.db_include_foreign_tables" :label="t('profiles.foreignTables')" />
         </FormSection>
       </div>
 
       <div v-show="tab === 'compression'" data-tab="compression" role="tabpanel">
-        <FormSection :title="t('profiles.sections.compression')" :description="t('profiles.sections.compressionDesc')">
+        <FormSection
+          :title="t('profiles.sections.compression')"
+          :description="t('profiles.sections.compressionDesc')"
+        >
           <q-select
             v-model="form.compression.method"
             outlined
@@ -129,14 +212,40 @@ async function save(): Promise<void> {
             :label="t('profiles.method')"
           />
           <div v-if="form.compression.method === 'deflate'">
-            <span class="swbi-slider-label">{{ t('profiles.level') }}: <strong class="swbi-num">{{ form.compression.level }}</strong></span>
-            <q-slider v-model="form.compression.level" :min="1" :max="9" :step="1" snap markers label :aria-label="t('profiles.level')" color="primary" />
+            <span class="swbi-slider-label"
+              >{{ t('profiles.level') }}:
+              <strong class="swbi-num">{{ form.compression.level }}</strong></span
+            >
+            <q-slider
+              v-model="form.compression.level"
+              :min="1"
+              :max="9"
+              :step="1"
+              snap
+              markers
+              label
+              :aria-label="t('profiles.level')"
+              color="primary"
+            />
             <span class="swbi-muted swbi-small">{{ t('profiles.levelHint') }}</span>
           </div>
-          <q-input v-model.number="form.volume_size_mb" outlined dense type="number" suffix="MB" :label="t('profiles.volumeSize')" :hint="t('profiles.volumeSizeHint')" :rules="[positive]" lazy-rules="ondemand" />
+          <q-input
+            v-model.number="form.volume_size_mb"
+            outlined
+            dense
+            type="number"
+            suffix="MB"
+            :label="t('profiles.volumeSize')"
+            :hint="t('profiles.volumeSizeHint')"
+            :rules="[positive]"
+            lazy-rules="ondemand"
+          />
           <q-toggle v-model="form.checksums" :label="t('profiles.checksums')" />
         </FormSection>
-        <FormSection :title="t('profiles.sections.encryption')" :description="t('profiles.sections.encryptionDesc')">
+        <FormSection
+          :title="t('profiles.sections.encryption')"
+          :description="t('profiles.sections.encryptionDesc')"
+        >
           <q-toggle v-model="form.encryption.enabled" :label="t('profiles.encrypt')" />
           <q-input
             v-if="form.encryption.enabled"
@@ -153,12 +262,24 @@ async function save(): Promise<void> {
       </div>
 
       <div v-show="tab === 'storage'" data-tab="storage" role="tabpanel">
-        <FormSection :title="t('profiles.sections.targets')" :description="t('profiles.sections.targetsDesc')">
+        <FormSection
+          :title="t('profiles.sections.targets')"
+          :description="t('profiles.sections.targetsDesc')"
+        >
           <q-skeleton v-if="targetsLoading" type="text" width="60%" />
-          <p v-else-if="targetOptions.length === 0" class="swbi-muted">{{ t('profiles.noTargets') }} <router-link to="/storage" @click="open = false">{{ t('storage.add') }}</router-link></p>
+          <p v-else-if="targetOptions.length === 0" class="swbi-muted">
+            {{ t('profiles.noTargets') }}
+            <router-link to="/storage" @click="open = false">{{ t('storage.add') }}</router-link>
+          </p>
           <fieldset v-else class="swbi-checks">
             <legend class="swbi-sr-only">{{ t('profiles.sections.targets') }}</legend>
-            <q-checkbox v-for="target in targetOptions" :key="target.id" v-model="form.storage_target_ids" :val="target.id" :label="`${target.name} (${t(`storage.types.${target.type}`)})`" />
+            <q-checkbox
+              v-for="target in targetOptions"
+              :key="target.id"
+              v-model="form.storage_target_ids"
+              :val="target.id"
+              :label="`${target.name} (${t(`storage.types.${target.type}`)})`"
+            />
           </fieldset>
           <q-select
             v-model="form.success_policy"
@@ -166,45 +287,165 @@ async function save(): Promise<void> {
             dense
             emit-value
             map-options
-            :options="(['all', 'any', 'local_only'] as const).map((v) => ({ value: v, label: t(`profiles.policy.${v}`) }))"
+            :options="
+              (['all', 'any', 'local_only'] as const).map((v) => ({
+                value: v,
+                label: t(`profiles.policy.${v}`),
+              }))
+            "
             :label="t('profiles.successPolicy')"
             :hint="t(`profiles.policy.${form.success_policy}Desc`)"
           />
         </FormSection>
-        <FormSection :title="t('profiles.sections.retention')" :description="t('profiles.sections.retentionDesc')">
+        <FormSection
+          :title="t('profiles.sections.retention')"
+          :description="t('profiles.sections.retentionDesc')"
+        >
           <div class="swbi-two">
-            <q-input v-model.number="form.retention.max_count" outlined dense type="number" min="0" :label="t('profiles.maxCount')" :hint="t('profiles.zeroOff')" :rules="[nonNegative]" lazy-rules="ondemand" />
-            <q-input v-model.number="form.retention.max_age_days" outlined dense type="number" min="0" :label="t('profiles.maxAge')" suffix="d" :hint="t('profiles.zeroOff')" :rules="[nonNegative]" lazy-rules="ondemand" />
+            <q-input
+              v-model.number="form.retention.max_count"
+              outlined
+              dense
+              type="number"
+              min="0"
+              :label="t('profiles.maxCount')"
+              :hint="t('profiles.zeroOff')"
+              :rules="[nonNegative]"
+              lazy-rules="ondemand"
+            />
+            <q-input
+              v-model.number="form.retention.max_age_days"
+              outlined
+              dense
+              type="number"
+              min="0"
+              :label="t('profiles.maxAge')"
+              suffix="d"
+              :hint="t('profiles.zeroOff')"
+              :rules="[nonNegative]"
+              lazy-rules="ondemand"
+            />
           </div>
-          <q-input v-model.number="form.retention.max_storage_mb" outlined dense type="number" min="0" :label="t('profiles.maxStorage')" suffix="MB" :hint="t('profiles.zeroOff')" :rules="[nonNegative]" lazy-rules="ondemand" />
+          <q-input
+            v-model.number="form.retention.max_storage_mb"
+            outlined
+            dense
+            type="number"
+            min="0"
+            :label="t('profiles.maxStorage')"
+            suffix="MB"
+            :hint="t('profiles.zeroOff')"
+            :rules="[nonNegative]"
+            lazy-rules="ondemand"
+          />
           <fieldset class="swbi-gfs">
             <legend>{{ t('profiles.gfs') }}</legend>
             <p class="swbi-muted swbi-small">{{ t('profiles.gfsHint') }}</p>
             <div class="swbi-four">
-              <q-input v-model.number="form.retention.gfs.daily" outlined dense type="number" min="0" :label="t('profiles.gfsDaily')" :rules="[nonNegative]" lazy-rules="ondemand" />
-              <q-input v-model.number="form.retention.gfs.weekly" outlined dense type="number" min="0" :label="t('profiles.gfsWeekly')" :rules="[nonNegative]" lazy-rules="ondemand" />
-              <q-input v-model.number="form.retention.gfs.monthly" outlined dense type="number" min="0" :label="t('profiles.gfsMonthly')" :rules="[nonNegative]" lazy-rules="ondemand" />
-              <q-input v-model.number="form.retention.gfs.yearly" outlined dense type="number" min="0" :label="t('profiles.gfsYearly')" :rules="[nonNegative]" lazy-rules="ondemand" />
+              <q-input
+                v-model.number="form.retention.gfs.daily"
+                outlined
+                dense
+                type="number"
+                min="0"
+                :label="t('profiles.gfsDaily')"
+                :rules="[nonNegative]"
+                lazy-rules="ondemand"
+              />
+              <q-input
+                v-model.number="form.retention.gfs.weekly"
+                outlined
+                dense
+                type="number"
+                min="0"
+                :label="t('profiles.gfsWeekly')"
+                :rules="[nonNegative]"
+                lazy-rules="ondemand"
+              />
+              <q-input
+                v-model.number="form.retention.gfs.monthly"
+                outlined
+                dense
+                type="number"
+                min="0"
+                :label="t('profiles.gfsMonthly')"
+                :rules="[nonNegative]"
+                lazy-rules="ondemand"
+              />
+              <q-input
+                v-model.number="form.retention.gfs.yearly"
+                outlined
+                dense
+                type="number"
+                min="0"
+                :label="t('profiles.gfsYearly')"
+                :rules="[nonNegative]"
+                lazy-rules="ondemand"
+              />
             </div>
           </fieldset>
         </FormSection>
       </div>
 
       <div v-show="tab === 'limits'" data-tab="limits" role="tabpanel">
-        <FormSection :title="t('profiles.sections.limits')" :description="t('profiles.sections.limitsDesc')">
-          <q-input v-model.number="form.limits.time_budget_seconds" outlined dense type="number" suffix="s" :label="t('profiles.timeBudget')" :hint="t('profiles.timeBudgetHint')" :rules="[positive]" lazy-rules="ondemand" />
-          <q-input v-model.number="form.limits.memory_mb" outlined dense type="number" suffix="MB" :label="t('profiles.memory')" :rules="[positive]" lazy-rules="ondemand" />
-          <q-input v-model.number="form.limits.batch_rows" outlined dense type="number" :label="t('profiles.batchRows')" :hint="t('profiles.batchRowsHint')" :rules="[positive]" lazy-rules="ondemand" />
+        <FormSection
+          :title="t('profiles.sections.limits')"
+          :description="t('profiles.sections.limitsDesc')"
+        >
+          <q-input
+            v-model.number="form.limits.time_budget_seconds"
+            outlined
+            dense
+            type="number"
+            suffix="s"
+            :label="t('profiles.timeBudget')"
+            :hint="t('profiles.timeBudgetHint')"
+            :rules="[positive]"
+            lazy-rules="ondemand"
+          />
+          <q-input
+            v-model.number="form.limits.memory_mb"
+            outlined
+            dense
+            type="number"
+            suffix="MB"
+            :label="t('profiles.memory')"
+            :rules="[positive]"
+            lazy-rules="ondemand"
+          />
+          <q-input
+            v-model.number="form.limits.batch_rows"
+            outlined
+            dense
+            type="number"
+            :label="t('profiles.batchRows')"
+            :hint="t('profiles.batchRowsHint')"
+            :rules="[positive]"
+            lazy-rules="ondemand"
+          />
         </FormSection>
       </div>
 
       <div v-show="tab === 'notifications'" data-tab="notifications" role="tabpanel">
-        <FormSection :title="t('profiles.sections.notifications')" :description="t('profiles.sections.notificationsDesc')">
+        <FormSection
+          :title="t('profiles.sections.notifications')"
+          :description="t('profiles.sections.notificationsDesc')"
+        >
           <q-toggle v-model="form.notifications.on_success" :label="t('profiles.notifySuccess')" />
           <q-toggle v-model="form.notifications.on_failure" :label="t('profiles.notifyFailure')" />
           <q-toggle v-model="form.notifications.on_warning" :label="t('profiles.notifyWarning')" />
-          <TagInput v-model="form.notifications.recipients" :label="t('profiles.recipients')" :hint="t('profiles.recipientsHint')" />
-          <p v-if="emailRule(form.notifications.recipients) !== true" class="swbi-error-text" role="alert">{{ t('profiles.invalidEmail') }}</p>
+          <TagInput
+            v-model="form.notifications.recipients"
+            :label="t('profiles.recipients')"
+            :hint="t('profiles.recipientsHint')"
+          />
+          <p
+            v-if="emailRule(form.notifications.recipients) !== true"
+            class="swbi-error-text"
+            role="alert"
+          >
+            {{ t('profiles.invalidEmail') }}
+          </p>
         </FormSection>
       </div>
     </fieldset>

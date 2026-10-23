@@ -41,7 +41,13 @@ const filters = computed<BackupFilters>(() => ({
 }));
 const list = useAsyncData(() => api.backups.list(filters.value));
 const items = computed(() => list.data.value?.items ?? []);
-const hasFilters = computed(() => profileId.value !== null || type.value !== null || status.value !== null || debouncedSearch.value !== '');
+const hasFilters = computed(
+  () =>
+    profileId.value !== null ||
+    type.value !== null ||
+    status.value !== null ||
+    debouncedSearch.value !== '',
+);
 
 watch([profileId, type, status, debouncedSearch], () => {
   page.value = 1;
@@ -66,9 +72,21 @@ onMounted(async () => {
   }
 });
 
-const profileOptions = computed(() => lookups.profiles.map((p) => ({ label: p.name, value: p.id })));
-const typeOptions = computed(() => (['full', 'files', 'database', 'incremental', 'differential'] as const).map((v) => ({ label: t(`types.${v}`), value: v })));
-const statusOptions = computed(() => (['complete', 'verified', 'incomplete', 'corrupt'] as const).map((v) => ({ label: t(`status.backup.${v}`), value: v })));
+const profileOptions = computed(() =>
+  lookups.profiles.map((p) => ({ label: p.name, value: p.id })),
+);
+const typeOptions = computed(() =>
+  (['full', 'files', 'database', 'incremental', 'differential'] as const).map((v) => ({
+    label: t(`types.${v}`),
+    value: v,
+  })),
+);
+const statusOptions = computed(() =>
+  (['complete', 'verified', 'incomplete', 'corrupt'] as const).map((v) => ({
+    label: t(`status.backup.${v}`),
+    value: v,
+  })),
+);
 
 const sheetOpen = ref(false);
 watch(
@@ -97,26 +115,96 @@ function openRow(id: string): void {
 <template>
   <div>
     <PageHeader :title="t('nav.backups')" :subtitle="t('backups.subtitle')">
-      <q-btn flat no-caps icon="r_refresh" :label="t('common.refresh')" :loading="list.loading.value" @click="list.load()" />
+      <q-btn
+        flat
+        no-caps
+        icon="r_refresh"
+        :label="t('common.refresh')"
+        :loading="list.loading.value"
+        @click="list.load()"
+      />
     </PageHeader>
 
     <SwbiCard :padding="false">
       <form class="swbi-filters" role="search" :aria-label="t('backups.filters')" @submit.prevent>
-        <q-select v-model="profileId" outlined dense clearable emit-value map-options :options="profileOptions" :label="t('backups.filterProfile')" />
-        <q-select v-model="type" outlined dense clearable emit-value map-options :options="typeOptions" :label="t('common.type')" />
-        <q-select v-model="status" outlined dense clearable emit-value map-options :options="statusOptions" :label="t('common.status')" />
-        <q-input v-model="search" outlined dense clearable type="search" :label="t('common.search')" autocomplete="off">
+        <q-select
+          v-model="profileId"
+          outlined
+          dense
+          clearable
+          emit-value
+          map-options
+          :options="profileOptions"
+          :label="t('backups.filterProfile')"
+        />
+        <q-select
+          v-model="type"
+          outlined
+          dense
+          clearable
+          emit-value
+          map-options
+          :options="typeOptions"
+          :label="t('common.type')"
+        />
+        <q-select
+          v-model="status"
+          outlined
+          dense
+          clearable
+          emit-value
+          map-options
+          :options="statusOptions"
+          :label="t('common.status')"
+        />
+        <q-input
+          v-model="search"
+          outlined
+          dense
+          clearable
+          type="search"
+          :label="t('common.search')"
+          autocomplete="off"
+        >
           <template #prepend><q-icon name="r_search" aria-hidden="true" /></template>
         </q-input>
       </form>
 
-      <DataState :loading="list.loading.value" :error="list.error.value" :empty="items.length === 0" @retry="list.load()">
+      <DataState
+        :loading="list.loading.value"
+        :error="list.error.value"
+        :empty="items.length === 0"
+        @retry="list.load()"
+      >
         <template #empty>
-          <EmptyState v-if="hasFilters" illustration="search" :title="t('backups.noMatch')" :text="t('backups.noMatchText')">
-            <q-btn flat no-caps color="primary" icon="r_filter_alt_off" :label="t('backups.resetFilters')" @click="resetFilters" />
+          <EmptyState
+            v-if="hasFilters"
+            illustration="search"
+            :title="t('backups.noMatch')"
+            :text="t('backups.noMatchText')"
+          >
+            <q-btn
+              flat
+              no-caps
+              color="primary"
+              icon="r_filter_alt_off"
+              :label="t('backups.resetFilters')"
+              @click="resetFilters"
+            />
           </EmptyState>
-          <EmptyState v-else illustration="backups" :title="t('backups.emptyTitle')" :text="t('backups.emptyText')">
-            <q-btn to="/profiles" unelevated no-caps color="primary" :label="t('backups.goProfiles')" />
+          <EmptyState
+            v-else
+            illustration="backups"
+            :title="t('backups.emptyTitle')"
+            :text="t('backups.emptyText')"
+          >
+            <q-btn
+              to="/profiles"
+              unelevated
+              no-caps
+              color="primary"
+              :label="t('backups.goProfiles')"
+            />
           </EmptyState>
         </template>
         <table class="swbi-table">
@@ -129,43 +217,99 @@ function openRow(id: string): void {
               <th scope="col" class="swbi-right">{{ t('backups.col.size') }}</th>
               <th scope="col" class="swbi-right">{{ t('backups.col.files') }}</th>
               <th scope="col">{{ t('backups.col.locations') }}</th>
-              <th scope="col"><span class="swbi-sr-only">{{ t('common.actions') }}</span></th>
+              <th scope="col">
+                <span class="swbi-sr-only">{{ t('common.actions') }}</span>
+              </th>
             </tr>
           </thead>
           <tbody>
             <tr v-for="b in items" :key="b.id" class="swbi-row-click" @click="openRow(b.id)">
               <td :data-label="t('backups.col.created')">
-                <router-link :to="{ name: 'backups', params: { id: b.id } }" class="swbi-datelink" @click.stop>
+                <router-link
+                  :to="{ name: 'backups', params: { id: b.id } }"
+                  class="swbi-datelink"
+                  @click.stop
+                >
                   <strong>{{ fmt.relative(b.created_at) }}</strong>
                   <span class="swbi-muted">{{ fmt.dateTime(b.created_at) }}</span>
                 </router-link>
               </td>
               <td :data-label="t('backups.col.profile')">{{ b.profile_name }}</td>
-              <td :data-label="t('common.type')"><StatusChip kind="primary" icon="r_inventory_2" :label="t(`types.${b.type}`)" dense /></td>
+              <td :data-label="t('common.type')">
+                <StatusChip
+                  kind="primary"
+                  icon="r_inventory_2"
+                  :label="t(`types.${b.type}`)"
+                  dense
+                />
+              </td>
               <td :data-label="t('common.status')">
                 <div class="swbi-flags">
                   <StatusChip domain="backup" :status="b.status" dense />
-                  <q-icon v-if="b.encrypted" name="r_lock" size="18px" class="swbi-muted" :aria-label="t('backups.encrypted')" role="img"><q-tooltip>{{ t('backups.encrypted') }}</q-tooltip></q-icon>
-                  <q-icon v-if="b.protected" name="r_shield" size="18px" class="swbi-muted" :aria-label="t('backups.protected')" role="img"><q-tooltip>{{ t('backups.protected') }}</q-tooltip></q-icon>
+                  <q-icon
+                    v-if="b.encrypted"
+                    name="r_lock"
+                    size="18px"
+                    class="swbi-muted"
+                    :aria-label="t('backups.encrypted')"
+                    role="img"
+                    ><q-tooltip>{{ t('backups.encrypted') }}</q-tooltip></q-icon
+                  >
+                  <q-icon
+                    v-if="b.protected"
+                    name="r_shield"
+                    size="18px"
+                    class="swbi-muted"
+                    :aria-label="t('backups.protected')"
+                    role="img"
+                    ><q-tooltip>{{ t('backups.protected') }}</q-tooltip></q-icon
+                  >
                 </div>
               </td>
-              <td class="swbi-right swbi-num" :data-label="t('backups.col.size')">{{ fmt.bytes(b.size_bytes) }}</td>
-              <td class="swbi-right swbi-num" :data-label="t('backups.col.files')">{{ fmt.number(b.file_count) }}</td>
+              <td class="swbi-right swbi-num" :data-label="t('backups.col.size')">
+                {{ fmt.bytes(b.size_bytes) }}
+              </td>
+              <td class="swbi-right swbi-num" :data-label="t('backups.col.files')">
+                {{ fmt.number(b.file_count) }}
+              </td>
               <td :data-label="t('backups.col.locations')">
-                <span class="swbi-num">{{ t('backups.locationCount', { n: b.locations.length }, b.locations.length) }}</span>
-                <span v-if="b.locations.some((l) => l.status === 'failed')" class="swbi-loc-fail"><q-icon name="r_error" size="16px" aria-hidden="true" /> {{ t('status.location.failed') }}</span>
+                <span class="swbi-num">{{
+                  t('backups.locationCount', { n: b.locations.length }, b.locations.length)
+                }}</span>
+                <span v-if="b.locations.some((l) => l.status === 'failed')" class="swbi-loc-fail"
+                  ><q-icon name="r_error" size="16px" aria-hidden="true" />
+                  {{ t('status.location.failed') }}</span
+                >
               </td>
               <td data-label="">
-                <q-btn flat round dense icon="r_chevron_right" :aria-label="t('backups.openDetails')" @click.stop="openRow(b.id)" />
+                <q-btn
+                  flat
+                  round
+                  dense
+                  icon="r_chevron_right"
+                  :aria-label="t('backups.openDetails')"
+                  @click.stop="openRow(b.id)"
+                />
               </td>
             </tr>
           </tbody>
         </table>
-        <PaginationBar v-if="list.data.value" v-model:page="page" :pages="list.data.value.pages" :total="list.data.value.total" />
+        <PaginationBar
+          v-if="list.data.value"
+          v-model:page="page"
+          :pages="list.data.value.pages"
+          :total="list.data.value.total"
+        />
       </DataState>
     </SwbiCard>
 
-    <BackupSheet v-if="id" v-model="sheetOpen" :backup-id="id" @changed="list.load()" @deleted="list.load()" />
+    <BackupSheet
+      v-if="id"
+      v-model="sheetOpen"
+      :backup-id="id"
+      @changed="list.load()"
+      @deleted="list.load()"
+    />
   </div>
 </template>
 

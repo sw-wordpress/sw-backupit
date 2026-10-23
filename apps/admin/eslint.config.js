@@ -14,13 +14,21 @@ export default tseslint.config(
     files: ['**/*.vue', '**/*.ts'],
     languageOptions: {
       parser: vueParser,
-      parserOptions: { parser: tseslint.parser, ecmaVersion: 'latest', sourceType: 'module', extraFileExtensions: ['.vue'] },
+      parserOptions: {
+        parser: tseslint.parser,
+        ecmaVersion: 'latest',
+        sourceType: 'module',
+        extraFileExtensions: ['.vue'],
+      },
       globals: { ...globals.browser },
     },
     rules: {
       '@typescript-eslint/no-explicit-any': 'error',
       '@typescript-eslint/consistent-type-imports': 'error',
-      '@typescript-eslint/no-unused-vars': ['error', { argsIgnorePattern: '^_', varsIgnorePattern: '^_' }],
+      '@typescript-eslint/no-unused-vars': [
+        'error',
+        { argsIgnorePattern: '^_', varsIgnorePattern: '^_' },
+      ],
       'vue/multi-word-component-names': 'off',
       'vue/no-v-html': 'error',
       'vue/block-lang': ['error', { script: { lang: 'ts' } }],

@@ -43,7 +43,8 @@ onMounted(async () => {
   }
 });
 
-const profileName = (id: number): string => lookups.profiles.find((p) => p.id === id)?.name ?? `#${id}`;
+const profileName = (id: number): string =>
+  lookups.profiles.find((p) => p.id === id)?.name ?? `#${id}`;
 
 const sheetOpen = ref(false);
 const editing = ref<Schedule | null>(null);
@@ -68,7 +69,14 @@ function describe(s: Schedule): string {
 async function toggle(s: Schedule, enabled: boolean): Promise<void> {
   togglingId.value = s.id;
   try {
-    const { id: _id, next_run_at: _n, last_run_at: _l, last_status: _s, last_error: _e, ...input } = s;
+    const {
+      id: _id,
+      next_run_at: _n,
+      last_run_at: _l,
+      last_status: _s,
+      last_error: _e,
+      ...input
+    } = s;
     await api.schedules.update(s.id, { ...(input as ScheduleInput), enabled });
     notify.success(enabled ? t('schedules.enabledMsg') : t('schedules.disabledMsg'));
     await list.load();
@@ -102,14 +110,39 @@ async function doDelete(): Promise<void> {
 <template>
   <div>
     <PageHeader :title="t('nav.schedules')" :subtitle="t('schedules.subtitle')">
-      <q-btn v-if="canManage" unelevated no-caps color="primary" icon="r_add" :label="t('schedules.create')" @click="openCreate" />
+      <q-btn
+        v-if="canManage"
+        unelevated
+        no-caps
+        color="primary"
+        icon="r_add"
+        :label="t('schedules.create')"
+        @click="openCreate"
+      />
     </PageHeader>
 
     <SwbiCard :padding="false">
-      <DataState :loading="list.loading.value" :error="list.error.value" :empty="items.length === 0" @retry="list.load()">
+      <DataState
+        :loading="list.loading.value"
+        :error="list.error.value"
+        :empty="items.length === 0"
+        @retry="list.load()"
+      >
         <template #empty>
-          <EmptyState illustration="schedules" :title="t('schedules.emptyTitle')" :text="t('schedules.emptyText')">
-            <q-btn v-if="canManage" unelevated no-caps color="primary" icon="r_add" :label="t('schedules.create')" @click="openCreate" />
+          <EmptyState
+            illustration="schedules"
+            :title="t('schedules.emptyTitle')"
+            :text="t('schedules.emptyText')"
+          >
+            <q-btn
+              v-if="canManage"
+              unelevated
+              no-caps
+              color="primary"
+              icon="r_add"
+              :label="t('schedules.create')"
+              @click="openCreate"
+            />
           </EmptyState>
         </template>
         <table class="swbi-table">
@@ -120,7 +153,9 @@ async function doDelete(): Promise<void> {
               <th scope="col">{{ t('schedules.when') }}</th>
               <th scope="col">{{ t('schedules.nextRun') }}</th>
               <th scope="col">{{ t('schedules.lastRun') }}</th>
-              <th scope="col"><span class="swbi-sr-only">{{ t('common.actions') }}</span></th>
+              <th scope="col">
+                <span class="swbi-sr-only">{{ t('common.actions') }}</span>
+              </th>
             </tr>
           </thead>
           <tbody>
@@ -132,7 +167,12 @@ async function doDelete(): Promise<void> {
                 </div>
               </td>
               <td :data-label="t('schedules.enabled')">
-                <q-toggle :model-value="s.enabled" :disable="!canManage || togglingId === s.id" :aria-label="t('schedules.toggleNamed', { name: s.name })" @update:model-value="toggle(s, $event)" />
+                <q-toggle
+                  :model-value="s.enabled"
+                  :disable="!canManage || togglingId === s.id"
+                  :aria-label="t('schedules.toggleNamed', { name: s.name })"
+                  @update:model-value="toggle(s, $event)"
+                />
               </td>
               <td :data-label="t('schedules.when')">
                 <div class="swbi-cell-main">
@@ -146,31 +186,76 @@ async function doDelete(): Promise<void> {
                     <span>{{ fmt.relative(s.next_run_at) }}</span>
                     <span class="swbi-muted">{{ fmt.dateTime(s.next_run_at) }}</span>
                   </template>
-                  <span v-else class="swbi-muted">{{ s.enabled ? '–' : t('schedules.paused') }}</span>
+                  <span v-else class="swbi-muted">{{
+                    s.enabled ? '–' : t('schedules.paused')
+                  }}</span>
                 </div>
               </td>
               <td :data-label="t('schedules.lastRun')">
                 <div class="swbi-cell-main">
                   <StatusChip domain="schedule" :status="s.last_status ?? 'never'" dense />
-                  <span v-if="s.last_run_at" class="swbi-muted">{{ fmt.relative(s.last_run_at) }}</span>
+                  <span v-if="s.last_run_at" class="swbi-muted">{{
+                    fmt.relative(s.last_run_at)
+                  }}</span>
                   <span v-if="s.last_error" class="swbi-cell-error">{{ s.last_error }}</span>
                 </div>
               </td>
               <td data-label="">
                 <div class="swbi-actions">
-                  <q-btn v-if="can('swbi_run')" flat round dense icon="r_play_arrow" :loading="busyId === s.id" :aria-label="t('schedules.runNamed', { name: s.name })" @click="runSchedule(s.id)"><q-tooltip>{{ t('profiles.runNow') }}</q-tooltip></q-btn>
-                  <q-btn flat round dense :icon="canManage ? 'r_edit' : 'r_visibility'" :aria-label="t('profiles.editNamed', { name: s.name })" @click="openEdit(s)"><q-tooltip>{{ canManage ? t('common.edit') : t('common.details') }}</q-tooltip></q-btn>
-                  <q-btn v-if="canManage" flat round dense icon="r_delete" color="negative" :aria-label="t('profiles.deleteNamed', { name: s.name })" @click="askDelete(s)"><q-tooltip>{{ t('common.delete') }}</q-tooltip></q-btn>
+                  <q-btn
+                    v-if="can('swbi_run')"
+                    flat
+                    round
+                    dense
+                    icon="r_play_arrow"
+                    :loading="busyId === s.id"
+                    :aria-label="t('schedules.runNamed', { name: s.name })"
+                    @click="runSchedule(s.id)"
+                    ><q-tooltip>{{ t('profiles.runNow') }}</q-tooltip></q-btn
+                  >
+                  <q-btn
+                    flat
+                    round
+                    dense
+                    :icon="canManage ? 'r_edit' : 'r_visibility'"
+                    :aria-label="t('profiles.editNamed', { name: s.name })"
+                    @click="openEdit(s)"
+                    ><q-tooltip>{{
+                      canManage ? t('common.edit') : t('common.details')
+                    }}</q-tooltip></q-btn
+                  >
+                  <q-btn
+                    v-if="canManage"
+                    flat
+                    round
+                    dense
+                    icon="r_delete"
+                    color="negative"
+                    :aria-label="t('profiles.deleteNamed', { name: s.name })"
+                    @click="askDelete(s)"
+                    ><q-tooltip>{{ t('common.delete') }}</q-tooltip></q-btn
+                  >
                 </div>
               </td>
             </tr>
           </tbody>
         </table>
-        <PaginationBar v-if="list.data.value" v-model:page="page" :pages="list.data.value.pages" :total="list.data.value.total" />
+        <PaginationBar
+          v-if="list.data.value"
+          v-model:page="page"
+          :pages="list.data.value.pages"
+          :total="list.data.value.total"
+        />
       </DataState>
     </SwbiCard>
 
-    <ScheduleSheet v-model="sheetOpen" :schedule="editing" :readonly="!canManage" :default-timezone="defaultTimezone" @saved="list.load()" />
+    <ScheduleSheet
+      v-model="sheetOpen"
+      :schedule="editing"
+      :readonly="!canManage"
+      :default-timezone="defaultTimezone"
+      @saved="list.load()"
+    />
     <ConfirmDialog
       v-model="deleteOpen"
       :title="t('schedules.deleteTitle')"

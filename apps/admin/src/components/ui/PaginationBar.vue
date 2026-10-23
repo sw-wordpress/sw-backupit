@@ -14,9 +14,25 @@ const fmt = useFormat();
       {{ t('common.totalItems', { n: fmt.number(total) }, total) }}
     </span>
     <div v-if="pages > 1" class="swbi-pager__controls">
-      <q-btn flat round dense icon="r_chevron_left" :disable="page <= 1" :aria-label="t('common.previous')" @click="emit('update:page', page - 1)" />
+      <q-btn
+        flat
+        round
+        dense
+        icon="r_chevron_left"
+        :disable="page <= 1"
+        :aria-label="t('common.previous')"
+        @click="emit('update:page', page - 1)"
+      />
       <span class="swbi-num">{{ t('common.pageOf', { page, pages }) }}</span>
-      <q-btn flat round dense icon="r_chevron_right" :disable="page >= pages" :aria-label="t('common.next')" @click="emit('update:page', page + 1)" />
+      <q-btn
+        flat
+        round
+        dense
+        icon="r_chevron_right"
+        :disable="page >= pages"
+        :aria-label="t('common.next')"
+        @click="emit('update:page', page + 1)"
+      />
     </div>
   </nav>
 </template>

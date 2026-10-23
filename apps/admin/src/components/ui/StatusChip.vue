@@ -2,7 +2,8 @@
 import { computed } from 'vue';
 import { useI18n } from 'vue-i18n';
 
-export type ChipKind = 'success' | 'warning' | 'danger' | 'info' | 'neutral' | 'running' | 'primary';
+export type ChipKind =
+  'success' | 'warning' | 'danger' | 'info' | 'neutral' | 'running' | 'primary';
 export type ChipDomain = 'job' | 'backup' | 'health' | 'schedule' | 'location' | 'upload';
 
 interface Meta {
@@ -64,14 +65,20 @@ const props = withDefaults(
     label?: string;
     dense?: boolean;
   }>(),
-  { domain: undefined, status: undefined, kind: undefined, icon: undefined, label: undefined, dense: false },
+  {
+    domain: undefined,
+    status: undefined,
+    kind: undefined,
+    icon: undefined,
+    label: undefined,
+    dense: false,
+  },
 );
 
 const { t, te } = useI18n();
 
 const meta = computed<Meta>(() => {
-  const fromMap =
-    props.domain && props.status ? MAP[props.domain][props.status] : undefined;
+  const fromMap = props.domain && props.status ? MAP[props.domain][props.status] : undefined;
   return {
     kind: props.kind ?? fromMap?.kind ?? 'neutral',
     icon: props.icon ?? fromMap?.icon ?? 'r_circle',

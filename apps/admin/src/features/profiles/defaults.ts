@@ -20,7 +20,12 @@ export function defaultProfileInput(): ProfileInput {
     checksums: true,
     storage_target_ids: [],
     success_policy: 'all',
-    retention: { max_count: 10, max_age_days: 0, max_storage_mb: 0, gfs: { daily: 0, weekly: 0, monthly: 0, yearly: 0 } },
+    retention: {
+      max_count: 10,
+      max_age_days: 0,
+      max_storage_mb: 0,
+      gfs: { daily: 0, weekly: 0, monthly: 0, yearly: 0 },
+    },
     notifications: { on_success: false, on_failure: true, on_warning: true, recipients: [] },
   };
 }

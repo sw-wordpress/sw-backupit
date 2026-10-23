@@ -27,7 +27,11 @@ const scroller = ref<QVirtualScroll | null>(null);
 
 const phaseOptions = computed(() => [...new Set(props.logs.map((l) => l.phase))].filter(Boolean));
 const filtered = computed(() =>
-  props.logs.filter((l) => (severity.value === null || l.severity === severity.value) && (phase.value === null || l.phase === phase.value)),
+  props.logs.filter(
+    (l) =>
+      (severity.value === null || l.severity === severity.value) &&
+      (phase.value === null || l.phase === phase.value),
+  ),
 );
 
 watch(
@@ -57,13 +61,35 @@ function hasContext(entry: JobLogEntry): boolean {
 <template>
   <div class="swbi-log">
     <div class="swbi-log__bar">
-      <q-select v-model="severity" outlined dense clearable emit-value map-options class="swbi-log__sel" :label="t('jobs.log.severity')" :options="SEVERITIES.map((s) => ({ value: s, label: t(`severity.${s}`) }))" />
-      <q-select v-model="phase" outlined dense clearable class="swbi-log__sel" :label="t('jobs.log.phase')" :options="phaseOptions" />
+      <q-select
+        v-model="severity"
+        outlined
+        dense
+        clearable
+        emit-value
+        map-options
+        class="swbi-log__sel"
+        :label="t('jobs.log.severity')"
+        :options="SEVERITIES.map((s) => ({ value: s, label: t(`severity.${s}`) }))"
+      />
+      <q-select
+        v-model="phase"
+        outlined
+        dense
+        clearable
+        class="swbi-log__sel"
+        :label="t('jobs.log.phase')"
+        :options="phaseOptions"
+      />
       <q-toggle v-model="autoScroll" :label="t('jobs.log.autoScroll')" />
     </div>
-    <p v-if="dropped > 0" class="swbi-log__note" role="note">{{ t('jobs.log.truncated', { n: dropped }, dropped) }}</p>
+    <p v-if="dropped > 0" class="swbi-log__note" role="note">
+      {{ t('jobs.log.truncated', { n: dropped }, dropped) }}
+    </p>
 
-    <div v-if="filtered.length === 0" class="swbi-log__empty swbi-muted">{{ logs.length === 0 ? t('jobs.log.empty') : t('jobs.log.noMatch') }}</div>
+    <div v-if="filtered.length === 0" class="swbi-log__empty swbi-muted">
+      {{ logs.length === 0 ? t('jobs.log.empty') : t('jobs.log.noMatch') }}
+    </div>
     <q-virtual-scroll
       v-else
       ref="scroller"
@@ -77,12 +103,30 @@ function hasContext(entry: JobLogEntry): boolean {
     >
       <template #default="{ item }">
         <div :key="item.id" class="swbi-log__row" :class="`swbi-log__row--${item.severity}`">
-          <time class="swbi-log__time swbi-num" :datetime="item.time">{{ fmt.time(item.time) }}</time>
-          <StatusChip :kind="KIND[item.severity as Severity].kind" :icon="KIND[item.severity as Severity].icon" :label="t(`severity.${item.severity as Severity}`)" dense class="swbi-log__sev" />
+          <time class="swbi-log__time swbi-num" :datetime="item.time">{{
+            fmt.time(item.time)
+          }}</time>
+          <StatusChip
+            :kind="KIND[item.severity as Severity].kind"
+            :icon="KIND[item.severity as Severity].icon"
+            :label="t(`severity.${item.severity as Severity}`)"
+            dense
+            class="swbi-log__sev"
+          />
           <span class="swbi-log__phase swbi-muted">{{ item.phase }}</span>
           <span class="swbi-log__msg" :title="item.message">{{ item.message }}</span>
-          <q-btn v-if="hasContext(item)" flat round dense size="sm" icon="r_data_object" :aria-label="t('jobs.log.context')">
-            <q-menu><pre class="swbi-log__ctx">{{ context(item) }}</pre></q-menu>
+          <q-btn
+            v-if="hasContext(item)"
+            flat
+            round
+            dense
+            size="sm"
+            icon="r_data_object"
+            :aria-label="t('jobs.log.context')"
+          >
+            <q-menu>
+              <pre class="swbi-log__ctx">{{ context(item) }}</pre>
+            </q-menu>
           </q-btn>
         </div>
       </template>

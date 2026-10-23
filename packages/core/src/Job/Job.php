@@ -33,6 +33,8 @@ final class Job
     public bool $cancelRequested = false;
     public bool $pauseRequested = false;
     public int $warningsCount = 0;
+    /** @var list<string> Step ids that finished completely (resume skips them). */
+    public array $completedSteps = [];
     public ?string $leaseOwner = null;
     public ?DateTimeImmutable $leaseExpiresAt = null;
 
@@ -106,6 +108,7 @@ final class Job
             'progress' => $this->progress->toArray(),
             'error' => $this->error,
             'checkpoints' => $this->checkpoints,
+            'completed_steps' => $this->completedSteps,
             'retry_count' => $this->retryCount,
             'next_retry_at' => $format($this->nextRetryAt),
             'cancel_requested' => $this->cancelRequested,
@@ -151,6 +154,10 @@ final class Job
             ];
         }
         $job->checkpoints = is_array($data['checkpoints'] ?? null) ? $data['checkpoints'] : [];
+        $job->completedSteps = array_values(array_filter(
+            is_array($data['completed_steps'] ?? null) ? $data['completed_steps'] : [],
+            'is_string',
+        ));
         $job->retryCount = (int) ($data['retry_count'] ?? 0);
         $job->nextRetryAt = $parse($data['next_retry_at'] ?? null);
         $job->cancelRequested = (bool) ($data['cancel_requested'] ?? false);

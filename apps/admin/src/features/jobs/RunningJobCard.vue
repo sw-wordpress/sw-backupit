@@ -9,7 +9,9 @@ const props = defineProps<{ job: Job }>();
 const { t, te } = useI18n();
 const fmt = useFormat();
 const percent = computed(() => Math.min(100, Math.max(0, props.job.progress.percent)));
-const phaseLabel = computed(() => (te(`phases.${props.job.phase}`) ? t(`phases.${props.job.phase}`) : props.job.phase));
+const phaseLabel = computed(() =>
+  te(`phases.${props.job.phase}`) ? t(`phases.${props.job.phase}`) : props.job.phase,
+);
 </script>
 
 <template>
@@ -34,8 +36,15 @@ const phaseLabel = computed(() => (te(`phases.${props.job.phase}`) ? t(`phases.$
     />
     <div class="swbi-jc__meta swbi-num">
       <span>{{ fmt.percent(percent, true) }}</span>
-      <span>{{ t('jobs.filesOf', { done: fmt.number(job.progress.files_done), total: fmt.number(job.progress.files_total) }) }}</span>
-      <span v-if="job.progress.eta_seconds !== null">{{ t('jobs.etaShort', { time: fmt.duration(job.progress.eta_seconds) }) }}</span>
+      <span>{{
+        t('jobs.filesOf', {
+          done: fmt.number(job.progress.files_done),
+          total: fmt.number(job.progress.files_total),
+        })
+      }}</span>
+      <span v-if="job.progress.eta_seconds !== null">{{
+        t('jobs.etaShort', { time: fmt.duration(job.progress.eta_seconds) })
+      }}</span>
     </div>
   </router-link>
 </template>

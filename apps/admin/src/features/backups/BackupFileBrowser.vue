@@ -74,7 +74,8 @@ function nameOf(entry: ArchiveEntry): string {
   return searching.value ? entry.path : (entry.path.split('/').pop() ?? entry.path);
 }
 function onVirtualScroll(details: { index: number; to: number }): void {
-  if (hasMore.value && !loading.value && details.to >= entries.value.length - 10) void loadPage(false);
+  if (hasMore.value && !loading.value && details.to >= entries.value.length - 10)
+    void loadPage(false);
 }
 
 watch(path, () => void loadPage(true));
@@ -82,11 +83,14 @@ watch(search, () => {
   if (searchTimer) clearTimeout(searchTimer);
   searchTimer = setTimeout(() => void loadPage(true), 300);
 });
-watch(() => props.backupId, () => {
-  path.value = '';
-  search.value = '';
-  void loadPage(true);
-});
+watch(
+  () => props.backupId,
+  () => {
+    path.value = '';
+    search.value = '';
+    void loadPage(true);
+  },
+);
 onMounted(() => void loadPage(true));
 </script>
 
@@ -96,47 +100,112 @@ onMounted(() => void loadPage(true));
       <nav :aria-label="t('backups.files.breadcrumb')" class="swbi-fb__crumbs">
         <ol>
           <li>
-            <button type="button" class="swbi-fb__crumb" :aria-current="crumbs.length === 0 ? 'page' : undefined" @click="go('')">
-              <q-icon name="r_inventory_2" size="16px" aria-hidden="true" /> {{ t('backups.files.root') }}
+            <button
+              type="button"
+              class="swbi-fb__crumb"
+              :aria-current="crumbs.length === 0 ? 'page' : undefined"
+              @click="go('')"
+            >
+              <q-icon name="r_inventory_2" size="16px" aria-hidden="true" />
+              {{ t('backups.files.root') }}
             </button>
           </li>
           <li v-for="(c, i) in crumbs" :key="c.path">
             <q-icon name="r_chevron_right" size="16px" aria-hidden="true" />
-            <button type="button" class="swbi-fb__crumb" :aria-current="i === crumbs.length - 1 ? 'page' : undefined" @click="go(c.path)">{{ c.name }}</button>
+            <button
+              type="button"
+              class="swbi-fb__crumb"
+              :aria-current="i === crumbs.length - 1 ? 'page' : undefined"
+              @click="go(c.path)"
+            >
+              {{ c.name }}
+            </button>
           </li>
         </ol>
       </nav>
-      <q-input v-model="search" outlined dense clearable class="swbi-fb__search" :label="t('backups.files.search')" type="search" autocomplete="off">
+      <q-input
+        v-model="search"
+        outlined
+        dense
+        clearable
+        class="swbi-fb__search"
+        :label="t('backups.files.search')"
+        type="search"
+        autocomplete="off"
+      >
         <template #prepend><q-icon name="r_search" aria-hidden="true" /></template>
       </q-input>
     </div>
 
-    <ErrorState v-if="error && entries.length === 0" :error="error" compact @retry="loadPage(true)" />
+    <ErrorState
+      v-if="error && entries.length === 0"
+      :error="error"
+      compact
+      @retry="loadPage(true)"
+    />
     <div v-else-if="loading && entries.length === 0" class="swbi-fb__skeleton" aria-busy="true">
       <q-skeleton v-for="n in 6" :key="n" type="text" height="32px" />
     </div>
-    <EmptyState v-else-if="entries.length === 0" compact :illustration="searching ? 'search' : 'files'" :title="searching ? t('backups.files.noResults') : t('backups.files.empty')" />
+    <EmptyState
+      v-else-if="entries.length === 0"
+      compact
+      :illustration="searching ? 'search' : 'files'"
+      :title="searching ? t('backups.files.noResults') : t('backups.files.empty')"
+    />
     <template v-else>
       <div class="swbi-fb__head" aria-hidden="true">
-        <span>{{ t('common.name') }}</span><span class="swbi-fb__num">{{ t('backups.files.size') }}</span><span class="swbi-fb__vol">{{ t('backups.files.volume') }}</span>
+        <span>{{ t('common.name') }}</span
+        ><span class="swbi-fb__num">{{ t('backups.files.size') }}</span
+        ><span class="swbi-fb__vol">{{ t('backups.files.volume') }}</span>
       </div>
-      <q-virtual-scroll class="swbi-fb__list" :items="entries" :virtual-scroll-item-size="44" separator @virtual-scroll="onVirtualScroll">
+      <q-virtual-scroll
+        class="swbi-fb__list"
+        :items="entries"
+        :virtual-scroll-item-size="44"
+        separator
+        @virtual-scroll="onVirtualScroll"
+      >
         <template #default="{ item }">
           <div :key="item.path" class="swbi-fb__row">
-            <button v-if="item.type === 'dir'" type="button" class="swbi-fb__name swbi-fb__name--dir" @click="open(item)">
-              <q-icon name="r_folder" size="20px" aria-hidden="true" /><span class="swbi-truncate">{{ nameOf(item) }}</span>
+            <button
+              v-if="item.type === 'dir'"
+              type="button"
+              class="swbi-fb__name swbi-fb__name--dir"
+              @click="open(item)"
+            >
+              <q-icon name="r_folder" size="20px" aria-hidden="true" /><span
+                class="swbi-truncate"
+                >{{ nameOf(item) }}</span
+              >
             </button>
             <span v-else class="swbi-fb__name">
-              <q-icon name="r_description" size="20px" aria-hidden="true" /><span class="swbi-truncate" :title="item.path">{{ nameOf(item) }}</span>
+              <q-icon name="r_description" size="20px" aria-hidden="true" /><span
+                class="swbi-truncate"
+                :title="item.path"
+                >{{ nameOf(item) }}</span
+              >
             </span>
-            <span class="swbi-fb__num swbi-num">{{ item.type === 'dir' ? '' : fmt.bytes(item.size) }}</span>
+            <span class="swbi-fb__num swbi-num">{{
+              item.type === 'dir' ? '' : fmt.bytes(item.size)
+            }}</span>
             <span class="swbi-fb__vol swbi-num">{{ item.volume }}</span>
           </div>
         </template>
       </q-virtual-scroll>
       <div class="swbi-fb__foot" aria-live="polite">
-        <span class="swbi-muted swbi-num">{{ t('backups.files.shown', { shown: fmt.number(entries.length), total: fmt.number(total) }) }}</span>
-        <q-btn v-if="hasMore" flat no-caps dense color="primary" :loading="loading" :label="t('backups.files.loadMore')" @click="loadPage(false)" />
+        <span class="swbi-muted swbi-num">{{
+          t('backups.files.shown', { shown: fmt.number(entries.length), total: fmt.number(total) })
+        }}</span>
+        <q-btn
+          v-if="hasMore"
+          flat
+          no-caps
+          dense
+          color="primary"
+          :loading="loading"
+          :label="t('backups.files.loadMore')"
+          @click="loadPage(false)"
+        />
       </div>
     </template>
   </div>

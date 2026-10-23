@@ -124,7 +124,8 @@ export function useJobMonitor(jobId: MaybeRefOrGetter<string>, options: JobMonit
       try {
         const current = job.value;
         const id = toValue(jobId);
-        const shouldDrive = options.canRun && toValue(options.drive) && current !== null && isActive(current);
+        const shouldDrive =
+          options.canRun && toValue(options.drive) && current !== null && isActive(current);
         driving.value = shouldDrive;
         const next = shouldDrive ? await api.jobs.tick(id, signal) : await api.jobs.get(id, signal);
         if (myGeneration !== generation) return;
@@ -139,9 +140,14 @@ export function useJobMonitor(jobId: MaybeRefOrGetter<string>, options: JobMonit
           driving.value = false;
           return;
         }
-        waitMs = shouldDrive && errors === 0
-          ? TICK_PAUSE_MS
-          : nextPollDelay({ unchangedCount: unchanged, errorCount: 0, paused: next.status === 'paused' });
+        waitMs =
+          shouldDrive && errors === 0
+            ? TICK_PAUSE_MS
+            : nextPollDelay({
+                unchangedCount: unchanged,
+                errorCount: 0,
+                paused: next.status === 'paused',
+              });
       } catch (e) {
         const err = toApiError(e);
         if (err.isAborted || myGeneration !== generation) return;

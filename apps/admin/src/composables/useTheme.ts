@@ -12,7 +12,10 @@ const DARK_CLASS = 'swbi-dark';
  */
 export function useThemeSync(root: () => HTMLElement | null): void {
   const app = useAppStore();
-  const mql = typeof window.matchMedia === 'function' ? window.matchMedia('(prefers-color-scheme: dark)') : null;
+  const mql =
+    typeof window.matchMedia === 'function'
+      ? window.matchMedia('(prefers-color-scheme: dark)')
+      : null;
   const onSystem = (e: MediaQueryListEvent): void => {
     app.systemDark = e.matches;
   };

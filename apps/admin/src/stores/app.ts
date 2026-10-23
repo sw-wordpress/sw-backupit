@@ -25,7 +25,8 @@ function writeStoredTheme(value: ThemePreference): void {
 export const useAppStore = defineStore('app', () => {
   const themePreference = ref<ThemePreference>(readStoredTheme());
   const systemDark = ref(
-    typeof window.matchMedia === 'function' && window.matchMedia('(prefers-color-scheme: dark)').matches,
+    typeof window.matchMedia === 'function' &&
+      window.matchMedia('(prefers-color-scheme: dark)').matches,
   );
   const railCollapsed = ref(false);
   /** Browser-driven job runner toggle (calls POST /jobs/{id}/tick). Default on, not persisted. */
@@ -52,5 +53,15 @@ export const useAppStore = defineStore('app', () => {
     });
   }
 
-  return { themePreference, systemDark, isDark, railCollapsed, driveJobs, announcement, setTheme, toggleTheme, announce };
+  return {
+    themePreference,
+    systemDark,
+    isDark,
+    railCollapsed,
+    driveJobs,
+    announcement,
+    setTheme,
+    toggleTheme,
+    announce,
+  };
 });

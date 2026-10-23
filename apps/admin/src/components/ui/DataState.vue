@@ -23,7 +23,12 @@ const emit = defineEmits<{ (e: 'retry'): void }>();
 
 <template>
   <div>
-    <ErrorState v-if="error && empty" :error="error" :compact="compactError" @retry="emit('retry')" />
+    <ErrorState
+      v-if="error && empty"
+      :error="error"
+      :compact="compactError"
+      @retry="emit('retry')"
+    />
     <template v-else-if="loading && empty">
       <div class="swbi-skeleton" :class="`swbi-skeleton--${variant}`" aria-busy="true">
         <span class="swbi-sr-only" role="status">…</span>
@@ -49,7 +54,15 @@ const emit = defineEmits<{ (e: 'retry'): void }>();
       <div v-if="error" class="swbi-inline-error" role="alert">
         <q-icon name="r_error" size="18px" aria-hidden="true" />
         <span>{{ error.message }}</span>
-        <q-btn flat dense no-caps color="primary" icon="r_refresh" :label="$t('common.retry')" @click="emit('retry')" />
+        <q-btn
+          flat
+          dense
+          no-caps
+          color="primary"
+          icon="r_refresh"
+          :label="$t('common.retry')"
+          @click="emit('retry')"
+        />
       </div>
       <slot />
     </template>

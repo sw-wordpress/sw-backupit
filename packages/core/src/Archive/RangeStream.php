@@ -14,6 +14,7 @@ use RuntimeException;
  *
  * Context options (wrapper "swbrange"): path (string), offset (int), length (int|null), result (ReadResult).
  */
+// phpcs:disable PSR1.Methods.CamelCapsMethodName.NotCamelCaps -- method names are dictated by PHP's stream wrapper API
 final class RangeStream
 {
     private const PROTOCOL = 'swbrange';
@@ -91,7 +92,7 @@ final class RangeStream
                 return '';
             }
         }
-        $data = fread($this->handle, $count);
+        $data = fread($this->handle, max(1, $count));
         if ($data === false) {
             return false;
         }
@@ -128,3 +129,4 @@ final class RangeStream
         }
     }
 }
+// phpcs:enable PSR1.Methods.CamelCapsMethodName.NotCamelCaps

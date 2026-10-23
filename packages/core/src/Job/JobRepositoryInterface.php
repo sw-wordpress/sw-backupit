@@ -10,8 +10,8 @@ use DateTimeImmutable;
  * Persistence of jobs. Implementations: FileJobRepository (core), wpdb based (WordPress adapter).
  *
  * Contract for all implementations:
- * - save() is atomic and preserves the cancel/pause flags that were set through requestCancel()/requestPause()
- *   after the job was loaded (the worker must never overwrite a user's cancel request).
+ * - save() is atomic and never touches the cancel/pause flags: requestCancel()/requestPause() store them
+ *   independently and find() reports them, so a worker saving a stale entity cannot lose a user's request.
  * - Leases are exclusive; an expired lease may be taken over (crashed worker recovery).
  */
 interface JobRepositoryInterface
@@ -40,6 +40,9 @@ interface JobRepositoryInterface
     public function requestCancel(string $jobId): void;
 
     public function requestPause(string $jobId): void;
+
+    /** Clears pending cancel/pause requests (called by the worker after it acted on them). */
+    public function clearFlags(string $jobId): void;
 
     public function delete(string $jobId): void;
 }

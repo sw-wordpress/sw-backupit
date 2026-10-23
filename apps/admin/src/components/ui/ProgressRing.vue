@@ -19,7 +19,9 @@ const props = withDefaults(
 const gradId = uid('swbi-ring');
 const radius = computed(() => (props.size - props.stroke) / 2);
 const circumference = computed(() => 2 * Math.PI * radius.value);
-const clamped = computed(() => Math.min(100, Math.max(0, Number.isFinite(props.value) ? props.value : 0)));
+const clamped = computed(() =>
+  Math.min(100, Math.max(0, Number.isFinite(props.value) ? props.value : 0)),
+);
 const offset = computed(() => circumference.value * (1 - clamped.value / 100));
 const stops = computed<[string, string]>(() => {
   switch (props.tone) {
@@ -46,14 +48,27 @@ const stops = computed<[string, string]>(() => {
     :aria-label="semantic ? label : undefined"
     :aria-hidden="semantic ? undefined : 'true'"
   >
-    <svg :width="size" :height="size" :viewBox="`0 0 ${size} ${size}`" focusable="false" aria-hidden="true">
+    <svg
+      :width="size"
+      :height="size"
+      :viewBox="`0 0 ${size} ${size}`"
+      focusable="false"
+      aria-hidden="true"
+    >
       <defs>
         <linearGradient :id="gradId" x1="0" y1="0" x2="1" y2="1">
           <stop offset="0" :stop-color="stops[0]" />
           <stop offset="1" :stop-color="stops[1]" />
         </linearGradient>
       </defs>
-      <circle :cx="size / 2" :cy="size / 2" :r="radius" fill="none" class="swbi-ring__track" :stroke-width="stroke" />
+      <circle
+        :cx="size / 2"
+        :cy="size / 2"
+        :r="radius"
+        fill="none"
+        class="swbi-ring__track"
+        :stroke-width="stroke"
+      />
       <circle
         :cx="size / 2"
         :cy="size / 2"
@@ -68,7 +83,9 @@ const stops = computed<[string, string]>(() => {
         :transform="`rotate(-90 ${size / 2} ${size / 2})`"
       />
     </svg>
-    <div class="swbi-ring__center"><slot>{{ Math.round(clamped) }}%</slot></div>
+    <div class="swbi-ring__center">
+      <slot>{{ Math.round(clamped) }}%</slot>
+    </div>
   </div>
 </template>
 

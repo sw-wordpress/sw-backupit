@@ -28,7 +28,7 @@ final class FileIndexWriter
             throw new SwbiException('Cannot open file index.', ['path' => basename($path)]);
         }
         $this->handle = $handle;
-        ftruncate($this->handle, $resumeOffset);
+        ftruncate($this->handle, max(0, $resumeOffset));
         fseek($this->handle, $resumeOffset);
         $this->offset = $resumeOffset;
     }

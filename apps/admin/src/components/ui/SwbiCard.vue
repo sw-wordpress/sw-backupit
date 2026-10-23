@@ -9,7 +9,15 @@ withDefaults(
     tag?: string;
     accent?: boolean;
   }>(),
-  { title: undefined, subtitle: undefined, icon: undefined, padding: true, interactive: false, tag: 'section', accent: false },
+  {
+    title: undefined,
+    subtitle: undefined,
+    icon: undefined,
+    padding: true,
+    interactive: false,
+    tag: 'section',
+    accent: false,
+  },
 );
 </script>
 
@@ -22,7 +30,9 @@ withDefaults(
     <header v-if="title || $slots.header || $slots.actions" class="swbi-card__header">
       <slot name="header">
         <div class="swbi-card__heading">
-          <span v-if="icon" class="swbi-card__icon" aria-hidden="true"><q-icon :name="icon" size="20px" /></span>
+          <span v-if="icon" class="swbi-card__icon" aria-hidden="true"
+            ><q-icon :name="icon" size="20px"
+          /></span>
           <div class="swbi-card__titles">
             <h2 class="swbi-card__title">{{ title }}</h2>
             <p v-if="subtitle" class="swbi-card__subtitle">{{ subtitle }}</p>

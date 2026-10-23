@@ -41,7 +41,11 @@
   --swbi-overlay: rgba(15, 23, 42, 0.45);
 
   --swbi-gradient: linear-gradient(135deg, #4f46e5 0%, #0d9488 100%);
-  --swbi-gradient-soft: linear-gradient(135deg, rgba(79, 70, 229, 0.1) 0%, rgba(20, 184, 166, 0.1) 100%);
+  --swbi-gradient-soft: linear-gradient(
+    135deg,
+    rgba(79, 70, 229, 0.1) 0%,
+    rgba(20, 184, 166, 0.1) 100%
+  );
 
   --swbi-radius: 16px;
   --swbi-radius-sm: 10px;
@@ -110,7 +114,11 @@
   --swbi-overlay: rgba(2, 6, 20, 0.65);
 
   --swbi-gradient: linear-gradient(135deg, #6366f1 0%, #14b8a6 100%);
-  --swbi-gradient-soft: linear-gradient(135deg, rgba(99, 102, 241, 0.18) 0%, rgba(20, 184, 166, 0.14) 100%);
+  --swbi-gradient-soft: linear-gradient(
+    135deg,
+    rgba(99, 102, 241, 0.18) 0%,
+    rgba(20, 184, 166, 0.14) 100%
+  );
   --swbi-shadow-1: 0 1px 2px rgba(0, 0, 0, 0.4);
   --swbi-shadow-2: 0 1px 2px rgba(0, 0, 0, 0.4), 0 10px 30px rgba(0, 0, 0, 0.35);
   color-scheme: dark;

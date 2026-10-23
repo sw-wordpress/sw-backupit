@@ -19,14 +19,44 @@ export const NAV_ITEMS: NavItem[] = [
 ];
 
 const routes: RouteRecordRaw[] = [
-  { path: '/', name: 'dashboard', component: () => import('@/features/dashboard/DashboardView.vue') },
-  { path: '/profiles', name: 'profiles', component: () => import('@/features/profiles/ProfilesView.vue') },
-  { path: '/schedules', name: 'schedules', component: () => import('@/features/schedules/SchedulesView.vue') },
-  { path: '/backups/:id?', name: 'backups', component: () => import('@/features/backups/BackupsView.vue'), props: true },
+  {
+    path: '/',
+    name: 'dashboard',
+    component: () => import('@/features/dashboard/DashboardView.vue'),
+  },
+  {
+    path: '/profiles',
+    name: 'profiles',
+    component: () => import('@/features/profiles/ProfilesView.vue'),
+  },
+  {
+    path: '/schedules',
+    name: 'schedules',
+    component: () => import('@/features/schedules/SchedulesView.vue'),
+  },
+  {
+    path: '/backups/:id?',
+    name: 'backups',
+    component: () => import('@/features/backups/BackupsView.vue'),
+    props: true,
+  },
   { path: '/jobs', name: 'jobs', component: () => import('@/features/jobs/JobsView.vue') },
-  { path: '/jobs/:id', name: 'job', component: () => import('@/features/jobs/JobDetailView.vue'), props: true },
-  { path: '/storage', name: 'storage', component: () => import('@/features/storage/StorageView.vue') },
-  { path: '/settings', name: 'settings', component: () => import('@/features/settings/SettingsView.vue') },
+  {
+    path: '/jobs/:id',
+    name: 'job',
+    component: () => import('@/features/jobs/JobDetailView.vue'),
+    props: true,
+  },
+  {
+    path: '/storage',
+    name: 'storage',
+    component: () => import('@/features/storage/StorageView.vue'),
+  },
+  {
+    path: '/settings',
+    name: 'settings',
+    component: () => import('@/features/settings/SettingsView.vue'),
+  },
   { path: '/:pathMatch(.*)*', redirect: '/' },
 ];
 

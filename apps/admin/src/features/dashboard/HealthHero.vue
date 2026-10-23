@@ -11,23 +11,50 @@ const { t } = useI18n();
 const okCount = computed(() => props.report.checks.filter((c) => c.status === 'ok').length);
 const total = computed(() => props.report.checks.length);
 const percent = computed(() => (total.value === 0 ? 100 : (okCount.value / total.value) * 100));
-const tone = computed(() => (props.report.status === 'ok' ? 'success' : props.report.status === 'warning' ? 'warning' : 'danger'));
-const icon = computed(() => (props.report.status === 'ok' ? 'r_verified_user' : props.report.status === 'warning' ? 'r_warning' : 'r_gpp_bad'));
+const tone = computed(() =>
+  props.report.status === 'ok'
+    ? 'success'
+    : props.report.status === 'warning'
+      ? 'warning'
+      : 'danger',
+);
+const icon = computed(() =>
+  props.report.status === 'ok'
+    ? 'r_verified_user'
+    : props.report.status === 'warning'
+      ? 'r_warning'
+      : 'r_gpp_bad',
+);
 const problems = computed(() => props.report.checks.filter((c) => c.status !== 'ok'));
 </script>
 
 <template>
   <section class="swbi-hero" :class="`swbi-hero--${tone}`" aria-labelledby="swbi-hero-title">
-    <ProgressRing :value="percent" :size="132" :stroke="11" :tone="tone" :label="t('dashboard.healthScore')" :semantic="false">
+    <ProgressRing
+      :value="percent"
+      :size="132"
+      :stroke="11"
+      :tone="tone"
+      :label="t('dashboard.healthScore')"
+      :semantic="false"
+    >
       <q-icon :name="icon" size="44px" :class="`swbi-hero__icon--${tone}`" aria-hidden="true" />
     </ProgressRing>
     <div class="swbi-hero__text">
       <StatusChip domain="health" :status="report.status" />
-      <h2 id="swbi-hero-title" class="swbi-hero__title">{{ t(`dashboard.health.${report.status}.title`) }}</h2>
+      <h2 id="swbi-hero-title" class="swbi-hero__title">
+        {{ t(`dashboard.health.${report.status}.title`) }}
+      </h2>
       <p class="swbi-hero__sub">{{ t(`dashboard.health.${report.status}.text`) }}</p>
-      <p class="swbi-hero__count swbi-num">{{ t('dashboard.checksPassed', { ok: okCount, total }) }}</p>
+      <p class="swbi-hero__count swbi-num">
+        {{ t('dashboard.checksPassed', { ok: okCount, total }) }}
+      </p>
     </div>
-    <ul v-if="problems.length > 0" class="swbi-hero__problems" :aria-label="t('dashboard.failedChecks')">
+    <ul
+      v-if="problems.length > 0"
+      class="swbi-hero__problems"
+      :aria-label="t('dashboard.failedChecks')"
+    >
       <li v-for="check in problems" :key="check.id">
         <StatusChip domain="health" :status="check.status" :label="check.label" dense />
         <span class="swbi-hero__msg">{{ check.message }}</span>

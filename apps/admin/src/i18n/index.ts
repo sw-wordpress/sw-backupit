@@ -3,6 +3,13 @@ import { resolveUiLocale } from '@/config';
 import de from './de';
 import en from './en';
 
+/** Compile-time checked message keys for `t()`. */
+export type MessageSchema = typeof de;
+declare module 'vue-i18n' {
+  // eslint-disable-next-line @typescript-eslint/no-empty-object-type
+  export interface DefineLocaleMessage extends MessageSchema {}
+}
+
 export type UiLocale = 'de' | 'en';
 
 export function createAppI18n(wpLocale: string) {

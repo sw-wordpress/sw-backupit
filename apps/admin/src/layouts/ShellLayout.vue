@@ -34,11 +34,15 @@ const transitionKey = computed(() => String(route.name ?? ''));
 
 <template>
   <div class="swbi-shell" :class="{ 'swbi-shell--collapsed': app.railCollapsed }">
-    <a href="#swbi-main" class="swbi-skip" @click.prevent="focusMain">{{ t('app.skipToContent') }}</a>
+    <a href="#swbi-main" class="swbi-skip" @click.prevent="focusMain">{{
+      t('app.skipToContent')
+    }}</a>
 
     <aside class="swbi-rail">
       <div class="swbi-rail__brand">
-        <span class="swbi-rail__logo" aria-hidden="true"><q-icon name="r_shield" size="22px" /></span>
+        <span class="swbi-rail__logo" aria-hidden="true"
+          ><q-icon name="r_shield" size="22px"
+        /></span>
         <span class="swbi-rail__name">
           <strong>SWBackupIt</strong>
           <small v-if="config.version" class="swbi-num">v{{ config.version }}</small>
@@ -48,15 +52,27 @@ const transitionKey = computed(() => String(route.name ?? ''));
       <nav v-if="allowed" class="swbi-rail__nav" :aria-label="t('app.mainNavigation')">
         <ul>
           <li v-for="item in NAV_ITEMS" :key="item.name">
-            <router-link :to="item.to" class="swbi-nav-link" :active-class="item.to === '/' ? '' : 'swbi-nav-link--active'" exact-active-class="swbi-nav-link--active">
+            <router-link
+              :to="item.to"
+              class="swbi-nav-link"
+              :active-class="item.to === '/' ? '' : 'swbi-nav-link--active'"
+              exact-active-class="swbi-nav-link--active"
+            >
               <q-icon :name="item.icon" size="22px" aria-hidden="true" />
               <span class="swbi-nav-link__label">{{ t(item.labelKey) }}</span>
               <span
                 v-if="item.name === 'jobs' && jobs.count > 0"
                 class="swbi-nav-link__badge swbi-num"
                 :aria-label="t('jobs.runningCount', { n: jobs.count }, jobs.count)"
-              >{{ jobs.count }}</span>
-              <q-tooltip v-if="app.railCollapsed" anchor="center right" self="center left" :offset="[8, 0]">{{ t(item.labelKey) }}</q-tooltip>
+                >{{ jobs.count }}</span
+              >
+              <q-tooltip
+                v-if="app.railCollapsed"
+                anchor="center right"
+                self="center left"
+                :offset="[8, 0]"
+                >{{ t(item.labelKey) }}</q-tooltip
+              >
             </router-link>
           </li>
         </ul>
@@ -79,7 +95,9 @@ const transitionKey = computed(() => String(route.name ?? ''));
           flat
           round
           dense
-          :icon="app.railCollapsed ? 'r_keyboard_double_arrow_right' : 'r_keyboard_double_arrow_left'"
+          :icon="
+            app.railCollapsed ? 'r_keyboard_double_arrow_right' : 'r_keyboard_double_arrow_left'
+          "
           :aria-label="app.railCollapsed ? t('app.expandNav') : t('app.collapseNav')"
           :aria-expanded="!app.railCollapsed"
           @click="app.railCollapsed = !app.railCollapsed"
@@ -96,7 +114,9 @@ const transitionKey = computed(() => String(route.name ?? ''));
       </router-view>
     </main>
 
-    <div class="swbi-sr-only" role="status" aria-live="polite" aria-atomic="true">{{ app.announcement }}</div>
+    <div class="swbi-sr-only" role="status" aria-live="polite" aria-atomic="true">
+      {{ app.announcement }}
+    </div>
   </div>
 </template>
 

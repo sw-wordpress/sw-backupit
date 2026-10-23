@@ -23,8 +23,12 @@ withDefaults(
       <q-skeleton type="text" width="40%" />
     </template>
     <template v-else>
-      <div class="swbi-stat__value swbi-num"><slot>{{ value ?? '–' }}</slot></div>
-      <div v-if="hint || $slots.hint" class="swbi-stat__hint"><slot name="hint">{{ hint }}</slot></div>
+      <div class="swbi-stat__value swbi-num">
+        <slot>{{ value ?? '–' }}</slot>
+      </div>
+      <div v-if="hint || $slots.hint" class="swbi-stat__hint">
+        <slot name="hint">{{ hint }}</slot>
+      </div>
     </template>
   </div>
 </template>

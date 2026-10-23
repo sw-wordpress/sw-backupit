@@ -6,6 +6,18 @@ import { quasar, transformAssetUrls } from '@quasar/vite-plugin';
 import { swbiScope } from './tools/postcssScope';
 import { mockApiPlugin } from './dev/mockApiPlugin';
 
+/** Ship only the woff2 icon font (all supported browsers); drops the 200 KB legacy woff. */
+function woff2Only() {
+  return {
+    name: 'swbi-woff2-only',
+    enforce: 'pre' as const,
+    transform(code: string, id: string) {
+      if (!id.includes('material-icons-round.css')) return null;
+      return code.replace(/,\s*url\([^)]*\.woff\d?\??[^)]*\)\s*format\((['"])woff\1\)/g, '');
+    },
+  };
+}
+
 const outDir = resolve(__dirname, '../../assets/admin');
 
 // The mock API is a dev-server middleware only (`apply: 'serve'`). It lives in this config
@@ -13,6 +25,7 @@ const outDir = resolve(__dirname, '../../assets/admin');
 export default defineConfig(({ command }) => ({
   base: './',
   plugins: [
+    woff2Only(),
     vue({ template: { transformAssetUrls } }),
     quasar(),
     ...(command === 'serve' ? [mockApiPlugin()] : []),
@@ -36,7 +49,9 @@ export default defineConfig(({ command }) => ({
         chunkFileNames: 'chunks/[name]-[hash].js',
         assetFileNames: (info) => {
           const names = info.names ?? (info.name ? [info.name] : []);
-          return names.some((n) => n.endsWith('.css')) ? 'app.css' : 'assets/[name]-[hash][extname]';
+          return names.some((n) => n.endsWith('.css'))
+            ? 'app.css'
+            : 'assets/[name]-[hash][extname]';
         },
       },
     },

@@ -168,7 +168,7 @@ final class DatabaseExporter
         }
         $name = $table['name'];
         if (!$cursor['structure']) {
-            $create = $this->pdo->query('SHOW CREATE TABLE ' . self::id($name))->fetch(PDO::FETCH_NUM);
+            $create = PdoHelper::query($this->pdo, 'SHOW CREATE TABLE ' . self::id($name))->fetch(PDO::FETCH_NUM);
             if (!is_array($create) || !isset($create[1])) {
                 throw new DatabaseException('Cannot read table structure.', ['table' => $name]);
             }
@@ -194,22 +194,24 @@ final class DatabaseExporter
 
         $columnList = implode(',', array_map(static fn (array $column): string => self::id($column['name']), $columns));
         $prefix = 'INSERT INTO ' . self::id($name) . " ({$columnList}) VALUES\n";
-        $statement = '';
+        $buffer = [];
+        $bufferSize = 0;
         foreach ($rows as $row) {
             $values = [];
             foreach ($columns as $column) {
                 $values[] = $this->literal($row[$column['name']] ?? null, $column['kind']);
             }
             $tuple = '(' . implode(',', $values) . ')';
-            if ($statement !== '' && strlen($statement) + strlen($tuple) > self::MAX_STATEMENT_BYTES) {
-                $writer->write($prefix . $statement . ";\n");
-                $statement = '';
+            if ($buffer !== [] && $bufferSize + strlen($tuple) > self::MAX_STATEMENT_BYTES) {
+                $writer->write($prefix . implode(",\n", $buffer) . ";\n");
+                $buffer = [];
+                $bufferSize = 0;
             }
-            $statement .= ($statement === '' ? '' : ",\n") . $tuple;
+            $buffer[] = $tuple;
+            $bufferSize += strlen($tuple);
         }
-        if ($statement !== '') {
-            $writer->write($prefix . $statement . ";\n");
-        }
+        // $rows is never empty here, so the buffer always holds the last (partial) statement.
+        $writer->write($prefix . implode(",\n", $buffer) . ";\n");
         $cursor['rows_done'] = (int) $cursor['rows_done'] + count($rows);
         if ($primary !== []) {
             $lastRow = $rows[array_key_last($rows)];
@@ -257,32 +259,32 @@ final class DatabaseExporter
             if ($table['type'] !== 'view') {
                 continue;
             }
-            $row = $this->pdo->query('SHOW CREATE VIEW ' . self::id($table['name']))->fetch(PDO::FETCH_NUM);
+            $row = PdoHelper::query($this->pdo, 'SHOW CREATE VIEW ' . self::id($table['name']))->fetch(PDO::FETCH_NUM);
             if (is_array($row) && isset($row[1])) {
                 $blocks[] = 'DROP VIEW IF EXISTS ' . self::id($table['name']) . ";\n" . self::stripDefiner((string) $row[1]) . ";\n";
             }
         }
-        foreach ($this->pdo->query('SHOW TRIGGERS')->fetchAll() as $trigger) {
+        foreach (PdoHelper::query($this->pdo, 'SHOW TRIGGERS')->fetchAll() as $trigger) {
             if (!in_array((string) $trigger['Table'], $selected, true)) {
                 continue;
             }
             $name = (string) $trigger['Trigger'];
-            $create = $this->pdo->query('SHOW CREATE TRIGGER ' . self::id($name))->fetch();
+            $create = PdoHelper::query($this->pdo, 'SHOW CREATE TRIGGER ' . self::id($name))->fetch();
             if (is_array($create) && isset($create['SQL Original Statement'])) {
                 $blocks[] = 'DROP TRIGGER IF EXISTS ' . self::id($name) . ";\n" . self::delimited(self::stripDefiner((string) $create['SQL Original Statement']));
             }
         }
         if ($cursor['include_routines'] ?? false) {
-            $routines = $this->pdo->query('SELECT ROUTINE_NAME AS n, ROUTINE_TYPE AS t FROM information_schema.ROUTINES WHERE ROUTINE_SCHEMA = DATABASE()')->fetchAll();
+            $routines = PdoHelper::query($this->pdo, 'SELECT ROUTINE_NAME AS n, ROUTINE_TYPE AS t FROM information_schema.ROUTINES WHERE ROUTINE_SCHEMA = DATABASE()')->fetchAll();
             foreach ($routines as $routine) {
                 $type = strtoupper((string) $routine['t']) === 'FUNCTION' ? 'FUNCTION' : 'PROCEDURE';
-                $create = $this->pdo->query("SHOW CREATE {$type} " . self::id((string) $routine['n']))->fetch(PDO::FETCH_NUM);
+                $create = PdoHelper::query($this->pdo, "SHOW CREATE {$type} " . self::id((string) $routine['n']))->fetch(PDO::FETCH_NUM);
                 if (is_array($create) && isset($create[2])) {
                     $blocks[] = "DROP {$type} IF EXISTS " . self::id((string) $routine['n']) . ";\n" . self::delimited(self::stripDefiner((string) $create[2]));
                 }
             }
-            foreach ($this->pdo->query('SHOW EVENTS')->fetchAll() as $event) {
-                $create = $this->pdo->query('SHOW CREATE EVENT ' . self::id((string) $event['Name']))->fetch(PDO::FETCH_NUM);
+            foreach (PdoHelper::query($this->pdo, 'SHOW EVENTS')->fetchAll() as $event) {
+                $create = PdoHelper::query($this->pdo, 'SHOW CREATE EVENT ' . self::id((string) $event['Name']))->fetch(PDO::FETCH_NUM);
                 if (is_array($create) && isset($create[3])) {
                     $blocks[] = 'DROP EVENT IF EXISTS ' . self::id((string) $event['Name']) . ";\n" . self::delimited(self::stripDefiner((string) $create[3]));
                 }
@@ -298,7 +300,7 @@ final class DatabaseExporter
     private function columns(string $table): array
     {
         $columns = [];
-        foreach ($this->pdo->query('SHOW COLUMNS FROM ' . self::id($table))->fetchAll() as $row) {
+        foreach (PdoHelper::query($this->pdo, 'SHOW COLUMNS FROM ' . self::id($table))->fetchAll() as $row) {
             $extra = strtoupper((string) ($row['Extra'] ?? ''));
             if (str_contains($extra, 'GENERATED') || str_contains($extra, 'VIRTUAL') || str_contains($extra, 'PERSISTENT')) {
                 continue;
@@ -320,7 +322,7 @@ final class DatabaseExporter
      */
     private function primaryKey(string $table): array
     {
-        $rows = $this->pdo->query('SHOW INDEX FROM ' . self::id($table) . " WHERE Key_name = 'PRIMARY'")->fetchAll();
+        $rows = PdoHelper::query($this->pdo, 'SHOW INDEX FROM ' . self::id($table) . " WHERE Key_name = 'PRIMARY'")->fetchAll();
         usort($rows, static fn (array $a, array $b): int => (int) $a['Seq_in_index'] <=> (int) $b['Seq_in_index']);
 
         return array_map(static fn (array $row): string => (string) $row['Column_name'], $rows);

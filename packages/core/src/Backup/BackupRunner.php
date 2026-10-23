@@ -134,7 +134,7 @@ final class BackupRunner
                 $outcome = $step->run($context);
                 $job->warningsCount = max($job->warningsCount, $logger->warningCount());
                 if ($outcome === StepOutcome::Done) {
-                    $job->checkpoints['_completed'][] = $step->step()->value;
+                    $job->completedSteps[] = $step->step()->value;
                     $commit();
                     if ($budget->exhausted()) {
                         return new TickResult($job->status, true, 'time budget used up');
@@ -154,8 +154,7 @@ final class BackupRunner
 
     private function nextStep(Job $job, BackupProfile $profile): ?BackupStepInterface
     {
-        /** @var list<string> $done */
-        $done = $job->checkpoints['_completed'] ?? [];
+        $done = $job->completedSteps;
         foreach ($this->steps as $step) {
             if (in_array($step->step()->value, $done, true) || !$step->applies($profile)) {
                 continue;
@@ -176,6 +175,7 @@ final class BackupRunner
         if ($job->cancelRequested) {
             $this->machine->cancel($job);
             $this->jobs->save($job);
+            $this->jobs->clearFlags($job->id);
             $logger->warning('Job cancelled by user.');
             $context->layout->removeAll();
 
@@ -184,6 +184,7 @@ final class BackupRunner
         if ($job->pauseRequested) {
             $this->machine->pause($job);
             $this->jobs->save($job);
+            $this->jobs->clearFlags($job->id);
             $logger->info('Job paused by user.');
 
             return new TickResult(JobStatus::Paused, false);

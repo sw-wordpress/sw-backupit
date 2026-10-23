@@ -22,10 +22,10 @@ final class TableSelector
      */
     public function select(PDO $pdo, string $prefix, array $include, array $exclude, bool $includeForeign): array
     {
-        $rows = $pdo->query('SHOW FULL TABLES')->fetchAll(PDO::FETCH_NUM);
+        $rows = PdoHelper::query($pdo, 'SHOW FULL TABLES')->fetchAll(PDO::FETCH_NUM);
         $statusRows = [];
         $engines = [];
-        foreach ($pdo->query('SHOW TABLE STATUS')->fetchAll() as $status) {
+        foreach (PdoHelper::query($pdo, 'SHOW TABLE STATUS')->fetchAll() as $status) {
             $statusRows[(string) $status['Name']] = (int) ($status['Rows'] ?? 0);
             $engines[(string) $status['Name']] = (string) ($status['Engine'] ?? '');
         }

@@ -32,7 +32,11 @@ enum Step: string
         };
     }
 
-    /** Lower/upper bound (percent) of this step within the whole job. */
+    /**
+     * Lower/upper bound (percent) of this step within the whole job.
+     *
+     * @return array{int, int}
+     */
     public function weight(): array
     {
         return match ($this) {

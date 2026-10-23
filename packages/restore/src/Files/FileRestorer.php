@@ -85,14 +85,14 @@ final class FileRestorer
                 }
                 $state['offset'] = $next;
                 $sinceCheckpoint++;
+                if ($sinceCheckpoint % 20 === 0 && $budget->exhausted()) {
+                    $finished = false;
+                    break;
+                }
                 if ($sinceCheckpoint >= 200 || microtime(true) - $lastCheckpoint > 2.0) {
                     $onCheckpoint($state);
                     $sinceCheckpoint = 0;
                     $lastCheckpoint = microtime(true);
-                    if ($budget->exhausted()) {
-                        $finished = false;
-                        break;
-                    }
                 }
             }
         } finally {
@@ -231,7 +231,7 @@ final class FileRestorer
                 if ($size !== (int) $chunk['s']) {
                     throw new IntegrityException('Archive entry size differs from the index.', ['path' => $relative]);
                 }
-                if ($size > 1048576 && $size / $compressed > $this->options->limits->maxCompressionRatio) {
+                if ($size >= 65536 && $size / $compressed > $this->options->limits->maxCompressionRatio) {
                     throw new IntegrityException('Suspicious compression ratio, refusing to extract.', ['path' => $relative]);
                 }
                 $stream = $zip->getStream($name);

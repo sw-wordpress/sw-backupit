@@ -36,8 +36,15 @@ watch(open, (isOpen) => {
   }
 });
 
-const differentSite = computed(() => siteUrl !== '' && props.backup.site_url !== '' && stripSlash(props.backup.site_url) !== stripSlash(siteUrl));
-const confirmed = computed(() => pathConfirmed.value && typedId.value.trim() === fmt.shortId(props.backup.id));
+const differentSite = computed(
+  () =>
+    siteUrl !== '' &&
+    props.backup.site_url !== '' &&
+    stripSlash(props.backup.site_url) !== stripSlash(siteUrl),
+);
+const confirmed = computed(
+  () => pathConfirmed.value && typedId.value.trim() === fmt.shortId(props.backup.id),
+);
 const restoreHref = computed(() => {
   // Only ever render http(s) links, whatever the server returned.
   const url = prepared.value?.restore_url ?? '';
@@ -77,12 +84,33 @@ async function execute(): Promise<void> {
 </script>
 
 <template>
-  <SideSheet v-model="open" persistent :title="t('backups.restore.title')" :subtitle="`${backup.profile_name} · ${fmt.dateTime(backup.created_at)}`" :width="620">
+  <SideSheet
+    v-model="open"
+    persistent
+    :title="t('backups.restore.title')"
+    :subtitle="`${backup.profile_name} · ${fmt.dateTime(backup.created_at)}`"
+    :width="620"
+  >
     <div class="swbi-stack swbi-rs">
       <ol class="swbi-rs__steps" :aria-label="t('backups.restore.steps')">
-        <li :class="{ 'is-current': step === 'intro', 'is-done': step !== 'intro' }" :aria-current="step === 'intro' ? 'step' : undefined">1 · {{ t('backups.restore.step1') }}</li>
-        <li :class="{ 'is-current': step === 'confirm', 'is-done': step === 'ready' }" :aria-current="step === 'confirm' ? 'step' : undefined">2 · {{ t('backups.restore.step2') }}</li>
-        <li :class="{ 'is-current': step === 'ready' }" :aria-current="step === 'ready' ? 'step' : undefined">3 · {{ t('backups.restore.step3') }}</li>
+        <li
+          :class="{ 'is-current': step === 'intro', 'is-done': step !== 'intro' }"
+          :aria-current="step === 'intro' ? 'step' : undefined"
+        >
+          1 · {{ t('backups.restore.step1') }}
+        </li>
+        <li
+          :class="{ 'is-current': step === 'confirm', 'is-done': step === 'ready' }"
+          :aria-current="step === 'confirm' ? 'step' : undefined"
+        >
+          2 · {{ t('backups.restore.step2') }}
+        </li>
+        <li
+          :class="{ 'is-current': step === 'ready' }"
+          :aria-current="step === 'ready' ? 'step' : undefined"
+        >
+          3 · {{ t('backups.restore.step3') }}
+        </li>
       </ol>
 
       <template v-if="step === 'intro'">
@@ -96,17 +124,31 @@ async function execute(): Promise<void> {
           </ul>
         </div>
         <div class="swbi-row">
-          <q-btn unelevated no-caps color="primary" icon="r_arrow_forward" :label="t('backups.restore.prepare')" :loading="preparing" @click="prepare" />
+          <q-btn
+            unelevated
+            no-caps
+            color="primary"
+            icon="r_arrow_forward"
+            :label="t('backups.restore.prepare')"
+            :loading="preparing"
+            @click="prepare"
+          />
           <q-btn flat no-caps :label="t('common.cancel')" @click="open = false" />
         </div>
       </template>
 
       <template v-else-if="step === 'confirm' && prepared">
-        <section v-if="prepared.warnings.length > 0" class="swbi-rs__box swbi-rs__box--warn" role="alert">
+        <section
+          v-if="prepared.warnings.length > 0"
+          class="swbi-rs__box swbi-rs__box--warn"
+          role="alert"
+        >
           <q-icon name="r_warning" size="22px" aria-hidden="true" />
           <div>
             <strong>{{ t('backups.restore.warnings') }}</strong>
-            <ul><li v-for="(w, i) in prepared.warnings" :key="i">{{ w }}</li></ul>
+            <ul>
+              <li v-for="(w, i) in prepared.warnings" :key="i">{{ w }}</li>
+            </ul>
           </div>
         </section>
         <p v-else class="swbi-muted">{{ t('backups.restore.noWarnings') }}</p>
@@ -115,20 +157,44 @@ async function execute(): Promise<void> {
           <q-icon name="r_swap_horiz" size="22px" aria-hidden="true" />
           <div>
             <strong>{{ t('backups.restore.differentSite') }}</strong>
-            <p>{{ t('backups.restore.differentSiteText', { from: backup.site_url, to: siteUrl }) }}</p>
+            <p>
+              {{ t('backups.restore.differentSiteText', { from: backup.site_url, to: siteUrl }) }}
+            </p>
           </div>
         </div>
 
         <dl class="swbi-rs__target">
-          <div><dt>{{ t('backups.restore.targetSite') }}</dt><dd class="swbi-mono">{{ siteUrl || '–' }}</dd></div>
-          <div><dt>{{ t('backups.restore.source') }}</dt><dd class="swbi-mono">{{ fmt.shortId(backup.id) }} · {{ fmt.dateTime(backup.created_at) }}</dd></div>
+          <div>
+            <dt>{{ t('backups.restore.targetSite') }}</dt>
+            <dd class="swbi-mono">{{ siteUrl || '–' }}</dd>
+          </div>
+          <div>
+            <dt>{{ t('backups.restore.source') }}</dt>
+            <dd class="swbi-mono">
+              {{ fmt.shortId(backup.id) }} · {{ fmt.dateTime(backup.created_at) }}
+            </dd>
+          </div>
         </dl>
 
         <q-checkbox v-model="pathConfirmed" :label="t('backups.restore.confirmPath')" />
-        <q-input v-model="typedId" outlined dense autocomplete="off" :label="t('common.typeToConfirm', { text: fmt.shortId(backup.id) })" />
+        <q-input
+          v-model="typedId"
+          outlined
+          dense
+          autocomplete="off"
+          :label="t('common.typeToConfirm', { text: fmt.shortId(backup.id) })"
+        />
 
         <div class="swbi-row">
-          <q-btn unelevated no-caps color="primary" icon="r_arrow_forward" :label="t('backups.restore.continue')" :disable="!confirmed" @click="step = 'ready'" />
+          <q-btn
+            unelevated
+            no-caps
+            color="primary"
+            icon="r_arrow_forward"
+            :label="t('backups.restore.continue')"
+            :disable="!confirmed"
+            @click="step = 'ready'"
+          />
           <q-btn flat no-caps :label="t('common.cancel')" @click="open = false" />
         </div>
       </template>
@@ -138,20 +204,46 @@ async function execute(): Promise<void> {
           <q-icon name="r_check_circle" size="22px" aria-hidden="true" />
           <div>
             <strong>{{ t('backups.restore.ready') }}</strong>
-            <p>{{ t('backups.restore.expires', { time: fmt.dateTime(prepared.token_expires_at), rel: fmt.relative(prepared.token_expires_at) }) }}</p>
+            <p>
+              {{
+                t('backups.restore.expires', {
+                  time: fmt.dateTime(prepared.token_expires_at),
+                  rel: fmt.relative(prepared.token_expires_at),
+                })
+              }}
+            </p>
           </div>
         </section>
 
         <div class="swbi-rs__option">
           <h3>{{ t('backups.restore.optionStandalone') }}</h3>
           <p class="swbi-muted">{{ t('backups.restore.optionStandaloneText') }}</p>
-          <q-btn v-if="restoreHref" type="a" :href="restoreHref" target="_blank" rel="noopener noreferrer" unelevated no-caps color="primary" icon="r_open_in_new" :label="t('backups.restore.openRestore')" />
+          <q-btn
+            v-if="restoreHref"
+            type="a"
+            :href="restoreHref"
+            target="_blank"
+            rel="noopener noreferrer"
+            unelevated
+            no-caps
+            color="primary"
+            icon="r_open_in_new"
+            :label="t('backups.restore.openRestore')"
+          />
           <p v-else class="swbi-muted">{{ t('backups.restore.invalidUrl') }}</p>
         </div>
         <div class="swbi-rs__option">
           <h3>{{ t('backups.restore.optionJob') }}</h3>
           <p class="swbi-muted">{{ t('backups.restore.optionJobText') }}</p>
-          <q-btn outline no-caps color="negative" icon="r_restore" :label="t('backups.restore.execute')" :loading="executing" @click="execute" />
+          <q-btn
+            outline
+            no-caps
+            color="negative"
+            icon="r_restore"
+            :label="t('backups.restore.execute')"
+            :loading="executing"
+            @click="execute"
+          />
         </div>
       </template>
     </div>

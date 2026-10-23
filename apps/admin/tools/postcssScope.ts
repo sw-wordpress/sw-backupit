@@ -5,7 +5,7 @@ import type { AtRule, Plugin, Rule } from 'postcss';
  *
  * Quasar ships a reset and utility CSS that targets `html`, `body`, `*` and generic
  * elements. Inside wp-admin that would restyle the whole dashboard. Only CSS that
- * originates from `node_modules/quasar` is rewritten; our own CSS is already namespaced.
+ * originates from `node_modules/quasar` and `@quasar/extras` is rewritten; our own CSS is already namespaced.
  *
  * Mapping:
  * - `html`, `body`, `:root`        -> `.swbi-root`
@@ -20,8 +20,8 @@ import type { AtRule, Plugin, Rule } from 'postcss';
 export interface ScopeOptions {
   scope?: string;
   darkClass?: string;
-  /** Substring a file path must contain for the plugin to touch it. */
-  filePattern?: string;
+  /** Substrings of which one must be in a file path for the plugin to touch it. */
+  filePatterns?: string[];
 }
 
 const KEYFRAME_RE = /keyframes$/i;
@@ -42,7 +42,10 @@ export function rewriteSelector(selector: string, scope: string, darkClass: stri
   }
 
   // scroll-lock classes toggled on html/body by Quasar: neutralised
-  if (/^(?:body|html)\.q-/.test(sel) || /^(?:body|html)\.(?:desktop|mobile|touch|no-touch|platform-)/.test(sel)) {
+  if (
+    /^(?:body|html)\.q-/.test(sel) ||
+    /^(?:body|html)\.(?:desktop|mobile|touch|no-touch|platform-)/.test(sel)
+  ) {
     return sel.replace(/^(?:body|html)/, scope);
   }
 
@@ -57,12 +60,12 @@ export function rewriteSelector(selector: string, scope: string, darkClass: stri
 export function swbiScope(options: ScopeOptions = {}): Plugin {
   const scope = options.scope ?? '.swbi-root';
   const darkClass = options.darkClass ?? 'swbi-dark';
-  const pattern = options.filePattern ?? '/node_modules/quasar/';
+  const patterns = options.filePatterns ?? ['/node_modules/quasar/', '/node_modules/@quasar/extras/'];
   return {
     postcssPlugin: 'swbi-scope',
     Once(root) {
       const file = root.source?.input.file?.replace(/\\/g, '/') ?? '';
-      if (!file.includes(pattern)) return;
+      if (!patterns.some((p) => file.includes(p))) return;
       root.walkRules((rule: Rule) => {
         const parent = rule.parent as AtRule | undefined;
         if (parent && parent.type === 'atrule' && KEYFRAME_RE.test(parent.name)) return;
