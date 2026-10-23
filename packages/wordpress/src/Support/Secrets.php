@@ -11,6 +11,8 @@
 
 declare(strict_types=1);
 
+// phpcs:disable WordPress.PHP.DiscouragedPHPFunctions.obfuscation_base64_encode,WordPress.PHP.DiscouragedPHPFunctions.obfuscation_base64_decode -- binary-to-text encoding of key material/ciphertext, not obfuscation.
+
 namespace SWBackupIt\WordPress\Support;
 
 final class Secrets {

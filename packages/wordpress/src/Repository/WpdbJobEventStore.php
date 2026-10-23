@@ -7,6 +7,8 @@
 
 declare(strict_types=1);
 
+// phpcs:disable WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- table names come from Schema::table() (fixed allowlist + $wpdb->prefix), never from input.
+
 namespace SWBackupIt\WordPress\Repository;
 
 use SWBackupIt\Core\Log\JobEventStoreInterface;

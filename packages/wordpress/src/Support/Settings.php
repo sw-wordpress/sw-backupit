@@ -27,13 +27,13 @@ final class Settings {
 			),
 			'encryption'               => array( 'default_key_id' => '' ),
 			'notifications'            => array(
-				'recipients'    => array(),
+				'recipients'     => array(),
 				'dedupe_minutes' => 60,
 			),
 			'logging'                  => array(
-				'retention_days'  => 30,
+				'retention_days'     => 30,
 				'max_events_per_job' => 5000,
-				'level'           => 'info',
+				'level'              => 'info',
 			),
 			'cron'                     => array(
 				'mode'     => 'wp-cron',

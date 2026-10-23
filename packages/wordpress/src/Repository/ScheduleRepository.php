@@ -7,6 +7,8 @@
 
 declare(strict_types=1);
 
+// phpcs:disable WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- table names come from Schema::table() (fixed allowlist + $wpdb->prefix), never from input.
+
 namespace SWBackupIt\WordPress\Repository;
 
 use DateTimeImmutable;
@@ -55,12 +57,19 @@ final class ScheduleRepository {
 	public function create( array $data ): int {
 		global $wpdb;
 		$now = Time::to_db( Time::now() );
-		$wpdb->insert( $this->table(), $data + array( 'created_at' => $now, 'updated_at' => $now ) ); // phpcs:ignore WordPress.DB.DirectDatabaseQuery
+		$wpdb->insert( // phpcs:ignore WordPress.DB.DirectDatabaseQuery
+			$this->table(),
+			$data + array(
+				'created_at' => $now,
+				'updated_at' => $now,
+			)
+		); // phpcs:ignore WordPress.DB.DirectDatabaseQuery
 		return (int) $wpdb->insert_id;
 	}
 
 	/**
-	 * @param array<string, mixed> $data
+	 * @param int                  $id   Schedule id.
+	 * @param array<string, mixed> $data Fields to change.
 	 */
 	public function update( int $id, array $data ): void {
 		global $wpdb;
@@ -75,7 +84,7 @@ final class ScheduleRepository {
 	/** Next planned run of any enabled schedule (dashboard). */
 	public function next_planned(): ?array {
 		global $wpdb;
-		$row = $wpdb->get_row( "SELECT * FROM {$this->table()} WHERE enabled = 1 AND next_run_at IS NOT NULL ORDER BY next_run_at ASC LIMIT 1", ARRAY_A ); // phpcs:ignore WordPress.DB
+		$row = $wpdb->get_row( "SELECT * FROM {$this->table()} WHERE enabled = 1 AND next_run_at IS NOT NULL ORDER BY next_run_at ASC LIMIT 1", ARRAY_A ); // phpcs:ignore WordPress.DB.DirectDatabaseQuery,WordPress.DB
 		return is_array( $row ) ? $row : null;
 	}
 

@@ -44,8 +44,8 @@ final class Services {
 
 	/**
 	 * @template T of object
-	 * @param class-string<T> $id
-	 * @param callable(): T   $factory
+	 * @param string        $id      Class name used as cache key.
+	 * @param callable(): T $factory
 	 * @return T
 	 */
 	private function get( string $id, callable $factory ): object {

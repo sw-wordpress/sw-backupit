@@ -56,6 +56,14 @@
         "test:e2e": "phpunit --testsuite e2e",
         "stan": "phpstan analyse --memory-limit=1G",
         "cs": "phpcs",
-        "cs:fix": "phpcbf"
+        "cs:fix": "phpcbf",
+        "test:wp": "cd tests/wp && vendor/bin/phpunit -c phpunit.xml.dist",
+        "cs:wp": "phpcs --standard=phpcs-wordpress.xml.dist",
+        "check": [
+            "@cs",
+            "@cs:wp",
+            "@stan",
+            "@test"
+        ]
     }
 }

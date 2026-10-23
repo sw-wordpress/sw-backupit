@@ -104,7 +104,7 @@ abstract class BaseController {
 		}
 		if ( $throwable instanceof \SWBackupIt\Core\Exception\SwbiException ) {
 			$status = isset( $throwable->context()['conflict'] ) ? 409 : 400;
-			return $this->error( $status === 409 ? 'swbi_conflict' : 'swbi_error', $throwable->getMessage(), $status );
+			return $this->error( 409 === $status ? 'swbi_conflict' : 'swbi_error', $throwable->getMessage(), $status );
 		}
 		return $this->error( 'swbi_error', __( 'An unexpected error occurred.', 'swbackupit' ), 500 );
 	}

@@ -14,11 +14,11 @@ namespace SWBackupIt\WordPress\Runner;
 
 final class CronManager {
 
-	public const HOOK_RUN_JOB   = 'swbi_run_job';
-	public const HOOK_WATCH     = 'swbi_check_schedules';
-	public const HOOK_MAINTAIN  = 'swbi_daily_maintenance';
-	public const INTERVAL       = 'swbi_minute';
-	public const TICK_OPTION    = 'swbi_last_cron_tick';
+	public const HOOK_RUN_JOB  = 'swbi_run_job';
+	public const HOOK_WATCH    = 'swbi_check_schedules';
+	public const HOOK_MAINTAIN = 'swbi_daily_maintenance';
+	public const INTERVAL      = 'swbi_minute';
+	public const TICK_OPTION   = 'swbi_last_cron_tick';
 
 	/**
 	 * @param array<string, array<string, mixed>> $schedules

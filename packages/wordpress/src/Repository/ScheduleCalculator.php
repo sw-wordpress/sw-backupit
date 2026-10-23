@@ -21,8 +21,8 @@ final class ScheduleCalculator {
 	 * @throws InvalidArgumentException On an invalid timezone or cron expression.
 	 */
 	public static function next_run( array $schedule, DateTimeImmutable $after ): DateTimeImmutable {
-		$timezone = new DateTimeZone( self::timezone_name( (string) ( $schedule['timezone'] ?? 'UTC' ) ) );
-		$local    = $after->setTimezone( $timezone );
+		$timezone          = new DateTimeZone( self::timezone_name( (string) ( $schedule['timezone'] ?? 'UTC' ) ) );
+		$local             = $after->setTimezone( $timezone );
 		[ $hour, $minute ] = self::parse_time( (string) ( $schedule['time_of_day'] ?? '02:30' ) );
 
 		switch ( (string) ( $schedule['frequency'] ?? 'daily' ) ) {

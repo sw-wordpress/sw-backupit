@@ -13,7 +13,7 @@ use SWBackupIt\WordPress\Support\Capabilities;
 
 final class AdminPage {
 
-	public const SLUG   = 'swbackupit';
+	public const SLUG    = 'swbackupit';
 	private const HANDLE = 'swbackupit-admin';
 
 	private string $hook = '';

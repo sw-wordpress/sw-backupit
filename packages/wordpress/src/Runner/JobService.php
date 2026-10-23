@@ -113,7 +113,11 @@ final class JobService {
 		}
 	}
 
-	/** Manually retries a failed job; it continues from its checkpoints. */
+	/**
+	 * Manually retries a failed job; it continues from its checkpoints.
+	 *
+	 * @throws SwbiException When the job is not in the failed state.
+	 */
 	public function retry( string $job_id ): void {
 		$job = $this->jobs->find( $job_id );
 		if ( JobStatus::Failed !== $job->status ) {

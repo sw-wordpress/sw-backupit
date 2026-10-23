@@ -1,0 +1,84 @@
+# Backup format (version 1)
+
+A backup is a directory that is **self-contained**: it can be read without WordPress, without the SWBackupIt
+database tables and without the plugin (`restore` application only).
+
+```
+<backup-id>/                  UUIDv4
+  manifest.json               written LAST and atomically; no manifest => incomplete backup
+  files.ndjson                file index (one JSON object per line, canonical order)
+  database/db-0001.sql.gz     gzip SQL parts, independently importable in order
+  volumes/backup-001.zip      independent ZIP64 volumes
+  work/                       temporary data, removed on finalisation
+```
+
+## manifest.json
+
+```json
+{
+  "format": "swbackupit", "format_version": 1,
+  "backup_id": "uuid", "job_id": "uuid",
+  "created_at": "2026-10-24T02:30:00Z", "finished_at": "...",
+  "type": "full|files|database|incremental|differential",
+  "generator": {"name": "swbackupit", "version": "0.1.0", "php": "8.3.16"},
+  "source": {"site_url": "...", "home_url": "...", "wp_version": "...", "table_prefix": "wp_", "root_path": "...", "multisite": false},
+  "profile": { "...": "immutable snapshot of the profile (no secrets)" },
+  "parent": null,
+  "files": {"index": "files.ndjson", "sha256": "…", "count": 1234, "bytes": 99999},
+  "volumes": [{"index": 1, "name": "backup-001.zip", "size": 1, "sha256": "…", "entries": 10}],
+  "database": {"parts": [{"name": "db-0001.sql.gz", "size": 1, "sha256": "…", "raw_bytes": 1}],
+               "tables": [{"name": "wp_posts", "type": "table", "rows": 5, "engine": "InnoDB", "exported_rows": 5}],
+               "consistent_snapshot": false, "table_prefix": "wp_", "include_foreign_tables": false},
+  "encryption": null,
+  "checksums": true, "volume_size_bytes": 268435456, "warnings_count": 0
+}
+```
+
+Rules: readers must reject a `format_version` newer than they support, validate every name against its pattern
+(`backup-\d{3,}\.zip`, `db-\d{4,}\.sql\.gz`) and must never use manifest strings as filesystem paths. The index
+and every volume/part are bound to the manifest by SHA-256.
+
+## File index (`files.ndjson`)
+
+One JSON object per line, ordered by *canonical path order* (depth-first, byte-wise sorted names; see
+`PathOrder`). The order is part of the format: incremental backups merge-join two indexes.
+
+| key | meaning |
+|---|---|
+| `p` | relative path (UTF-8, `/` separated) |
+| `t` | `f` file, `d` directory, `l` symlink |
+| `s`, `m`, `mode` | size, mtime, permissions |
+| `lt` | symlink target (never recreated on restore) |
+| `st` | `ok`, `unreadable`, `vanished`, `changed` (changed while being read) |
+| `h` | SHA-256 of the file content (if checksums are enabled) |
+| `v`, `a` | volume number and ZIP entry name |
+| `c` | chunk list `[{v,a,s,h}]` for files larger than the volume size |
+
+ZIP entry names are the path with `\ : * ? " < > | %` percent-encoded (ZipStream would otherwise rewrite them).
+
+## Volumes and chunking
+
+Each volume is a complete ZIP64 archive (any ZIP tool can open it). A volume is closed when it reaches the
+configured size **or when the time budget of a worker tick is used up**, so volumes can be smaller than the limit.
+Files larger than the volume size are split into `<entry>.swbpartNNNN` chunks, one chunk per volume; restore reassembles
+and verifies each chunk and the whole file.
+
+## Database parts
+
+Gzip compressed SQL, parts close at statement boundaries. Every part starts with `SET NAMES utf8mb4`,
+`FOREIGN_KEY_CHECKS=0`, `UNIQUE_CHECKS=0`, a permissive `sql_mode` (zero dates exist in real WordPress databases)
+and UTC time zone. Binary columns are hex literals, text is escaped by the driver. Triggers/routines/events use
+`DELIMITER ;;` blocks; views are retried at the end of an import (dependencies between views).
+
+### Consistency
+
+* Default: data is read in batches by primary key across several worker invocations. **There is no global snapshot**: rows
+  written between batches may be missing or inconsistent across tables, and files/database are never an atomic pair.
+* `db_consistent_snapshot`: the export runs in a *single* invocation inside `START TRANSACTION WITH CONSISTENT SNAPSHOT`
+  (REPEATABLE READ). That is transactionally consistent **for InnoDB tables only**; MyISAM tables are warned about.
+  It cannot be resumed (a crash restarts the export) and ignores the time budget, so use it from the CLI.
+* Tables without primary key are paged with LIMIT/OFFSET (unstable under concurrent writes).
+
+## Compatibility
+
+Every format version needs at least one automated restore compatibility test (`tests/E2e`, `tests/Integration`).

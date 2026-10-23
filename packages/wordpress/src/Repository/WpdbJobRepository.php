@@ -7,6 +7,8 @@
 
 declare(strict_types=1);
 
+// phpcs:disable WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- table names come from Schema::table() (fixed allowlist + $wpdb->prefix), never from input.
+
 namespace SWBackupIt\WordPress\Repository;
 
 use DateTimeImmutable;
@@ -29,11 +31,11 @@ final class WpdbJobRepository implements JobRepositoryInterface {
 
 	public function create( Job $job ): void {
 		global $wpdb;
-		$row      = $this->to_row( $job );
-		$row['id'] = $job->id;
+		$row               = $this->to_row( $job );
+		$row['id']         = $job->id;
 		$row['created_at'] = Time::to_db( $job->createdAt );
 		$row['created_by'] = get_current_user_id() > 0 ? get_current_user_id() : null;
-		$inserted = $wpdb->insert( $this->table(), $row ); // phpcs:ignore WordPress.DB.DirectDatabaseQuery
+		$inserted          = $wpdb->insert( $this->table(), $row ); // phpcs:ignore WordPress.DB.DirectDatabaseQuery
 		if ( 1 !== $inserted ) {
 			throw new SwbiException( 'Cannot create job.' );
 		}
@@ -173,6 +175,7 @@ final class WpdbJobRepository implements JobRepositoryInterface {
 
 	/**
 	 * @param array<string, mixed> $row
+	 * @throws SwbiException When the stored data is corrupt.
 	 */
 	private function from_row( array $row ): Job {
 		$data = json_decode( (string) $row['data'], true );

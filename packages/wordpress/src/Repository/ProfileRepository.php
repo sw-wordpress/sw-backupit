@@ -74,7 +74,8 @@ final class ProfileRepository {
 	}
 
 	/**
-	 * @param array<string, mixed> $input
+	 * @param int                  $id    Profile id.
+	 * @param array<string, mixed> $input Fields to change.
 	 * @throws ConfigurationException On invalid input.
 	 */
 	public function update( int $id, array $input ): ?BackupProfile {

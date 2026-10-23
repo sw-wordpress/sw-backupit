@@ -30,7 +30,7 @@ trait CommandSupport {
 			$status = $result->status;
 			\WP_CLI::debug( 'tick: ' . $status->value . ' ' . $result->note, 'swbackupit' );
 			if ( JobStatus::RetryWaiting === $status ) {
-				$job = Services::instance()->jobs()->find( $job_id );
+				$job  = Services::instance()->jobs()->find( $job_id );
 				$wait = max( 1, ( $job->nextRetryAt?->getTimestamp() ?? time() ) - time() );
 				\WP_CLI::log( sprintf( 'Transient error, retrying in %d seconds.', $wait ) );
 				sleep( min( $wait, 900 ) );

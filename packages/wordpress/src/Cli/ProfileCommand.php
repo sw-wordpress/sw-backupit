@@ -40,10 +40,10 @@ final class ProfileCommand {
 		$items = array();
 		foreach ( $repo->all() as $profile ) {
 			$items[] = array(
-				'id'      => $profile->id,
-				'name'    => $profile->name,
-				'type'    => $profile->type->value,
-				'volume'  => round( $profile->volumeSizeBytes / 1048576 ) . ' MB',
+				'id'     => $profile->id,
+				'name'   => $profile->name,
+				'type'   => $profile->type->value,
+				'volume' => round( $profile->volumeSizeBytes / 1048576 ) . ' MB',
 			);
 		}
 		\WP_CLI\Utils\format_items( (string) ( $assoc_args['format'] ?? 'table' ), $items, array( 'id', 'name', 'type', 'volume' ) );

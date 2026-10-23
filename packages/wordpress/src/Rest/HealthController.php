@@ -39,7 +39,12 @@ final class HealthController extends BaseController {
 		};
 
 		$add( 'php', 'PHP', 'ok', PHP_VERSION );
-		foreach ( array( 'zip' => 'error', 'zlib' => 'error', 'sodium' => 'warning', 'pdo_mysql' => 'error' ) as $extension => $level ) {
+		foreach ( array(
+			'zip'       => 'error',
+			'zlib'      => 'error',
+			'sodium'    => 'warning',
+			'pdo_mysql' => 'error',
+		) as $extension => $level ) {
 			$loaded = extension_loaded( $extension );
 			$add(
 				'ext_' . $extension,
@@ -54,7 +59,7 @@ final class HealthController extends BaseController {
 		if ( Settings::is_inside_docroot( dirname( $staging ) ) || Settings::is_inside_docroot( $staging ) ) {
 			$add( 'staging_public', __( 'Staging location', 'swbackupit' ), 'warning', __( 'The staging directory is inside the web root. Make sure the web server denies access or choose a directory outside the web root in the settings.', 'swbackupit' ) );
 		}
-		$free = is_dir( $staging ) ? @disk_free_space( $staging ) : false;
+		$free = is_dir( $staging ) ? @disk_free_space( $staging ) : false; // phpcs:ignore WordPress.PHP.NoSilencedErrors.Discouraged -- unsupported on some hosts, handled below.
 		if ( false !== $free ) {
 			$add( 'disk', __( 'Free disk space', 'swbackupit' ), $free < 536870912 ? 'warning' : 'ok', size_format( (float) $free ) );
 		}

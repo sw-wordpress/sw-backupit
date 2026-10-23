@@ -73,7 +73,7 @@ final class LifecycleListener {
 		$retries = (int) $schedule['retry_count'];
 		if ( $retries < (int) $schedule['retry_max'] ) {
 			// Retry strategy: exponential backoff, capped at 6 hours.
-			$delay                = (int) min( 21600, (int) $schedule['retry_backoff'] * ( 2 ** $retries ) );
+			$delay                 = (int) min( 21600, (int) $schedule['retry_backoff'] * ( 2 ** $retries ) );
 			$update['next_run_at'] = Time::to_db( Time::now()->modify( '+' . $delay . ' seconds' ) );
 			$update['retry_count'] = $retries + 1;
 		} else {

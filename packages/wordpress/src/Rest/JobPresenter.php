@@ -26,17 +26,17 @@ final class JobPresenter {
 		$format   = static fn ( ?\DateTimeImmutable $date ): ?string => $date?->setTimezone( new \DateTimeZone( 'UTC' ) )->format( 'Y-m-d\TH:i:s\Z' );
 
 		return array(
-			'id'            => $job->id,
-			'profile_id'    => $job->profileId,
-			'profile_name'  => $job->profileName(),
-			'type'          => $job->type->value,
-			'trigger'       => $job->trigger,
-			'status'        => $job->status->value,
-			'phase'         => $job->step?->value,
-			'started_at'    => $format( $job->startedAt ),
-			'updated_at'    => $format( $job->updatedAt ),
-			'finished_at'   => $format( $job->finishedAt ),
-			'progress'      => array(
+			'id'             => $job->id,
+			'profile_id'     => $job->profileId,
+			'profile_name'   => $job->profileName(),
+			'type'           => $job->type->value,
+			'trigger'        => $job->trigger,
+			'status'         => $job->status->value,
+			'phase'          => $job->step?->value,
+			'started_at'     => $format( $job->startedAt ),
+			'updated_at'     => $format( $job->updatedAt ),
+			'finished_at'    => $format( $job->finishedAt ),
+			'progress'       => array(
 				'percent'           => $percent,
 				'files_total'       => $progress->filesTotal,
 				'files_done'        => $progress->filesDone,
@@ -55,11 +55,11 @@ final class JobPresenter {
 				),
 				'targets'           => $progress->targets,
 			),
-			'error'         => $job->error,
+			'error'          => $job->error,
 			'warnings_count' => $job->warningsCount,
-			'retry_count'   => $job->retryCount,
-			'next_retry_at' => $format( $job->nextRetryAt ),
-			'backup_id'     => JobStatus::Completed === $job->status ? $job->backupId : null,
+			'retry_count'    => $job->retryCount,
+			'next_retry_at'  => $format( $job->nextRetryAt ),
+			'backup_id'      => JobStatus::Completed === $job->status ? $job->backupId : null,
 		);
 	}
 }
