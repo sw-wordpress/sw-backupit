@@ -1,0 +1,57 @@
+{
+    "name": "swbackupit/swbackupit",
+    "description": "SWBackupIt - WordPress backup, restore and disaster recovery (monorepo).",
+    "type": "wordpress-plugin",
+    "license": "GPL-2.0-or-later",
+    "require": {
+        "php": ">=8.2",
+        "ext-json": "*",
+        "ext-hash": "*",
+        "ext-zlib": "*",
+        "ext-zip": "*",
+        "ext-pdo": "*",
+        "league/flysystem": "^3.28",
+        "league/flysystem-local": "^3.28",
+        "maennchen/zipstream-php": "^3.1",
+        "psr/log": "^3.0"
+    },
+    "require-dev": {
+        "dealerdirect/phpcodesniffer-composer-installer": "^1.0",
+        "phpcompatibility/phpcompatibility-wp": "^2.1",
+        "phpstan/phpstan": "^2.0",
+        "phpunit/phpunit": "^11.0",
+        "squizlabs/php_codesniffer": "^3.10",
+        "wp-coding-standards/wpcs": "^3.1"
+    },
+    "suggest": {
+        "ext-sodium": "Required for backup encryption.",
+        "league/flysystem-aws-s3-v3": "S3-compatible storage targets.",
+        "league/flysystem-sftp-v3": "SFTP storage targets."
+    },
+    "autoload": {
+        "psr-4": {
+            "SWBackupIt\\Core\\": "packages/core/src/",
+            "SWBackupIt\\Restore\\": "packages/restore/src/",
+            "SWBackupIt\\WordPress\\": "packages/wordpress/src/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "SWBackupIt\\Tests\\": "tests/"
+        }
+    },
+    "config": {
+        "sort-packages": true,
+        "optimize-autoloader": true,
+        "allow-plugins": {
+            "dealerdirect/phpcodesniffer-composer-installer": true
+        }
+    },
+    "scripts": {
+        "test": "phpunit --testsuite unit,integration",
+        "test:e2e": "phpunit --testsuite e2e",
+        "stan": "phpstan analyse --memory-limit=1G",
+        "cs": "phpcs",
+        "cs:fix": "phpcbf"
+    }
+}
