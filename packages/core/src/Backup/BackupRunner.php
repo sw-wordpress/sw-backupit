@@ -20,6 +20,7 @@ use SWBackupIt\Core\Job\JobRepositoryInterface;
 use SWBackupIt\Core\Job\JobStateMachine;
 use SWBackupIt\Core\Log\JobEventStoreInterface;
 use SWBackupIt\Core\Log\JobLogger;
+use SWBackupIt\Core\Retention\BackupCatalogInterface;
 use SWBackupIt\Core\Storage\StorageManager;
 use SWBackupIt\Core\Support\ClockInterface;
 use SWBackupIt\Core\Support\ResourceBudget;
@@ -54,6 +55,7 @@ final class BackupRunner
         private readonly string $logLevel = LogLevel::INFO,
         private readonly ?KeyProviderInterface $keys = null,
         private readonly ?StorageManager $storage = null,
+        private readonly ?BackupCatalogInterface $catalog = null,
     ) {
         $order = array_map(static fn (Step $step): string => $step->value, Step::cases());
         usort($steps, static fn (BackupStepInterface $a, BackupStepInterface $b): int => array_search($a->step()->value, $order, true) <=> array_search($b->step()->value, $order, true));
@@ -113,7 +115,7 @@ final class BackupRunner
         }
 
         $source = $this->sources->forJob($job);
-        $context = new BackupContext($job, $profile, new BackupLayout($source->stagingPath, $job->backupId), $source, $logger, $this->dispatcher, $this->clock, $budget, $commit, $this->keys, $this->storage);
+        $context = new BackupContext($job, $profile, new BackupLayout($source->stagingPath, $job->backupId), $source, $logger, $this->dispatcher, $this->clock, $budget, $commit, $this->keys, $this->storage, $this->catalog);
 
         try {
             while (true) {

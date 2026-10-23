@@ -14,6 +14,7 @@ use SWBackupIt\Core\Exception\ConfigurationException;
 use SWBackupIt\Core\Job\Job;
 use SWBackupIt\Core\Log\JobLogger;
 use SWBackupIt\Core\Support\ClockInterface;
+use SWBackupIt\Core\Retention\BackupCatalogInterface;
 use SWBackupIt\Core\Storage\StorageManager;
 use SWBackupIt\Core\Support\ResourceBudget;
 
@@ -40,6 +41,7 @@ final class BackupContext
         private readonly Closure $commit,
         public readonly ?KeyProviderInterface $keys = null,
         public readonly ?StorageManager $storage = null,
+        public readonly ?BackupCatalogInterface $catalog = null,
     ) {
     }
 

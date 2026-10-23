@@ -10,6 +10,7 @@ use SWBackupIt\Core\Backup\Step\ExportStep;
 use SWBackupIt\Core\Backup\Step\FinalizeStep;
 use SWBackupIt\Core\Backup\Step\ManifestStep;
 use SWBackupIt\Core\Backup\Step\PreflightStep;
+use SWBackupIt\Core\Backup\Step\RetentionStep;
 use SWBackupIt\Core\Backup\Step\ScanStep;
 use SWBackupIt\Core\Backup\Step\UploadStep;
 use SWBackupIt\Core\Backup\Step\VerifyLocalStep;
@@ -21,6 +22,7 @@ use SWBackupIt\Core\Job\FileJobRepository;
 use SWBackupIt\Core\Job\JobRepositoryInterface;
 use SWBackupIt\Core\Log\FileJobEventStore;
 use SWBackupIt\Core\Log\JobEventStoreInterface;
+use SWBackupIt\Core\Retention\BackupCatalogInterface;
 use SWBackupIt\Core\Storage\StorageManager;
 use SWBackupIt\Core\Support\SystemClock;
 
@@ -43,6 +45,7 @@ final class BackupRunnerFactory
             new UploadStep(),
             new VerifyRemoteStep(),
             new FinalizeStep(),
+            new RetentionStep(),
         ];
     }
 
@@ -53,8 +56,9 @@ final class BackupRunnerFactory
         ?EventDispatcherInterface $dispatcher = null,
         ?KeyProviderInterface $keys = null,
         ?StorageManager $storage = null,
+        ?BackupCatalogInterface $catalog = null,
     ): BackupRunner {
-        return new BackupRunner($jobs, $events, $sources, self::defaultSteps(), $dispatcher ?? new EventDispatcher(), new SystemClock(), 'info', $keys, $storage);
+        return new BackupRunner($jobs, $events, $sources, self::defaultSteps(), $dispatcher ?? new EventDispatcher(), new SystemClock(), 'info', $keys, $storage, $catalog);
     }
 
     /** File based runner (CLI, tests, standalone use). */
