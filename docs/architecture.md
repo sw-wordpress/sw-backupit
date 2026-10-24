@@ -93,7 +93,8 @@ stateDiagram-v2
 
 Execution model: `BackupRunner::tick()` acquires a lease, runs steps until the time budget is exhausted, persists checkpoints and releases the lease. Resume
 granularity is the finished (fsynced, renamed) volume / database part / encrypted file / uploaded file (S3: multipart part) / inventory slice. Lease expiry
-recovers from crashed workers, the watchdog restarts lost jobs and fails jobs that made no progress for 48 h. Transient errors (`TransientException`)
+recovers from crashed workers; a worker renews its lease before every checkpoint write and aborts its tick without touching the job
+when the lease was taken over (a step blocked longer than the lease), the watchdog restarts lost jobs and fails jobs that made no progress for 48 h. Transient errors (`TransientException`)
 become `retry_waiting` with exponential backoff + jitter; everything else fails. Pause/cancel are flags consumed between work units.
 
 Steps (`Step` enum, in order): preflight, scan, export, archive, encrypt, verify_local, manifest, upload, verify_remote, finalize, retention, notify.
@@ -108,6 +109,10 @@ See `hooks.md`. `before_*` events may veto (blocking listener, clean failure bef
 
 See `backup-format.md` and `security.md`. Restore: verify → files (atomic, resumable per file, guarded) → database (streamed, resumable at statement level)
 → URL/prefix migration (transactional progress) → wp-config update → done; the engine never reports success when a phase failed.
+The resume state is bound to a fingerprint of the request (backup, target, database, selection, options): a different restore never
+continues an old state. After a file failure the file phase starts over on the next run (identical files are skipped), so failed
+entries are retried instead of being skipped. Notes for the user (skipped symlinks, files that changed during the backup, wp-config
+constants that could not be rewritten) are part of the result.
 
 ## Tests
 

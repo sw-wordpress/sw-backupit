@@ -41,7 +41,7 @@ final class RestoreSecurityTest extends TestCase
             $this->backupDir,
             $target,
             $overrides['confirmed'] ?? (string) realpath($target),
-            $this->makeTempDir('state'),
+            $overrides['state'] ?? $this->makeTempDir('state'),
             restoreDatabase: false,
             overwrite: $overrides['overwrite'] ?? OverwriteMode::IfDifferent,
             selection: $overrides['selection'] ?? new Selection(),
@@ -165,6 +165,9 @@ final class RestoreSecurityTest extends TestCase
         self::assertSame(RestoreOutcome::COMPLETED, $outcome->status, implode(';', $outcome->messages));
         self::assertFalse(is_link($target . '/evil-link'));
         self::assertFileDoesNotExist($target . '/evil-link');
+        // The user is told which links were skipped so they can recreate them manually.
+        self::assertStringContainsString('Symbolic links from the backup were not recreated', $outcome->messages[0] ?? '');
+        self::assertContains('  evil-link -> /etc/passwd', $outcome->messages);
     }
 
     public function testZipBombRatioIsRefused(): void
@@ -227,6 +230,42 @@ final class RestoreSecurityTest extends TestCase
         self::assertGreaterThan(1, $rounds);
         $expected = $this->snapshotTree($this->site);
         self::assertSame($expected, $this->snapshotTree($target));
+    }
+
+    /**
+     * Regression: re-running a restore after a file failure (as the CLI instructs) used to report success without the file.
+     */
+    public function testRerunAfterFailureRetriesTheFailedFile(): void
+    {
+        $this->makeBackup();
+        $target = $this->makeTempDir('target');
+        $state = $this->makeTempDir('state');
+        mkdir($target . '/index.php');
+        $first = (new RestoreEngine())->run($this->request($target, ['state' => $state]), ResourceBudget::unlimited());
+        self::assertSame(RestoreOutcome::FAILED, $first->status);
+        rmdir($target . '/index.php');
+        $second = (new RestoreEngine())->run($this->request($target, ['state' => $state]), ResourceBudget::unlimited());
+        self::assertSame(RestoreOutcome::COMPLETED, $second->status, implode(';', $second->messages));
+        self::assertSame($this->snapshotTree($this->site), $this->snapshotTree($target));
+    }
+
+    /**
+     * Regression: the resume state of an interrupted restore was reused for a different target, skipping files there.
+     */
+    public function testStateOfAnotherRequestIsNeverContinued(): void
+    {
+        $this->makeBackup();
+        $state = $this->makeTempDir('state');
+        $first = (new RestoreEngine())->run($this->request($this->makeTempDir('a'), ['state' => $state]), new ResourceBudget(0.0));
+        self::assertSame(RestoreOutcome::CONTINUE, $first->status);
+        $other = $this->makeTempDir('b');
+        $engine = new RestoreEngine();
+        $rounds = 0;
+        do {
+            $outcome = $engine->run($this->request($other, ['state' => $state]), new ResourceBudget(0.0));
+        } while ($outcome->status === RestoreOutcome::CONTINUE && ++$rounds < 100);
+        self::assertSame(RestoreOutcome::COMPLETED, $outcome->status, implode(';', $outcome->messages));
+        self::assertSame($this->snapshotTree($this->site), $this->snapshotTree($other));
     }
 
     public function testMissingVolumeAndWrongKeyScenariosFailLoudly(): void

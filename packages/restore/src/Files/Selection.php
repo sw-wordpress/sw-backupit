@@ -17,6 +17,14 @@ final class Selection
     {
     }
 
+    /**
+     * @return array{paths: list<string>, patterns: list<string>}
+     */
+    public function toArray(): array
+    {
+        return ['paths' => $this->paths, 'patterns' => $this->patterns];
+    }
+
     public function isAll(): bool
     {
         return $this->paths === [] && $this->patterns === [];

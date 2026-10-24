@@ -17,37 +17,50 @@ use SWBackupIt\Core\Domain\BackupProfile;
 use SWBackupIt\Core\Domain\JobStatus;
 use SWBackupIt\Core\Exception\SwbiException;
 use SWBackupIt\Core\Job\Job;
+use SWBackupIt\WordPress\Repository\ScheduleRepository;
 use SWBackupIt\WordPress\Repository\WpdbJobRepository;
 use SWBackupIt\WordPress\Support\Settings;
 
 final class JobService {
 
-	/** Statuses that count as "a backup is in progress" (parallel backups are prevented). */
-	private const IN_PROGRESS = array( 'pending', 'preparing', 'scanning', 'exporting', 'archiving', 'encrypting', 'uploading', 'verifying', 'retry_waiting' );
+	/**
+	 * Statuses that count as "a backup is in progress" (parallel backups are prevented). A paused job still owns its
+	 * staging data and will be resumed, so it counts as well.
+	 */
+	public const IN_PROGRESS = array( 'pending', 'preparing', 'scanning', 'exporting', 'archiving', 'encrypting', 'uploading', 'verifying', 'retry_waiting', 'paused' );
+
+	/** Seconds to wait for the start lock before reporting a conflict. */
+	private const START_LOCK_TIMEOUT = 10;
 
 	public function __construct(
 		private readonly BackupRunner $runner,
 		private readonly WpdbJobRepository $jobs,
-		private readonly CronManager $cron
+		private readonly CronManager $cron,
+		private readonly ?ScheduleRepository $schedules = null
 	) {
 	}
 
 	/**
 	 * Creates a job with an immutable profile snapshot and queues it.
 	 *
+	 * The "nothing in progress" check and the insert run under a database lock (GET_LOCK), so two concurrent requests
+	 * (WP-Cron, CLI, REST) can never both start a backup.
+	 *
 	 * @throws SwbiException With code context 'conflict' when another backup is running.
 	 */
 	public function start( BackupProfile $profile, string $trigger = 'manual', ?int $schedule_id = null, bool $dispatch = true ): Job {
-		if ( $this->jobs->count( self::IN_PROGRESS ) > 0 ) {
-			throw new SwbiException( __( 'Another backup is already running.', 'swbackupit' ), array( 'conflict' => true ) );
-		}
 		$settings = Settings::all();
 		$data     = $profile->toArray();
 		// Global resource limits are the ceiling for the profile's own limits.
 		$data['limits']['time_budget_seconds'] = min( (int) $data['limits']['time_budget_seconds'], (int) $settings['limits']['time_budget_seconds'] );
 		$data['limits']['batch_rows']          = min( (int) $data['limits']['batch_rows'], (int) $settings['limits']['batch_rows'] );
 		$job                                   = ( new JobFactory() )->create( BackupProfile::fromArray( $data ), $trigger, $schedule_id );
-		$this->jobs->create( $job );
+		$this->with_start_lock(
+			function () use ( $job ): void {
+				$this->assert_nothing_in_progress();
+				$this->jobs->create( $job );
+			}
+		);
 		do_action( 'swbi_backup_started', $job->id, $trigger );
 		if ( $dispatch ) {
 			$this->cron->dispatch_job( $job->id );
@@ -58,7 +71,57 @@ final class JobService {
 	public function tick( string $job_id, ?float $budget = null ): TickResult {
 		$result = $this->runner->tick( $job_id, $budget );
 		\SWBackupIt\WordPress\Support\Options::update( CronManager::TICK_OPTION, time(), false );
+		if ( JobStatus::Cancelled === $result->status ) {
+			// The runner applied a cancel request between two work units.
+			$this->record_cancelled( $this->jobs->find( $job_id ) );
+		}
 		return $result;
+	}
+
+	/**
+	 * Runs $callback while holding the database wide start lock.
+	 *
+	 * @param callable(): void $callback Check-and-insert.
+	 * @throws SwbiException With conflict context when the lock cannot be acquired in time.
+	 */
+	private function with_start_lock( callable $callback ): void {
+		global $wpdb;
+		// Lock names are server wide: scope it to this database and table prefix (max. 64 characters).
+		$lock = 'swbi_job_start_' . substr( md5( DB_NAME . '|' . $wpdb->base_prefix ), 0, 16 );
+		if ( '1' !== (string) $wpdb->get_var( $wpdb->prepare( 'SELECT GET_LOCK(%s, %d)', $lock, self::START_LOCK_TIMEOUT ) ) ) { // phpcs:ignore WordPress.DB.DirectDatabaseQuery
+			throw new SwbiException( __( 'Another backup is already running.', 'swbackupit' ), array( 'conflict' => true ) );
+		}
+		try {
+			$callback();
+		} finally {
+			$wpdb->query( $wpdb->prepare( 'SELECT RELEASE_LOCK(%s)', $lock ) ); // phpcs:ignore WordPress.DB.DirectDatabaseQuery
+		}
+	}
+
+	/**
+	 * @param string|null $except Job id that may be in progress (the job being resumed/retried itself).
+	 * @throws SwbiException With conflict context when another backup is in progress.
+	 */
+	private function assert_nothing_in_progress( ?string $except = null ): void {
+		foreach ( $this->jobs->list( self::IN_PROGRESS, 2 ) as $other ) {
+			if ( $other->id !== $except ) {
+				throw new SwbiException( __( 'Another backup is already running.', 'swbackupit' ), array( 'conflict' => true ) );
+			}
+		}
+	}
+
+	/** Schedule bookkeeping for a cancelled scheduled job (it would otherwise stay "running" forever). */
+	private function record_cancelled( Job $job ): void {
+		if ( null === $job->scheduleId || null === $this->schedules ) {
+			return;
+		}
+		$this->schedules->update(
+			$job->scheduleId,
+			array(
+				'last_status' => 'cancelled',
+				'last_error'  => null,
+			)
+		);
 	}
 
 	/** WP-Cron callback: one tick, then re-queue itself while there is more to do. */
@@ -93,8 +156,13 @@ final class JobService {
 		if ( JobStatus::Paused !== $job->status ) {
 			throw new SwbiException( __( 'Only paused jobs can be resumed.', 'swbackupit' ) );
 		}
-		$this->runner->stateMachine()->resume( $job );
-		$this->jobs->save( $job );
+		$this->with_start_lock(
+			function () use ( $job, $job_id ): void {
+				$this->assert_nothing_in_progress( $job_id );
+				$this->runner->stateMachine()->resume( $job );
+				$this->jobs->save( $job );
+			}
+		);
 		$this->cron->dispatch_job( $job_id );
 	}
 
@@ -111,6 +179,7 @@ final class JobService {
 			$this->jobs->save( $job );
 			$this->jobs->clearFlags( $job_id );
 			( new BackupLayout( Settings::staging_dir(), $job->backupId ) )->removeAll();
+			$this->record_cancelled( $job );
 		}
 	}
 
@@ -124,10 +193,15 @@ final class JobService {
 		if ( JobStatus::Failed !== $job->status ) {
 			throw new SwbiException( __( 'Only failed jobs can be retried.', 'swbackupit' ) );
 		}
-		$job->error       = null;
-		$job->nextRetryAt = null;
-		$this->runner->stateMachine()->transition( $job, JobStatus::RetryWaiting );
-		$this->jobs->save( $job );
+		$this->with_start_lock(
+			function () use ( $job, $job_id ): void {
+				$this->assert_nothing_in_progress( $job_id );
+				$job->error       = null;
+				$job->nextRetryAt = null;
+				$this->runner->stateMachine()->transition( $job, JobStatus::RetryWaiting );
+				$this->jobs->save( $job );
+			}
+		);
 		$this->cron->dispatch_job( $job_id );
 	}
 }

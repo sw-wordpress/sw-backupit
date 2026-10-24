@@ -27,10 +27,7 @@ final class ScheduleCalculator {
 
 		switch ( (string) ( $schedule['frequency'] ?? 'daily' ) ) {
 			case 'hourly':
-				$next = $local->setTime( (int) $local->format( 'G' ), $minute );
-				while ( $next <= $local ) {
-					$next = $next->modify( '+1 hour' );
-				}
+				$next = self::next_hourly( $after, $timezone, $minute );
 				break;
 			case 'weekly':
 				$weekday = max( 0, min( 6, (int) ( $schedule['weekday'] ?? 1 ) ) );
@@ -51,9 +48,7 @@ final class ScheduleCalculator {
 				if ( ! CronExpression::isValidExpression( $expression ) ) {
 					throw new InvalidArgumentException( 'Invalid cron expression.' );
 				}
-				$next = DateTimeImmutable::createFromMutable(
-					( new CronExpression( $expression ) )->getNextRunDate( $local, 0, false, $timezone->getName() )
-				);
+				$next = self::next_cron( new CronExpression( $expression ), $local, $timezone );
 				break;
 			default:
 				$next = $local->setTime( $hour, $minute );
@@ -63,6 +58,55 @@ final class ScheduleCalculator {
 		}
 
 		return $next->setTimezone( new DateTimeZone( 'UTC' ) );
+	}
+
+	/**
+	 * Next instant whose local minute is $minute. Stepping over real (UTC) time means every local hour that exists is
+	 * used exactly once: the repeated hour on a DST fall-back runs again, the skipped hour on spring-forward is skipped.
+	 *
+	 * @throws InvalidArgumentException Never for real timezones (defensive bound of the search).
+	 */
+	private static function next_hourly( DateTimeImmutable $after, DateTimeZone $timezone, int $minute ): DateTimeImmutable {
+		$start = intdiv( $after->getTimestamp(), 60 ) * 60 + 60;
+		// Offsets are whole minutes, so a match is at most 60 minutes (plus a DST shift) away.
+		for ( $timestamp = $start; $timestamp < $start + 3 * 3600; $timestamp += 60 ) {
+			$candidate = ( new DateTimeImmutable( '@' . $timestamp ) )->setTimezone( $timezone );
+			if ( (int) $candidate->format( 'i' ) === $minute ) {
+				return $candidate;
+			}
+		}
+		throw new InvalidArgumentException( 'No hourly run found.' );
+	}
+
+	/**
+	 * Cron expressions with a fixed hour describe a wall-clock time that must run once per day. On a DST fall-back that
+	 * local time exists twice; the second (repeated) occurrence is skipped, like classic cron does. Expressions with a
+	 * wildcard hour (every n minutes/hours) keep running through the repeated hour.
+	 */
+	private static function next_cron( CronExpression $cron, DateTimeImmutable $local, DateTimeZone $timezone ): DateTimeImmutable {
+		$fixed_hour = ! str_starts_with( (string) $cron->getExpression( CronExpression::HOUR ), '*' );
+		$current    = $local;
+		$next       = $local;
+		for ( $i = 0; $i < 10; $i++ ) {
+			$next = DateTimeImmutable::createFromMutable( $cron->getNextRunDate( $current, 0, false, $timezone->getName() ) )->setTimezone( $timezone );
+			if ( ! $fixed_hour || ! self::is_repeated_wall_time( $next, $timezone ) ) {
+				return $next;
+			}
+			$current = $next;
+		}
+		return $next;
+	}
+
+	/** Whether the same local wall-clock time already occurred earlier with a larger UTC offset (DST fall-back). */
+	private static function is_repeated_wall_time( DateTimeImmutable $moment, DateTimeZone $timezone ): bool {
+		$timestamp = $moment->getTimestamp();
+		$before    = $timezone->getOffset( new DateTimeImmutable( '@' . ( $timestamp - 3 * 3600 ) ) );
+		$shift     = $before - $moment->getOffset();
+		if ( $shift <= 0 ) {
+			return false;
+		}
+		$earlier = ( new DateTimeImmutable( '@' . ( $timestamp - $shift ) ) )->setTimezone( $timezone );
+		return $earlier->format( 'Y-m-d H:i' ) === $moment->format( 'Y-m-d H:i' );
 	}
 
 	public static function is_valid_cron( string $expression ): bool {

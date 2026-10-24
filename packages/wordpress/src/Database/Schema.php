@@ -27,11 +27,18 @@ final class Schema {
 		return array( 'profiles', 'schedules', 'jobs', 'backups', 'backup_locations', 'storage_targets', 'job_events', 'audit' );
 	}
 
-	/** Runs pending migrations. Safe to call repeatedly. */
-	public static function migrate(): void {
+	/**
+	 * Runs pending migrations. Safe to call repeatedly.
+	 *
+	 * The schema version is only bumped when every table really exists afterwards: dbDelta() does not report failures,
+	 * and a bumped version would otherwise never retry a failed migration.
+	 *
+	 * @return bool Whether the schema is current.
+	 */
+	public static function migrate(): bool {
 		$installed = (int) \SWBackupIt\WordPress\Support\Options::get( self::VERSION_OPTION, 0 );
 		if ( $installed >= self::CURRENT ) {
-			return;
+			return true;
 		}
 		if ( $installed < 1 ) {
 			self::migrate_to_1();
@@ -39,7 +46,29 @@ final class Schema {
 		if ( $installed < 2 ) {
 			self::migrate_to_2();
 		}
+		if ( array() !== self::missing_tables() ) {
+			return false;
+		}
 		\SWBackupIt\WordPress\Support\Options::update( self::VERSION_OPTION, self::CURRENT, true );
+		return true;
+	}
+
+	/**
+	 * @return list<string> Full names of plugin tables that do not exist.
+	 */
+	public static function missing_tables(): array {
+		global $wpdb;
+		$missing  = array();
+		$suppress = $wpdb->suppress_errors( true );
+		foreach ( self::tables() as $name ) {
+			$table = self::table( $name );
+			// A probe query instead of SHOW TABLES also sees temporary tables (WordPress test suite) and needs no privileges.
+			if ( false === $wpdb->query( "SELECT 1 FROM `{$table}` LIMIT 0" ) ) { // phpcs:ignore WordPress.DB.DirectDatabaseQuery,WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- fixed allowlist + prefix.
+				$missing[] = $table;
+			}
+		}
+		$wpdb->suppress_errors( $suppress );
+		return $missing;
 	}
 
 	public static function needs_migration(): bool {

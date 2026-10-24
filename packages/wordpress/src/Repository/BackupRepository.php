@@ -171,6 +171,12 @@ final class BackupRepository {
 		);
 	}
 
+	/** Records that a background check looked at the backup without changing its status (nothing local to verify). */
+	public function touch_checked( string $id ): void {
+		global $wpdb;
+		$wpdb->update( $this->table(), array( 'verified_at' => Time::to_db( Time::now() ) ), array( 'id' => $id ) ); // phpcs:ignore WordPress.DB.DirectDatabaseQuery
+	}
+
 	public function mark_verified( string $id, string $status ): void {
 		global $wpdb;
 		$wpdb->update( // phpcs:ignore WordPress.DB.DirectDatabaseQuery

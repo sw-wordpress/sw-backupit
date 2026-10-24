@@ -40,3 +40,9 @@ For reliable schedules add a system cron job and set `define( 'DISABLE_WP_CRON',
 ```cron
 * * * * * cd /var/www/html && wp swbackupit schedule run-due --quiet
 ```
+
+`schedule run-due` starts due schedules (each due run is claimed atomically, so a parallel WP-Cron or a second cron process
+never starts it twice), continues queued/interrupted jobs, runs the watchdog and health notifications and, when it is more than a
+day ago, the daily maintenance – a setup with `DISABLE_WP_CRON` needs nothing else. It never sleeps: jobs waiting for a retry or
+held by another worker are left for a later run. Set Settings → cron mode to `system` so the WP-Cron watcher no longer starts
+schedules itself. Interactive commands (`backup run`, `schedule run`) wait for retries and for another worker holding the job.

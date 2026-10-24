@@ -224,7 +224,7 @@ final class WebApp
         $data = $session['data'] ?? [];
         $plan = is_array($data) ? ($data['plan'] ?? null) : null;
         if (!is_array($plan) || ($data['run']['status'] ?? '') !== 'running') {
-            return WebResponse::json(['status' => 'failed', 'messages' => ['No restore is running.']], 409);
+            return WebResponse::json(['status' => 'failed', 'messages' => [Translator::t('No restore is running.')]], 409);
         }
         $db = $plan['db'];
         $config = $db === null ? null : new ConnectionConfig((string) $db['host'], (string) $db['name'], (string) $db['user'], (string) $db['password'], (int) $db['port']);
@@ -249,7 +249,7 @@ final class WebApp
         $outcome = (new RestoreEngine())->run($request, new ResourceBudget(8.0));
         $files = $outcome->summary['files'] ?? [];
         $payload = [
-            'status' => $outcome->status, 'phase' => $outcome->phase, 'messages' => $outcome->messages,
+            'status' => $outcome->status, 'phase' => $outcome->phase, 'messages' => array_map(static fn (string $m): string => Translator::t($m), $outcome->messages),
             'files' => (int) ($files['files'] ?? 0), 'bytes' => Bytes::format((int) ($files['bytes'] ?? 0)), 'skipped' => (int) ($files['skipped'] ?? 0),
         ];
         if ($outcome->status !== RestoreOutcome::CONTINUE) {

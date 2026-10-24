@@ -29,7 +29,10 @@ paused, resumed, cancelled and (when failed) retried; they continue from their c
 
 ## Schedules
 Hourly, daily, weekly, monthly or a cron expression, in a chosen timezone (DST-safe). WP-Cron needs site visitors; for exact timing use a system
-cron job (`wp swbackupit schedule run-due`, see `wp-cli.md`). Failed scheduled runs are retried with backoff. Overdue schedules are reported.
+cron job (`wp swbackupit schedule run-due`, see `wp-cli.md`) and set the cron mode to *system*. Failed scheduled runs are retried with
+backoff (manual runs of a schedule are not retried; renaming a schedule keeps a pending retry). Cancelled runs show the status *cancelled*.
+Overdue schedules are reported. On DST changes a fixed time runs once per day (the repeated hour in autumn does not run it twice); hourly
+schedules run every real hour.
 
 ## Storage targets
 Add targets under *Storage targets*: **local directory**, **SFTP** (set the host key fingerprint; accepting an unknown host is an explicit, warned
@@ -53,7 +56,9 @@ readable and contains no secret. Best practice: keep the key outside the databas
 environment). Without the key a backup can be verified (checksums) but not read or restored.
 
 ## Notifications
-E-mail through WordPress for success, failure, warnings, upload failures, overdue backups, low disk space and failed test restores. Identical
+E-mail through WordPress for success, failure, warnings, upload failures, overdue backups, low disk space and successful/failed test restores
+(following the profile's notification settings). Restores in the standalone application do not send mails (WordPress is not running there).
+Per-schedule notification settings are not available; schedules use their profile's settings. Identical
 notifications are de-duplicated within the configured window.
 
 ## Backups
@@ -87,14 +92,24 @@ optionally `--new-prefix=blog_` and `--migration-dry-run`. PHP serialized values
 unserialized), `guid` columns stay unchanged, wp-config.php gets the new database settings. The web wizard has the same options.
 
 ## Updates and audit
-Settings → *Backup before updates* creates a backup before core/plugin/theme updates (reused if recent, waits at most 20 s, never blocks the
-update unless you enable *block on failure*). The **audit log** (Settings) records who created, downloaded, deleted or restored backups and which
+Settings → *Backup before updates* creates a backup before core/plugin/theme updates – including bulk and automatic updates, but not when a
+new plugin or theme is installed (a recent intact backup is reused, it waits at most 20 s, never blocks the update unless you enable *block on
+failure*). The **audit log** (Settings) records who created, downloaded, deleted or restored backups and which
 settings changed.
 
 ## Troubleshooting
 * *Backup stuck*: a crashed worker blocks the job until its lease expires (about a minute); a watchdog restarts lost jobs.
 * *Failed*: open the job log, fix the cause, press retry (`wp swbackupit job resume <id>`).
 * *Schedules do not start*: check the cron notice on the dashboard; use a system cron.
-* *Staging warnings*: set a directory outside the web root in Settings.
+* *Staging location error*: set a directory outside the web root in Settings (directories inside the WordPress directory or the
+  document root are refused unless `allow_public_paths` is set). If the staging directory has to stay inside the web root, the
+  plugin writes `.htaccess`, `web.config` and `index.php` files, which only Apache and IIS honour. On **nginx** add a deny rule and
+  reload nginx:
+
+  ```nginx
+  # inside the server { } block of the site
+  location ~ /swbackupit-staging- { deny all; return 404; }
+  location ~ /\.swbi-restore-state- { deny all; return 404; }
+  ```
 * *Encrypted backup cannot be read*: provide the key (`--key`, `SWBI_KEY`, or `SWBACKUPIT_KEY_<ID>`).
 * *Restore says a base backup is missing*: download the whole chain (`fetch --with-chain`) into the same directory.

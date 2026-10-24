@@ -30,6 +30,12 @@ final class DatabaseMigrator
     ) {
     }
 
+    /** Removes the progress of an earlier migration (called before a fresh database import). */
+    public static function reset(PDO $pdo): void
+    {
+        $pdo->exec('DROP TABLE IF EXISTS ' . DatabaseExporter::id(self::PROGRESS_TABLE));
+    }
+
     /**
      * @param array<string, string> $pairs search => replace
      * @param list<string> $tables Tables to process (empty = all tables starting with $prefix).
@@ -44,6 +50,7 @@ final class DatabaseMigrator
         $progress = $dryRun ? [] : $this->loadProgress();
         $startIndex = (int) ($progress['table_index'] ?? 0);
         $cursor = is_array($progress['pk'] ?? null) ? array_values(array_map('strval', $progress['pk'])) : null;
+        $offset = (int) ($progress['offset'] ?? 0);
 
         for ($index = $startIndex; $index < count($tables); $index++) {
             $table = $tables[$index];
@@ -51,14 +58,16 @@ final class DatabaseMigrator
             if ($meta['pk'] === []) {
                 $result->skippedTables[] = $table . ' (no primary key)';
                 $cursor = null;
+                $offset = 0;
                 continue;
             }
             if ($meta['columns'] === []) {
                 $cursor = null;
+                $offset = 0;
                 continue;
             }
             while (true) {
-                $rows = $this->batch($table, $meta, $cursor);
+                $rows = $this->batch($table, $meta, $cursor, $offset);
                 if ($rows === []) {
                     break;
                 }
@@ -81,10 +90,14 @@ final class DatabaseMigrator
                     }
                 }
                 $last = $rows[array_key_last($rows)];
-                $cursor = array_map(static fn (string $pk): string => (string) $last[$pk], $meta['pk']);
+                if ($meta['keyset']) {
+                    $cursor = array_map(static fn (string $pk): string => (string) $last[$pk], $meta['pk']);
+                } else {
+                    $offset += count($rows);
+                }
                 $result->rowsChanged += count($changes);
                 if (!$dryRun) {
-                    $this->commitBatch($table, $meta['pk'], $changes, $index, $cursor);
+                    $this->commitBatch($table, $meta, $changes, $index, $cursor, $offset);
                 }
                 if ($budget->exhausted()) {
                     $result->replacements = $replacer->replacements;
@@ -94,8 +107,9 @@ final class DatabaseMigrator
                 }
             }
             $cursor = null;
+            $offset = 0;
             if (!$dryRun) {
-                $this->saveProgress(['table_index' => $index + 1, 'pk' => null]);
+                $this->saveProgress(['table_index' => $index + 1, 'pk' => null, 'offset' => 0]);
             }
         }
         $result->replacements = $replacer->replacements;
@@ -127,8 +141,11 @@ final class DatabaseMigrator
     }
 
     /**
+     * Binary key columns are handled hex encoded (JSON-safe progress, exact matching via UNHEX); keys that cannot be paged by
+     * keyset (ENUM, FLOAT, ...) are paged with ORDER BY key + OFFSET, which is stable because updates never change keys.
+     *
      * @param list<string> $skipColumns
-     * @return array{pk: list<string>, columns: list<string>}
+     * @return array{pk: list<string>, columns: list<string>, binary: list<string>, keyset: bool}
      */
     private function describe(string $table, array $skipColumns): array
     {
@@ -139,11 +156,19 @@ final class DatabaseMigrator
             $pk[] = (string) $row['Column_name'];
         }
         $columns = [];
+        $binary = [];
+        $keyset = $pk !== [];
         foreach ($this->query('SHOW COLUMNS FROM ' . DatabaseExporter::id($table))->fetchAll() as $row) {
             $name = (string) $row['Field'];
             $type = strtolower((string) $row['Type']);
-            $extra = strtoupper((string) ($row['Extra'] ?? ''));
-            if (in_array($name, $pk, true) || in_array($name, $skipColumns, true) || str_contains($extra, 'GENERATED')) {
+            if (in_array($name, $pk, true)) {
+                $keyset = $keyset && DatabaseExporter::isKeysetSafeType($type);
+                if (preg_match('/^(var)?binary/', $type) === 1) {
+                    $binary[] = $name;
+                }
+                continue;
+            }
+            if (in_array($name, $skipColumns, true) || DatabaseExporter::isGeneratedColumn((string) ($row['Extra'] ?? ''))) {
                 continue;
             }
             if (preg_match('/^(char|varchar|tinytext|text|mediumtext|longtext)/', $type) === 1) {
@@ -151,23 +176,38 @@ final class DatabaseMigrator
             }
         }
 
-        return ['pk' => $pk, 'columns' => $columns];
+        return ['pk' => $pk, 'columns' => $columns, 'binary' => $binary, 'keyset' => $keyset];
+    }
+
+    /** @param list<string> $binary */
+    private static function keyPlaceholder(string $column, array $binary): string
+    {
+        return in_array($column, $binary, true) ? 'UNHEX(?)' : '?';
     }
 
     /**
-     * @param array{pk: list<string>, columns: list<string>} $meta
+     * @param array{pk: list<string>, columns: list<string>, binary: list<string>, keyset: bool} $meta
      * @param list<string>|null $cursor
      * @return list<array<string, string|null>>
      */
-    private function batch(string $table, array $meta, ?array $cursor): array
+    private function batch(string $table, array $meta, ?array $cursor, int $offset): array
     {
-        $columns = array_merge($meta['pk'], $meta['columns']);
-        $select = 'SELECT ' . implode(',', array_map(DatabaseExporter::id(...), $columns)) . ' FROM ' . DatabaseExporter::id($table);
+        $keys = array_map(
+            static fn (string $column): string => in_array($column, $meta['binary'], true) ? 'HEX(' . DatabaseExporter::id($column) . ') AS ' . DatabaseExporter::id($column) : DatabaseExporter::id($column),
+            $meta['pk'],
+        );
+        $select = 'SELECT ' . implode(',', [...$keys, ...array_map(DatabaseExporter::id(...), $meta['columns'])]) . ' FROM ' . DatabaseExporter::id($table);
         $order = implode(',', array_map(DatabaseExporter::id(...), $meta['pk']));
+        if (!$meta['keyset']) {
+            $statement = $this->pdo->prepare($select . ' ORDER BY ' . $order . ' LIMIT ' . $this->batchRows . ' OFFSET ' . $offset);
+            $statement->execute();
+
+            return array_values($statement->fetchAll());
+        }
         $params = [];
         $where = '';
         if ($cursor !== null) {
-            $where = ' WHERE (' . $order . ') > (' . implode(',', array_fill(0, count($meta['pk']), '?')) . ')';
+            $where = ' WHERE (' . $order . ') > (' . implode(',', array_map(static fn (string $column): string => self::keyPlaceholder($column, $meta['binary']), $meta['pk'])) . ')';
             $params = $cursor;
         }
         $statement = $this->pdo->prepare($select . $where . ' ORDER BY ' . $order . ' LIMIT ' . $this->batchRows);
@@ -177,20 +217,21 @@ final class DatabaseMigrator
     }
 
     /**
-     * @param list<string> $pk
+     * @param array{pk: list<string>, columns: list<string>, binary: list<string>, keyset: bool} $meta
      * @param list<array{0: list<string>, 1: array<string, string>}> $changes
-     * @param list<string> $cursor
+     * @param list<string>|null $cursor
      */
-    private function commitBatch(string $table, array $pk, array $changes, int $tableIndex, array $cursor): void
+    private function commitBatch(string $table, array $meta, array $changes, int $tableIndex, ?array $cursor, int $offset): void
     {
+        $pk = $meta['pk'];
         $this->pdo->beginTransaction();
         try {
             foreach ($changes as [$keys, $set]) {
                 $assign = implode(',', array_map(static fn (string $column): string => DatabaseExporter::id($column) . ' = ?', array_keys($set)));
-                $where = implode(' AND ', array_map(static fn (string $column): string => DatabaseExporter::id($column) . ' = ?', $pk));
+                $where = implode(' AND ', array_map(static fn (string $column): string => DatabaseExporter::id($column) . ' = ' . self::keyPlaceholder($column, $meta['binary']), $pk));
                 $this->pdo->prepare('UPDATE ' . DatabaseExporter::id($table) . " SET {$assign} WHERE {$where}")->execute([...array_values($set), ...$keys]);
             }
-            $this->saveProgress(['table_index' => $tableIndex, 'pk' => $cursor]);
+            $this->saveProgress(['table_index' => $tableIndex, 'pk' => $cursor, 'offset' => $offset]);
             $this->pdo->commit();
         } catch (\Throwable $throwable) {
             $this->pdo->rollBack();

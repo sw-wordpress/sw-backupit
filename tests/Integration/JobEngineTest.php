@@ -143,6 +143,61 @@ final class JobEngineTest extends TestCase
         self::assertFileDoesNotExist($this->backupDir($job) . '/manifest.json', 'no manifest => never a successful backup');
     }
 
+    /**
+     * Regression: a worker whose lease expired (a step blocked longer than the lease) kept writing the job after another worker
+     * had taken it over. It must abort without touching the job state.
+     */
+    public function testWorkerThatLostItsLeaseNeverWritesTheJob(): void
+    {
+        $test = $this;
+        $thief = new class ($test) implements BackupStepInterface {
+            public function __construct(private readonly JobEngineTest $test)
+            {
+            }
+
+            public function step(): Step
+            {
+                return Step::Upload;
+            }
+
+            public function applies(BackupProfile $profile): bool
+            {
+                return true;
+            }
+
+            public function run(BackupContext $context): StepOutcome
+            {
+                $this->test->takeOverLease($context->job->id);
+                $context->job->warningsCount = 999;
+                $context->commit();
+
+                return StepOutcome::Done;
+            }
+        };
+        $runner = $this->setUpFilesBackup([], [$thief]);
+        $job = $this->newJob();
+        $result = null;
+        for ($i = 0; $i < 200; $i++) {
+            $result = $runner->tick($job->id, 5.0);
+            if (!$result->shouldContinue) {
+                break;
+            }
+        }
+        self::assertNotNull($result);
+        self::assertStringContainsString('lease was lost', $result->note);
+        $stored = $this->repository->find($job->id);
+        self::assertSame('other-worker', $stored->leaseOwner);
+        self::assertNotSame(999, $stored->warningsCount, 'the job was not written by the worker that lost the lease');
+        self::assertNotSame(JobStatus::Failed, $stored->status);
+    }
+
+    /** Simulates another worker taking over after the lease expired. */
+    public function takeOverLease(string $jobId): void
+    {
+        $this->clock->advance(10000);
+        self::assertTrue($this->repository->acquireLease($jobId, 'other-worker', 600, $this->clock->now()));
+    }
+
     public function testTransientErrorsAreRetriedWithBackoffThenFail(): void
     {
         $flaky = new class (2) implements BackupStepInterface {

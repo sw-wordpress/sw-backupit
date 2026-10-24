@@ -135,6 +135,11 @@ final class LifecycleListener {
 			'last_error'  => (string) ( $payload['error'] ?? '' ),
 		);
 		$retries = (int) $schedule['retry_count'];
+		if ( 'schedule' !== $job->trigger ) {
+			// A manual run of a schedule (UI/CLI) never triggers the schedule's automatic retry or moves its timing.
+			$this->schedules->update( $job->scheduleId, $update );
+			return;
+		}
 		if ( $retries < (int) $schedule['retry_max'] ) {
 			// Retry strategy: exponential backoff, capped at 6 hours.
 			$delay                 = (int) min( 21600, (int) $schedule['retry_backoff'] * ( 2 ** $retries ) );

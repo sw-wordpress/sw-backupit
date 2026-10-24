@@ -20,9 +20,14 @@ final class TablePrefixMigrator
     }
 
     /**
+     * Idempotent: tables that already carry the new prefix are left alone, so a migration interrupted between two RENAMEs can
+     * simply be repeated (also when the new prefix starts with the old one, e.g. wp_ -> wp_live_).
+     *
+     * @param list<string>|null $only Restrict the rename to these (old prefix) tables, e.g. the tables of the backup, so
+     *                                unrelated tables that happen to use the old prefix are never renamed.
      * @return int Number of renamed tables.
      */
-    public function migrate(string $oldPrefix, string $newPrefix): int
+    public function migrate(string $oldPrefix, string $newPrefix, ?array $only = null): int
     {
         foreach ([$oldPrefix, $newPrefix] as $prefix) {
             if (preg_match('/^[A-Za-z0-9_]+$/', $prefix) !== 1) {
@@ -35,9 +40,13 @@ final class TablePrefixMigrator
         $tables = [];
         foreach (PdoHelper::query($this->pdo, 'SHOW TABLES')->fetchAll(PDO::FETCH_NUM) as $row) {
             $name = (string) $row[0];
-            if (str_starts_with($name, $oldPrefix)) {
-                $tables[] = $name;
+            if (!str_starts_with($name, $oldPrefix) || ($only !== null && !in_array($name, $only, true))) {
+                continue;
             }
+            if (str_starts_with($newPrefix, $oldPrefix) && str_starts_with($name, $newPrefix)) {
+                continue; // already renamed by an interrupted earlier run
+            }
+            $tables[] = $name;
         }
         foreach ($tables as $name) {
             $target = $newPrefix . substr($name, strlen($oldPrefix));

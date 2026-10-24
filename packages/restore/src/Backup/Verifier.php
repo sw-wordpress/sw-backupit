@@ -100,6 +100,9 @@ final class Verifier
                     continue;
                 }
                 $chunks = isset($entry['c']) && is_array($entry['c']) ? $entry['c'] : [['v' => $entry['v'] ?? 0, 'a' => $entry['a'] ?? '', 's' => $entry['s'] ?? 0, 'h' => $entry['h'] ?? null]];
+                if (array_sum(array_map(static fn ($chunk): int => (int) ($chunk['s'] ?? 0), $chunks)) !== (int) ($entry['s'] ?? -1)) {
+                    $report->addError('Chunk sizes do not add up to the file size: ' . $entry['p']);
+                }
                 $total = hash_init('sha256');
                 foreach ($chunks as $chunk) {
                     $volume = (int) ($chunk['v'] ?? 0);

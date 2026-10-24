@@ -61,6 +61,10 @@ $extra = [
     'The WordPress options table is readable (siteurl present).',
     'siteurl option missing in the restored database.',
     'Backup verification failed',
+    'Symbolic links from the backup were not recreated (security policy). Recreate them manually if needed:',
+    'wp-config.php was not found in the target; database settings were not updated.',
+    'These files changed while the backup was running; their restored content may be inconsistent:',
+    'Some database settings in wp-config.php are not plain values and were NOT updated. Check them before using the site:',
 ];
 foreach ($extra as $message) {
     $messages[$message] = true;

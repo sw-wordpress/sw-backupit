@@ -25,6 +25,8 @@ use SWBackupIt\WordPress\Support\Settings;
 
 final class Plugin {
 
+	public const MAINTENANCE_OPTION = 'swbi_last_maintenance';
+
 	private static ?Plugin $instance = null;
 	private bool $booted             = false;
 
@@ -38,6 +40,7 @@ final class Plugin {
 		}
 		$this->booted = true;
 
+		Support\Capabilities::register();
 		( new Support\AuditLogger() )->register();
 		( new Runner\PreUpdateBackup() )->register();
 		add_filter( 'load_textdomain_mofile', array( $this, 'fallback_mofile' ), 10, 2 );
@@ -95,8 +98,8 @@ final class Plugin {
 
 	/** Cheap option comparison; migrations themselves are small and idempotent. */
 	public function maybe_migrate(): void {
-		if ( Schema::needs_migration() ) {
-			Schema::migrate();
+		if ( Schema::needs_migration() && Schema::migrate() ) {
+			// grant_defaults() only touches the main site on multisite: subsite administrators never get the capabilities.
 			\SWBackupIt\WordPress\Support\Capabilities::grant_defaults();
 		}
 	}
@@ -129,7 +132,19 @@ final class Plugin {
 
 	public function cron_watch(): void {
 		\SWBackupIt\WordPress\Support\Options::update( CronManager::TICK_OPTION, time(), false );
-		Services::instance()->schedule_runner()->run_due();
+		// In "system" cron mode the system cron (`wp swbackupit schedule run-due`) owns the schedules; starting them here
+		// as well would race with it.
+		if ( 'system' !== (string) Settings::all()['cron']['mode'] ) {
+			Services::instance()->schedule_runner()->run_due();
+		}
+		$this->background_upkeep();
+	}
+
+	/**
+	 * Light periodic work shared by the WP-Cron watcher and the system cron command: watchdog, health notifications and
+	 * the daily maintenance when it is overdue.
+	 */
+	public function background_upkeep(): void {
 		if ( false === get_transient( 'swbi_health_check' ) ) {
 			set_transient( 'swbi_health_check', 1, 10 * MINUTE_IN_SECONDS );
 			( new \SWBackupIt\WordPress\Runner\HealthMonitor() )->notify();
@@ -137,7 +152,18 @@ final class Plugin {
 		( new Runner\JobWatchdog() )->run();
 	}
 
+	/** Runs the daily maintenance when the last run is more than a day ago (system cron setups without WP-Cron). */
+	public function maintain_if_due(): bool {
+		$last = (int) \SWBackupIt\WordPress\Support\Options::get( self::MAINTENANCE_OPTION, 0 );
+		if ( $last > time() - DAY_IN_SECONDS ) {
+			return false;
+		}
+		$this->cron_maintain();
+		return true;
+	}
+
 	public function cron_maintain(): void {
+		\SWBackupIt\WordPress\Support\Options::update( self::MAINTENANCE_OPTION, time(), false );
 		WpdbJobEventStore::purge_older_than( (int) Settings::all()['logging']['retention_days'] );
 		Support\AuditLogger::purge_older_than( (int) ( Settings::all()['logging']['audit_retention_days'] ?? 365 ) );
 		( new \SWBackupIt\WordPress\Runner\RestorePreparer() )->cleanup_old();

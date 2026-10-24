@@ -46,7 +46,11 @@ final class ScheduleRunner {
 				);
 				continue;
 			}
-			$this->schedules->update( $id, array( 'next_run_at' => Time::to_db( $next ) ) );
+			// Claim before starting: a concurrent watcher (WP-Cron and system cron, two cron spawns) loses the claim and
+			// never starts the same run twice.
+			if ( ! $this->schedules->claim( $id, (string) $schedule['next_run_at'], Time::to_db( $next ) ) ) {
+				continue;
+			}
 			$job_id = $this->start( $schedule, 'schedule', $dispatch );
 			if ( null !== $job_id ) {
 				$started[] = $job_id;

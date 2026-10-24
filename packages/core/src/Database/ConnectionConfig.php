@@ -43,7 +43,7 @@ final readonly class ConnectionConfig
                 $port = (int) $rest;
             }
         }
-        if ($charset === 'utf8') {
+        if ($charset === 'utf8' || $charset === '') {
             $charset = 'utf8mb4';
         }
 

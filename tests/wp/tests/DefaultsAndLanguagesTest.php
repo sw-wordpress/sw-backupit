@@ -20,7 +20,11 @@ class DefaultsAndLanguagesTest extends WP_UnitTestCase {
 		foreach ( Schema::tables() as $table ) {
 			$wpdb->query( 'DELETE FROM ' . Schema::table( $table ) );
 		}
-		wp_set_current_user( self::factory()->user->create( array( 'role' => 'administrator' ) ) );
+		$admin = self::factory()->user->create( array( 'role' => 'administrator' ) );
+		if ( is_multisite() ) {
+			grant_super_admin( $admin ); // Network wide plugin: managed by super admins.
+		}
+		wp_set_current_user( $admin );
 	}
 
 	/**

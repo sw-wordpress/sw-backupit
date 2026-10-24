@@ -27,6 +27,8 @@ final class ScheduleCommand {
 	/**
 	 * Lists schedules.
 	 *
+	 * @subcommand list
+	 *
 	 * @param array<int, string>   $args       Positional arguments.
 	 * @param array<string, mixed> $assoc_args Associative arguments.
 	 */
@@ -71,7 +73,13 @@ final class ScheduleCommand {
 	}
 
 	/**
-	 * Starts all due schedules and executes their jobs. Use this from a system cron job.
+	 * Starts all due schedules and executes their jobs. Use this from a system cron job (every minute).
+	 *
+	 * Also continues queued/interrupted jobs, runs the watchdog and health notifications and, when it is overdue, the
+	 * daily maintenance, so a setup with DISABLE_WP_CRON needs nothing else. Jobs waiting for a retry or held by another
+	 * worker are left for a later run; the command never sleeps for them.
+	 *
+	 * @subcommand run-due
 	 *
 	 * @param array<int, string>   $args       Positional arguments.
 	 * @param array<string, mixed> $assoc_args Associative arguments.
@@ -79,17 +87,24 @@ final class ScheduleCommand {
 	public function run_due( array $args, array $assoc_args ): void {
 		$started = Services::instance()->schedule_runner()->run_due( false );
 		foreach ( $started as $job_id ) {
-			$status = $this->run_job( $job_id );
+			$status = $this->run_job( $job_id, false );
 			\WP_CLI::log( sprintf( 'Job %s: %s', $job_id, $status->value ) );
 		}
 		// Also continue jobs that were queued/interrupted (e.g. started from the UI while WP-Cron is disabled).
+		$now = \SWBackupIt\WordPress\Support\Time::now();
 		foreach ( Services::instance()->jobs()->list( array( 'pending', 'preparing', 'scanning', 'exporting', 'archiving', 'encrypting', 'uploading', 'verifying', 'retry_waiting' ), 5 ) as $job ) {
-			if ( in_array( $job->id, $started, true ) ) {
+			if ( in_array( $job->id, $started, true ) || $job->hasLeaseAt( $now ) ) {
 				continue;
 			}
-			$status = $this->run_job( $job->id );
+			if ( JobStatus::RetryWaiting === $job->status && null !== $job->nextRetryAt && $job->nextRetryAt > $now ) {
+				continue; // Not due yet: a later run picks it up.
+			}
+			$status = $this->run_job( $job->id, false );
 			\WP_CLI::log( sprintf( 'Job %s: %s', $job->id, $status->value ) );
 		}
+		\SWBackupIt\WordPress\Support\Options::update( \SWBackupIt\WordPress\Runner\CronManager::TICK_OPTION, time(), false );
+		\SWBackupIt\WordPress\Plugin::instance()->background_upkeep();
+		\SWBackupIt\WordPress\Plugin::instance()->maintain_if_due();
 		\WP_CLI::success( sprintf( '%d schedule(s) started.', count( $started ) ) );
 	}
 }

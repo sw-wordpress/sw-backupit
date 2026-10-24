@@ -78,6 +78,11 @@ final class StorageTargetRepository implements StorageResolverInterface {
 			throw new ConfigurationException( 'A name and a valid storage type are required.' );
 		}
 		$config = array_intersect_key( $config, array_flip( self::CONFIG_KEYS[ $type ] ) );
+		if ( 'local' === $type && is_string( $config['path'] ?? null ) && '' !== $config['path']
+			&& empty( \SWBackupIt\WordPress\Support\Settings::all()['allow_public_paths'] )
+			&& \SWBackupIt\WordPress\Support\Settings::is_inside_docroot( $config['path'] ) ) {
+			throw new ConfigurationException( __( 'The directory is inside the web root, where backups could be downloaded by anyone. Choose a directory outside the web root.', 'swbackupit' ) );
+		}
 
 		$credentials = null === $current ? array() : $this->decrypt_credentials( $current );
 		if ( is_array( $input['credentials'] ?? null ) ) {

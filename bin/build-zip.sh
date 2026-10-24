@@ -1,6 +1,8 @@
 #!/usr/bin/env bash
 # Builds an installable WordPress plugin ZIP: production Composer dependencies + compiled admin bundle.
-# Usage: bin/build-zip.sh [output-dir]   (needs composer and, unless assets/admin exists, node/npm on the BUILD machine only)
+# Usage: bin/build-zip.sh [output-dir]   (needs composer and node/npm on the BUILD machine only)
+# The admin bundle is always rebuilt from the current sources so a release never ships stale UI assets;
+# SWBI_SKIP_ADMIN_BUILD=1 reuses assets/admin, but only when it is newer than every file in apps/admin/src.
 set -euo pipefail
 
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
@@ -9,7 +11,10 @@ STAGE="$(mktemp -d)"
 trap 'rm -rf "$STAGE"' EXIT
 NAME=swbackupit
 
-if [ ! -f "$ROOT/assets/admin/app.js" ]; then
+if [ "${SWBI_SKIP_ADMIN_BUILD:-0}" = "1" ] && [ -f "$ROOT/assets/admin/app.js" ] \
+  && [ -z "$(find "$ROOT/apps/admin/src" "$ROOT/apps/admin/package-lock.json" -newer "$ROOT/assets/admin/app.js" -print -quit)" ]; then
+  echo ">> reusing admin bundle (SWBI_SKIP_ADMIN_BUILD=1, assets are up to date)"
+else
   echo ">> building admin bundle"
   (cd "$ROOT/apps/admin" && npm ci && npm run build)
 fi

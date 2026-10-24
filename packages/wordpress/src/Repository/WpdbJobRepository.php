@@ -111,7 +111,12 @@ final class WpdbJobRepository implements JobRepositoryInterface {
 				$owner
 			)
 		);
-		return 1 === $result;
+		if ( 1 === $result ) {
+			return true;
+		}
+		// MySQL reports 0 affected rows when the value did not change (renewal within the same second): check ownership.
+		$current = $wpdb->get_var( $wpdb->prepare( "SELECT lease_owner FROM {$this->table()} WHERE id = %s", $jobId ) ); // phpcs:ignore WordPress.DB
+		return 0 === $result && $owner === $current;
 	}
 
 	public function releaseLease( string $jobId, string $owner ): void {

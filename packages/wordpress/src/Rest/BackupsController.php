@@ -13,6 +13,7 @@ use SWBackupIt\Core\Backup\BackupLayout;
 use SWBackupIt\Core\Exception\SwbiException;
 use SWBackupIt\Restore\Backup\BackupSet;
 use SWBackupIt\Restore\Files\Comparator;
+use SWBackupIt\WordPress\Runner\BackgroundChecks;
 use SWBackupIt\WordPress\Runner\RestorePreparer;
 use SWBackupIt\WordPress\Runner\RestoreTestService;
 use SWBackupIt\Restore\Backup\Verifier;
@@ -285,6 +286,10 @@ final class BackupsController extends BaseController {
 		if ( null === $this->services()->backups()->find_row( $id ) ) {
 			return $this->error( 'swbi_not_found', __( 'Backup not found.', 'swbackupit' ), 404 );
 		}
+		if ( ! BackgroundChecks::has_local_data( $id ) ) {
+			// Not a defect: the status stays as it is.
+			return $this->error( 'swbi_no_local_copy', __( 'There is no local copy of this backup to verify. Its copies on the storage targets are verified during upload; download the backup from a storage target to verify it here.', 'swbackupit' ), 409 );
+		}
 		try {
 			$set    = BackupSet::open( Settings::staging_dir() . '/' . $id );
 			$report = ( new Verifier() )->verify( $set );
@@ -368,6 +373,25 @@ final class BackupsController extends BaseController {
 	 * @return \WP_Error|void
 	 */
 	public function download( \WP_REST_Request $request ) {
+		$path = $this->download_path( $request );
+		if ( is_wp_error( $path ) ) {
+			return $path;
+		}
+		$handle = fopen( $path, 'rb' ); // phpcs:ignore WordPress.WP.AlternativeFunctions
+		if ( false === $handle ) {
+			return $this->error( 'swbi_error', __( 'Cannot read the file.', 'swbackupit' ), 500 );
+		}
+		do_action( 'swbi_backup_downloaded', (string) $request['id'], basename( $path ) );
+		$this->stream( $handle, $path );
+		exit;
+	}
+
+	/**
+	 * Resolves the stored file of the requested artifact.
+	 *
+	 * @return string|\WP_Error Absolute path of an existing file.
+	 */
+	public function download_path( \WP_REST_Request $request ) {
 		$id = (string) $request['id'];
 		if ( null === $this->services()->backups()->find_row( $id ) ) {
 			return $this->error( 'swbi_not_found', __( 'Backup not found.', 'swbackupit' ), 404 );
@@ -376,18 +400,17 @@ final class BackupsController extends BaseController {
 			$set      = BackupSet::open( Settings::staging_dir() . '/' . $id );
 			$manifest = $set->manifest();
 			$part     = (string) $request['part'];
+			// Artifacts are served exactly as stored (encrypted backups stay encrypted, .swbe): nothing is decrypted on the
+			// server, the file name and checksum match the manifest.
 			if ( 'manifest' === $part ) {
 				$path = $set->directory() . '/manifest.json';
 			} elseif ( 'index' === $part ) {
-				$path = $set->indexPath();
+				$path = $manifest->hasFiles() ? $set->storedIndexPath() : '';
 			} elseif ( 'database' === $part ) {
 				$parts = $manifest->databaseParts();
-				$path  = isset( $parts[ (int) $request['volume'] - 1 ] ) ? $set->databasePartPath( $parts[ (int) $request['volume'] - 1 ]['name'] ) : '';
+				$path  = isset( $parts[ (int) $request['volume'] - 1 ] ) ? $set->storedDatabasePartPath( $parts[ (int) $request['volume'] - 1 ]['name'] ) : '';
 			} else {
-				$path = $set->volumePath( $set->volumeFileName( (int) $request['volume'] ) );
-				if ( (int) $request['volume'] > count( $manifest->volumes() ) ) {
-					$path = '';
-				}
+				$path = (int) $request['volume'] > count( $manifest->volumes() ) ? '' : $set->storedVolumePath( $set->volumeFileName( (int) $request['volume'] ) );
 			}
 		} catch ( SwbiException $exception ) {
 			return $this->error( 'swbi_backup_unavailable', $exception->getMessage(), 404 );
@@ -395,21 +418,32 @@ final class BackupsController extends BaseController {
 		if ( '' === $path || ! is_file( $path ) ) {
 			return $this->error( 'swbi_not_found', __( 'The requested file does not exist.', 'swbackupit' ), 404 );
 		}
-		do_action( 'swbi_backup_downloaded', $id, basename( $path ) );
-		nocache_headers();
-		header( 'Content-Type: application/octet-stream' );
-		header( 'Content-Length: ' . (string) filesize( $path ) );
-		header( 'Content-Disposition: attachment; filename="' . sanitize_file_name( basename( $path ) ) . '"' );
-		header( 'X-Content-Type-Options: nosniff' );
-		$handle = fopen( $path, 'rb' ); // phpcs:ignore WordPress.WP.AlternativeFunctions
-		if ( false === $handle ) {
-			return $this->error( 'swbi_error', __( 'Cannot read the file.', 'swbackupit' ), 500 );
+		return $path;
+	}
+
+	/**
+	 * Sends the file with download headers. Output buffers (themes, plugins, compression) are discarded first, so
+	 * nothing is prepended to the binary and large files are never held in memory.
+	 *
+	 * @param resource $handle       Open file handle.
+	 * @param string   $path         File path (size and name).
+	 * @param int      $keep_buffers Output buffer levels to keep (tests capture the output this way).
+	 */
+	public function stream( $handle, string $path, int $keep_buffers = 0 ): void {
+		while ( ob_get_level() > $keep_buffers ) {
+			ob_end_clean();
+		}
+		if ( ! headers_sent() ) {
+			nocache_headers();
+			header( 'Content-Type: application/octet-stream' );
+			header( 'Content-Length: ' . (string) filesize( $path ) );
+			header( 'Content-Disposition: attachment; filename="' . sanitize_file_name( basename( $path ) ) . '"' );
+			header( 'X-Content-Type-Options: nosniff' );
 		}
 		while ( ! feof( $handle ) ) {
 			echo fread( $handle, 1048576 ); // phpcs:ignore WordPress.Security.EscapeOutput,WordPress.WP.AlternativeFunctions
 			flush();
 		}
 		fclose( $handle ); // phpcs:ignore WordPress.WP.AlternativeFunctions
-		exit;
 	}
 }

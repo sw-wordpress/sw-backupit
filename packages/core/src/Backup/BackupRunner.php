@@ -13,6 +13,7 @@ use SWBackupIt\Core\Event\EventDispatcher;
 use SWBackupIt\Core\Event\EventDispatcherInterface;
 use SWBackupIt\Core\Event\Events;
 use SWBackupIt\Core\Event\ListenerVetoException;
+use SWBackupIt\Core\Exception\JobLockedException;
 use SWBackupIt\Core\Exception\JobNotFoundException;
 use SWBackupIt\Core\Exception\SwbiException;
 use SWBackupIt\Core\Job\Job;
@@ -87,6 +88,8 @@ final class BackupRunner
         try {
             $job = $this->jobs->find($jobId);
             $result = $this->process($job, $profile, $logger, $owner, $budgetSeconds, $leaseTtl);
+        } catch (JobLockedException) {
+            return new TickResult($this->jobs->find($jobId)->status, false, 'job lease was lost to another worker');
         } finally {
             $this->jobs->releaseLease($jobId, $owner);
         }
@@ -98,9 +101,13 @@ final class BackupRunner
     {
         $budget = new ResourceBudget($budgetSeconds, $profile->limits->memoryMb * 1048576);
         $commit = function () use ($job, $owner, $leaseTtl): void {
+            // Never write the job after the lease was lost (expired and taken over by another worker): that worker owns the
+            // job state now. Renewing first proves ownership; the tick is aborted without touching the job.
+            if (!$this->jobs->renewLease($job->id, $owner, $leaseTtl, $this->clock->now())) {
+                throw new JobLockedException('The job lease was lost to another worker.');
+            }
             $job->updatedAt = $this->clock->now();
             $this->jobs->save($job);
-            $this->jobs->renewLease($job->id, $owner, $leaseTtl, $this->clock->now());
         };
 
         if ($job->status === JobStatus::Paused) {
@@ -161,6 +168,8 @@ final class BackupRunner
             }
         } catch (ListenerVetoException $exception) {
             return $this->fail($job, $logger, $commit, 'swbi_vetoed', $exception->getMessage(), false, $exception);
+        } catch (JobLockedException $exception) {
+            throw $exception;
         } catch (Throwable $throwable) {
             return $this->handleFailure($job, $logger, $commit, $throwable);
         }

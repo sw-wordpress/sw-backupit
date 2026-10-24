@@ -76,6 +76,28 @@ final class ScheduleRepository {
 		$wpdb->update( $this->table(), $data + array( 'updated_at' => Time::to_db( Time::now() ) ), array( 'id' => $id ) ); // phpcs:ignore WordPress.DB.DirectDatabaseQuery
 	}
 
+	/**
+	 * Atomically claims a due schedule run by advancing next_run_at, but only if nobody else did it in the meantime.
+	 *
+	 * @param int    $id       Schedule id.
+	 * @param string $expected next_run_at as read (DB format).
+	 * @param string $next     New next_run_at (DB format).
+	 * @return bool Whether this process won the claim.
+	 */
+	public function claim( int $id, string $expected, string $next ): bool {
+		global $wpdb;
+		$affected = $wpdb->query( // phpcs:ignore WordPress.DB.DirectDatabaseQuery
+			$wpdb->prepare(
+				"UPDATE {$this->table()} SET next_run_at = %s, updated_at = %s WHERE id = %d AND next_run_at = %s",
+				$next,
+				Time::to_db( Time::now() ),
+				$id,
+				$expected
+			)
+		);
+		return 1 === $affected;
+	}
+
 	public function delete( int $id ): bool {
 		global $wpdb;
 		return 1 === $wpdb->delete( $this->table(), array( 'id' => $id ) ); // phpcs:ignore WordPress.DB.DirectDatabaseQuery

@@ -32,6 +32,8 @@ final class ProfileCommand {
 	 * [--format=<format>]
 	 * : table, json, csv, yaml. Default table.
 	 *
+	 * @subcommand list
+	 *
 	 * @param array<int, string>   $args       Positional arguments.
 	 * @param array<string, mixed> $assoc_args Associative arguments.
 	 */

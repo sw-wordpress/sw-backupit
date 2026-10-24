@@ -64,6 +64,8 @@ final class BackupCommand {
 	/**
 	 * Lists backups.
 	 *
+	 * @subcommand list
+	 *
 	 * @param array<int, string>   $args       Positional arguments.
 	 * @param array<string, mixed> $assoc_args Associative arguments.
 	 */

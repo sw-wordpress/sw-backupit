@@ -32,6 +32,11 @@ final class BackgroundChecks {
 			return null;
 		}
 		$id = (string) $row['id'];
+		if ( ! self::has_local_data( $id ) ) {
+			// Nothing local to verify (local copy removed after upload, or imported from a storage target): not a defect.
+			Services::instance()->backups()->touch_checked( $id );
+			return $id;
+		}
 		try {
 			$report = ( new Verifier() )->verify( BackupSet::open( Settings::staging_dir() . '/' . $id ) );
 		} catch ( SwbiException $exception ) {
@@ -50,6 +55,50 @@ final class BackgroundChecks {
 			);
 		}
 		return $id;
+	}
+
+	/**
+	 * Whether the staging directory holds the backup's data, so a local integrity check is meaningful.
+	 *
+	 * False when the local copy was deliberately removed after a verified upload (marker file written by the core
+	 * finalize step) or when the backup was imported from a storage target without downloading it (manifest only) and
+	 * a verified copy exists on a storage target. Missing data without any verified remote copy is still reported as
+	 * damaged by the verifier.
+	 */
+	public static function has_local_data( string $backup_id ): bool {
+		$dir = Settings::staging_dir() . '/' . $backup_id;
+		if ( is_file( $dir . '/.local-copy-removed' ) ) {
+			return false;
+		}
+		try {
+			$set = BackupSet::open( $dir );
+		} catch ( SwbiException ) {
+			return ! self::has_remote_copy( $backup_id );
+		}
+		$manifest = $set->manifest();
+		$files    = array();
+		foreach ( $manifest->volumes() as $volume ) {
+			$files[] = $set->storedVolumePath( $volume->name );
+		}
+		foreach ( $manifest->databaseParts() as $part ) {
+			$files[] = $set->storedDatabasePartPath( $part['name'] );
+		}
+		if ( $manifest->hasFiles() ) {
+			$files[] = $set->storedIndexPath();
+		}
+		if ( array() === $files || array() !== array_filter( $files, 'is_file' ) ) {
+			return true;
+		}
+		return ! self::has_remote_copy( $backup_id );
+	}
+
+	private static function has_remote_copy( string $backup_id ): bool {
+		foreach ( Services::instance()->backups()->locations( $backup_id ) as $location ) {
+			if ( 0 !== (int) $location['target_id'] && 'verified' === $location['status'] ) {
+				return true;
+			}
+		}
+		return false;
 	}
 
 	/**

@@ -26,7 +26,9 @@ Status codes: 400 validation, 401/403 auth/capability, 404 missing, 409 conflict
 | `swbi_restore` | prepare/execute restore |
 | `swbi_settings` | settings |
 
-Administrators receive all of them by default (`manage_options` mapped on activation).
+Administrators receive all of them by default (`manage_options` mapped on activation). On **multisite** only the main site's
+administrator role receives them (also after schema updates), and `swbi_download`, `swbi_restore`, `swbi_settings`,
+`swbi_manage_storage` and `swbi_delete` always require a **super admin** (`map_meta_cap`), because all data is network wide.
 
 ## Enumerations
 
@@ -127,11 +129,14 @@ Job:
   "locations": [{ "target_id": 1, "name": "Local", "status": "verified|failed|pending", "verified_at": "..." }]
 }
 ```
-* `POST /backups/{id}/verify` → `{ "ok": true, "checked_volumes": 3, "errors": [] }` (or a Job for long runs: `{ "job": Job }`)
+* `POST /backups/{id}/verify` → `{ "ok": true, "checked_volumes": 3, "errors": [] }` (or a Job for long runs: `{ "job": Job }`).
+  `409 swbi_no_local_copy` when there is no local data to verify (local copy removed after a verified upload, or imported from a
+  storage target without download); the backup status is not changed.
 * `POST /backups/{id}/protect` body `{ "protected": true }`
 * `GET /backups/{id}/files?path=wp-content&search=&page=1&per_page=100` → list envelope of `{ "path": "...", "size": 1, "mtime": 0, "type": "file|dir", "volume": 1 }`
 * `POST /backups/{id}/compare` body `{ "mode": "metadata|sha256" }` → `{ "only_in_backup": N, "only_local": N, "modified": N, "identical": N, "incomparable": N, "samples": { "modified": ["path", …] } }`
-* `GET /backups/{id}/download?volume=1` → streamed file (`Content-Disposition: attachment`)
+* `GET /backups/{id}/download?volume=1` → streamed file (`Content-Disposition: attachment`). Files are served exactly as stored:
+  encrypted backups are delivered as ciphertext (`*.swbe`) with their real file name, never decrypted on the server.
 * `POST /backups/{id}/restore/prepare` → `{ "restore_url": "…", "token_expires_at": "…", "warnings": [] }`
 * `POST /backups/{id}/restore` body `{ "confirm": "<id>", "target_path_confirmed": true }` → Job-like restore job
 
@@ -152,6 +157,8 @@ Job:
 ```json
 {
   "staging_dir": "/path/outside/webroot/preferred",
+  "staging_dir_auto": true,
+  "allow_public_paths": false,
   "limits": { "time_budget_seconds": 20, "memory_mb": 128, "batch_rows": 1000, "max_parallel_uploads": 1 },
   "encryption": { "default_key_id": "" },
   "notifications": { "recipients": ["admin@…"], "dedupe_minutes": 60 },
@@ -161,6 +168,10 @@ Job:
   "pre_update_backup": { "core": false, "plugins": false, "themes": false, "profile_id": null }
 }
 ```
+`staging_dir` is the resolved directory; `staging_dir_auto` (read-only) is true when it is chosen automatically – sending the
+resolved value back unchanged keeps it automatic. A `staging_dir` (and a `local` storage target path) inside the WordPress
+directory or the web server's document root is refused with 400 unless `allow_public_paths` is true. Boolean fields accept
+`true/false`, `1/0` and `"true"/"false"`.
 
 ---
 

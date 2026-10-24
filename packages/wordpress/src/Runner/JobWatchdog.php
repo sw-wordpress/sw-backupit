@@ -10,6 +10,7 @@ declare(strict_types=1);
 namespace SWBackupIt\WordPress\Runner;
 
 use SWBackupIt\Core\Domain\JobStatus;
+use SWBackupIt\Core\Event\Events;
 use SWBackupIt\WordPress\Services;
 use SWBackupIt\WordPress\Support\Time;
 
@@ -37,15 +38,23 @@ final class JobWatchdog {
 				continue;
 			}
 			if ( $idle > self::STALL_FAIL_SECONDS ) {
-				Services::instance()->runner()->stateMachine()->fail(
-					$job,
+				$error = array(
+					'code'      => 'swbi_stalled',
+					'message'   => 'The job made no progress for more than 48 hours and was stopped.',
+					'retryable' => true,
+				);
+				Services::instance()->runner()->stateMachine()->fail( $job, $error );
+				$jobs->save( $job );
+				// Same contract as a failure inside the runner: notification, schedule bookkeeping/retry and hooks.
+				Services::instance()->dispatcher()->dispatch(
+					Events::BACKUP_FAILED,
 					array(
-						'code'      => 'swbi_stalled',
-						'message'   => 'The job made no progress for more than 48 hours and was stopped.',
-						'retryable' => true,
+						'job_id'    => $job->id,
+						'backup_id' => $job->backupId,
+						'error'     => $error['message'],
+						'code'      => $error['code'],
 					)
 				);
-				$jobs->save( $job );
 				++$result['failed'];
 			} elseif ( $idle > self::STALL_RESTART_SECONDS ) {
 				Services::instance()->cron()->dispatch_job( $job->id );

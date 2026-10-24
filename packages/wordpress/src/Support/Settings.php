@@ -19,6 +19,8 @@ final class Settings {
 	public static function defaults(): array {
 		return array(
 			'staging_dir'              => '',
+			// Backups contain the database and wp-config.php: paths below the web root are refused unless explicitly allowed.
+			'allow_public_paths'       => false,
 			'limits'                   => array(
 				'time_budget_seconds'  => 20,
 				'memory_mb'            => 128,
@@ -80,7 +82,13 @@ final class Settings {
 	 * @return array<string, mixed>|\WP_Error Saved settings.
 	 */
 	public static function update( array $input ) {
-		$merged = self::merge( self::all(), $input );
+		$current = self::all();
+		if ( isset( $input['staging_dir'] ) && is_string( $input['staging_dir'] ) && '' === (string) $current['staging_dir']
+			&& rtrim( $input['staging_dir'], '/' ) === self::staging_dir() ) {
+			// The UI shows the resolved automatic directory; posting it back unchanged must not pin it as configured.
+			$input['staging_dir'] = '';
+		}
+		$merged = self::merge( $current, $input );
 		$error  = self::validate( $merged );
 		if ( null !== $error ) {
 			return new \WP_Error( 'swbi_invalid_param', $error, array( 'status' => 400 ) );
@@ -113,6 +121,9 @@ final class Settings {
 		if ( '' !== $dir && ( '/' !== $dir[0] || str_contains( $dir, '..' ) || str_contains( $dir, "\0" ) ) ) {
 			return __( 'The staging directory must be an absolute path without "..".', 'swbackupit' );
 		}
+		if ( '' !== $dir && empty( $settings['allow_public_paths'] ) && self::is_inside_docroot( $dir ) ) {
+			return __( 'The staging directory is inside the web root, where backups could be downloaded by anyone. Choose a directory outside the web root.', 'swbackupit' );
+		}
 		foreach ( (array) $settings['notifications']['recipients'] as $recipient ) {
 			if ( ! is_email( (string) $recipient ) ) {
 				return __( 'Invalid notification recipient.', 'swbackupit' );
@@ -139,7 +150,8 @@ final class Settings {
 			} elseif ( is_int( $default ) ) {
 				$base[ $key ] = is_numeric( $value ) ? (int) $value : $default;
 			} elseif ( is_bool( $default ) ) {
-				$base[ $key ] = (bool) $value;
+				// "false", "0", "" and "no" are false (JSON/form input); (bool) "false" would be true.
+				$base[ $key ] = is_scalar( $value ) ? rest_sanitize_boolean( $value ) : $default;
 			} elseif ( is_string( $default ) ) {
 				$base[ $key ] = is_string( $value ) ? sanitize_text_field( $value ) : $default;
 			} elseif ( is_array( $default ) ) {
@@ -173,9 +185,43 @@ final class Settings {
 		return $dir;
 	}
 
+	/**
+	 * Whether a path (existing or not) lies inside the WordPress directory or the web server's document root.
+	 *
+	 * Both are checked because WordPress may live in a subdirectory of the document root, where a sibling of ABSPATH is
+	 * still public. Not yet existing paths are resolved through their nearest existing ancestor.
+	 */
 	public static function is_inside_docroot( string $path ): bool {
-		$root = realpath( ABSPATH );
-		$real = realpath( $path );
-		return false !== $root && false !== $real && ( $real === $root || str_starts_with( $real . '/', $root . '/' ) );
+		$real = self::resolve_path( $path );
+		if ( null === $real ) {
+			return false;
+		}
+		$roots = array( ABSPATH );
+		if ( isset( $_SERVER['DOCUMENT_ROOT'] ) && is_string( $_SERVER['DOCUMENT_ROOT'] ) && '' !== $_SERVER['DOCUMENT_ROOT'] ) { // phpcs:ignore WordPress.Security.ValidatedSanitizedInput -- only compared as a path, never output.
+			$roots[] = wp_unslash( $_SERVER['DOCUMENT_ROOT'] ); // phpcs:ignore WordPress.Security.ValidatedSanitizedInput
+		}
+		foreach ( $roots as $root ) {
+			$root = realpath( (string) $root );
+			if ( false !== $root && '/' !== $root && ( $real === $root || str_starts_with( $real . '/', $root . '/' ) ) ) {
+				return true;
+			}
+		}
+		return false;
+	}
+
+	/** Canonical form of a path whose tail may not exist yet. */
+	private static function resolve_path( string $path ): ?string {
+		$path   = rtrim( $path, '/' );
+		$suffix = '';
+		while ( '' !== $path && false === realpath( $path ) ) {
+			$suffix = '/' . basename( $path ) . $suffix;
+			$parent = dirname( $path );
+			if ( $parent === $path ) {
+				return null;
+			}
+			$path = $parent;
+		}
+		$real = realpath( '' === $path ? '/' : $path );
+		return false === $real ? null : rtrim( $real, '/' ) . $suffix;
 	}
 }

@@ -147,7 +147,7 @@ final class ArchiveStep implements BackupStepInterface
                             break;
                         }
                         if (!is_array($chunk) || $chunk['path'] !== $path) {
-                            $chunk = ['path' => $path, 'next' => 0, 'size' => $size, 'hash' => null, 'chunks' => []];
+                            $chunk = ['path' => $path, 'next' => 0, 'size' => $size, 'mtime' => (int) $stat['mtime'], 'hash' => null, 'chunks' => []];
                         }
                         $offset = (int) $chunk['next'] * $maxVolume;
                         $length = min($maxVolume, (int) $chunk['size'] - $offset);
@@ -160,8 +160,9 @@ final class ArchiveStep implements BackupStepInterface
                         $chunk['hash'] = $result->state();
                         $checkpoint['bytes_done'] += $length;
                         if ($chunk['next'] * $maxVolume >= (int) $chunk['size']) {
-                            $entry = $this->describe($context, $entry, $absolute, $stat, $result, (int) $chunk['chunks'][0]['v'], $chunk['chunks']);
-                            $entry['s'] = (int) $chunk['size'];
+                            // Compare against the state when the first chunk was read: a change between chunks tears the file.
+                            $first = ['size' => (int) $chunk['size'], 'mtime' => (int) ($chunk['mtime'] ?? $stat['mtime'])];
+                            $entry = $this->describe($context, $entry, $absolute, $first, $result, (int) $chunk['chunks'][0]['v'], $chunk['chunks']);
                             $final->append($entry);
                             $chunk = null;
                             $consumed = $nextOffset;
@@ -238,7 +239,7 @@ final class ArchiveStep implements BackupStepInterface
      * Completes an index entry with archive coordinates and checks that the file did not change while it was read.
      *
      * @param array<string, mixed> $entry
-     * @param array<int|string, int> $stat
+     * @param array<int|string, int> $stat State before reading (for chunked files: when the first chunk was read).
      * @param list<array<string, mixed>>|null $chunks
      * @return array<string, mixed>
      */
@@ -246,16 +247,17 @@ final class ArchiveStep implements BackupStepInterface
     {
         clearstatcache(true, $absolute);
         $after = @stat($absolute);
-        $expected = $chunks === null ? (int) $stat['size'] : (int) $entry['s'];
-        $changed = $after === false || (int) $after['size'] !== (int) $stat['size'] || (int) $after['mtime'] !== (int) $stat['mtime'];
-        if ($chunks === null && $result->bytes !== $expected) {
-            $changed = true;
-        }
+        // Chunked files: the archived size is the sum of the chunks actually read (a file shrinking between chunks yields fewer bytes).
+        $archived = $chunks === null ? $result->bytes : array_sum(array_map(static fn (array $chunk): int => (int) $chunk['s'], $chunks));
+        $changed = $after === false || (int) $after['size'] !== (int) $stat['size'] || (int) $after['mtime'] !== (int) $stat['mtime']
+            || $archived !== (int) $stat['size'];
         if ($changed) {
+            // Status "changed" keeps the data restorable but makes the backup report a warning, and incremental backups never
+            // reuse such an entry (they only reuse status "ok").
             $context->logger->warning('File changed while it was being backed up.', ['path' => $entry['p']]);
             $entry['st'] = 'changed';
         }
-        $entry['s'] = $chunks === null ? $result->bytes : (int) $stat['size'];
+        $entry['s'] = $archived;
         $entry['m'] = (int) $stat['mtime'];
         if ($context->profile->checksums) {
             $entry['h'] = $result->sha256();

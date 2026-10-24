@@ -143,6 +143,21 @@ final class RetentionTest extends TestCase
         self::assertContains('c', array_keys($impossible->keep));
     }
 
+    /**
+     * Regression: database-only/files-only profiles have no "full" backups; a tight storage limit deleted every backup.
+     */
+    public function testStorageLimitNeverDeletesNewestBackupOfNonFullProfiles(): void
+    {
+        foreach ([BackupType::Database, BackupType::Files] as $type) {
+            $records = [$this->record('c', 1, $type, size: 500), $this->record('b', 2, $type, size: 500), $this->record('a', 3, $type, size: 500)];
+            $plan = (new RetentionPlanner())->plan($records, new RetentionPolicy(maxCount: 5, maxStorageBytes: 400), $this->now);
+            $deleted = $plan->deletions();
+            sort($deleted);
+            self::assertSame(['a', 'b'], $deleted, $type->value);
+            self::assertNotEmpty($plan->warnings, $type->value);
+        }
+    }
+
     public function testExecutorDryRunAndFailureIsolation(): void
     {
         $records = [$this->record('keep', 1), $this->record('x', 100), $this->record('y', 101)];

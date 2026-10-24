@@ -33,7 +33,11 @@ class PluginTest extends WP_UnitTestCase {
 	}
 
 	private function admin(): void {
-		wp_set_current_user( self::factory()->user->create( array( 'role' => 'administrator' ) ) );
+		$admin = self::factory()->user->create( array( 'role' => 'administrator' ) );
+		if ( is_multisite() ) {
+			grant_super_admin( $admin ); // Network wide plugin: managed by super admins.
+		}
+		wp_set_current_user( $admin );
 	}
 
 	/**

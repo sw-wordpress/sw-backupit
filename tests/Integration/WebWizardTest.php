@@ -88,6 +88,19 @@ final class WebWizardTest extends TestCase
         self::assertSame([], $locked->cookies);
     }
 
+    /**
+     * Regression: the token documented as one-time allowed any number of logins.
+     */
+    public function testTokenAllowsExactlyOneLoginAndTheSessionStaysValid(): void
+    {
+        $this->setUpWizard();
+        [$session] = $this->login();
+        $second = $this->call('POST', ['a' => 'login'], ['token' => $this->token]);
+        self::assertSame(401, $second->status);
+        self::assertSame([], $second->cookies);
+        self::assertStringContainsString($this->backupId, $this->call('GET', [], [], $session)->body, 'the first session keeps working');
+    }
+
     public function testExpiredTokenAndUninitialisedAppAreInert(): void
     {
         $this->setUpWizard(60);

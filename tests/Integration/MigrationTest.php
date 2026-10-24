@@ -85,6 +85,8 @@ final class MigrationTest extends TestCase
         self::assertSame('1', (string) $migrated->query("SELECT COUNT(*) FROM blog_options WHERE option_name='blog_user_roles'")->fetchColumn());
         self::assertFalse($migrated->query("SHOW TABLES LIKE 'wp\\_%'")->fetch(), 'old prefixed tables are gone');
         self::assertFalse($migrated->query("SHOW TABLES LIKE 'swbi_restore_progress'")->fetch(), 'progress table removed');
+        self::assertFalse($migrated->query("SHOW TABLES LIKE 'swbi_import_progress'")->fetch(), 'import progress table removed');
+        self::assertSame([], $outcome->messages, 'plain wp-config constants are all rewritten, no warning');
         self::assertStringContainsString('$table_prefix = \'blog_\';', (string) file_get_contents($target2 . '/wp-config.php'));
     }
 
@@ -110,6 +112,62 @@ final class MigrationTest extends TestCase
         self::assertSame(50, (int) $pdo->query("SELECT COUNT(*) FROM wp_t WHERE v LIKE 'see https://a.de/wp/page%'")->fetchColumn());
         self::assertSame(0, (int) $pdo->query("SELECT COUNT(*) FROM wp_t WHERE v LIKE '%/wp/wp/%'")->fetchColumn());
         self::assertSame('https://a.de/?p=1', (string) $pdo->query('SELECT guid FROM wp_t WHERE id = 1')->fetchColumn(), 'guid is an identifier and stays unchanged');
+    }
+
+    /**
+     * Regression: ENUM keys skipped rows (keyset compare vs. index sort), FLOAT keys looped, BINARY keys lost the JSON progress.
+     */
+    public function testUnusualPrimaryKeysAreMigratedCompletelyAndResumably(): void
+    {
+        $pdo = ConnectionFactory::create($this->createDatabase());
+        $pdo->exec("CREATE TABLE wp_enum (k ENUM('zeta','alpha','mid') NOT NULL PRIMARY KEY, v TEXT)");
+        $pdo->exec("INSERT INTO wp_enum VALUES ('zeta','https://a.de/1'),('alpha','https://a.de/2'),('mid','https://a.de/3')");
+        $pdo->exec('CREATE TABLE wp_float (k DOUBLE NOT NULL PRIMARY KEY, v TEXT)');
+        $pdo->exec("INSERT INTO wp_float VALUES (0.1,'https://a.de/1'),(0.2,'https://a.de/2'),(0.3,'https://a.de/3')");
+        $pdo->exec('CREATE TABLE wp_bin (k VARBINARY(16) NOT NULL PRIMARY KEY, v TEXT)');
+        $pdo->exec("INSERT INTO wp_bin VALUES (UNHEX('00ff'),'https://a.de/1'),(UNHEX('ff'),'https://a.de/2'),(UNHEX('8000c3'),'https://a.de/3')");
+        $rounds = 0;
+        do {
+            $result = (new DatabaseMigrator($pdo, new \Psr\Log\NullLogger(), 1))->run(['https://a.de' => 'https://a.de/wp'], 'wp_', [], false, new ResourceBudget(0.0));
+        } while (!$result->finished && ++$rounds < 100);
+        self::assertTrue($result->finished);
+        foreach (['wp_enum', 'wp_float', 'wp_bin'] as $table) {
+            self::assertSame(3, (int) $pdo->query("SELECT COUNT(*) FROM {$table} WHERE v LIKE 'https://a.de/wp/_'")->fetchColumn(), $table);
+        }
+    }
+
+    /**
+     * Regression: an interrupted migration left its progress table in the target database; a later fresh restore into the same
+     * database resumed at the stale position and skipped rows.
+     */
+    public function testFreshRestoreIgnoresStaleMigrationProgress(): void
+    {
+        $pdo = ConnectionFactory::create($this->createDatabase());
+        $pdo->exec('CREATE TABLE wp_t (id INT PRIMARY KEY, v TEXT)');
+        $pdo->exec("INSERT INTO wp_t VALUES (1,'https://a.de/1'),(2,'https://a.de/2'),(3,'https://a.de/3')");
+        $pdo->exec('CREATE TABLE ' . DatabaseMigrator::PROGRESS_TABLE . ' (id TINYINT NOT NULL PRIMARY KEY, progress TEXT NOT NULL)');
+        $pdo->exec('INSERT INTO ' . DatabaseMigrator::PROGRESS_TABLE . " VALUES (1, '{\"table_index\":0,\"pk\":[\"2\"]}')");
+        DatabaseMigrator::reset($pdo);
+        (new DatabaseMigrator($pdo))->run(['https://a.de' => 'https://b.de'], 'wp_');
+        self::assertSame(3, (int) $pdo->query("SELECT COUNT(*) FROM wp_t WHERE v LIKE 'https://b.de/%'")->fetchColumn());
+    }
+
+    /**
+     * Regression: repeating an interrupted rename to a prefix that starts with the old one renamed tables twice
+     * (wp_live_live_options), and unrelated tables with the old prefix were renamed as well.
+     */
+    public function testTablePrefixMigrationIsRepeatableAndLimitedToBackupTables(): void
+    {
+        $pdo = ConnectionFactory::create($this->createDatabase());
+        foreach (['wp_options', 'wp_posts', 'wp_foreign'] as $table) {
+            $pdo->exec("CREATE TABLE {$table} (id INT PRIMARY KEY, option_name VARCHAR(191))");
+        }
+        $pdo->exec('RENAME TABLE wp_options TO wp_live_options'); // state after a crash between two RENAMEs
+        $renamed = (new TablePrefixMigrator($pdo))->migrate('wp_', 'wp_live_', ['wp_options', 'wp_posts']);
+        self::assertSame(1, $renamed);
+        $tables = $pdo->query('SHOW TABLES')->fetchAll(PDO::FETCH_COLUMN);
+        sort($tables);
+        self::assertSame(['wp_foreign', 'wp_live_options', 'wp_live_posts'], $tables);
     }
 
     public function testTablePrefixMigrationRefusesToOverwriteExistingTables(): void

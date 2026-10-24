@@ -48,8 +48,8 @@ One JSON object per line, ordered by *canonical path order* (depth-first, byte-w
 | `p` | relative path (UTF-8, `/` separated) |
 | `t` | `f` file, `d` directory, `l` symlink |
 | `s`, `m`, `mode` | size, mtime, permissions |
-| `lt` | symlink target (never recreated on restore) |
-| `st` | `ok`, `unreadable`, `vanished`, `changed` (changed while being read) |
+| `lt` | symlink target (never recreated on restore; the restore result lists the skipped links) |
+| `st` | `ok`, `unreadable`, `vanished`, `changed` (changed while being read, also between two chunks; the data is restorable but may mix old and new content, the backup reports a warning, the restore lists such files and incremental backups never reuse the entry) |
 | `h` | SHA-256 of the file content (if checksums are enabled) |
 | `v`, `a` | volume number and ZIP entry name |
 | `c` | chunk list `[{v,a,s,h}]` for files larger than the volume size |
@@ -61,14 +61,33 @@ ZIP entry names are the path with `\ : * ? " < > | %` percent-encoded (ZipStream
 Each volume is a complete ZIP64 archive (any ZIP tool can open it). A volume is closed when it reaches the
 configured size **or when the time budget of a worker tick is used up**, so volumes can be smaller than the limit.
 Files larger than the volume size are split into `<entry>.swbpartNNNN` chunks, one chunk per volume; restore reassembles
-and verifies each chunk and the whole file.
+and verifies each chunk and the whole file. Size and mtime at the first chunk are kept in the checkpoint; a difference at the end marks
+the entry `changed`. `s` of a chunked entry is always the sum of its chunk sizes (verified).
 
 ## Database parts
 
 Gzip compressed SQL, parts close at statement boundaries. Every part starts with `SET NAMES utf8mb4`,
 `FOREIGN_KEY_CHECKS=0`, `UNIQUE_CHECKS=0`, a permissive `sql_mode` (zero dates exist in real WordPress databases)
-and UTC time zone. Binary columns are hex literals, text is escaped by the driver. Triggers/routines/events use
-`DELIMITER ;;` blocks; views are retried at the end of an import (dependencies between views).
+and UTC time zone. The exporter always reads with a utf8mb4 connection (independent of `DB_CHARSET`), so the server converts every
+column losslessly. Binary columns are hex literals, BIT columns integers, text is escaped by the driver. Only real generated columns
+(VIRTUAL/STORED/PERSISTENT) are skipped; MySQL 8 expression defaults (`DEFAULT_GENERATED`) are exported. Triggers/routines/events use
+`DELIMITER ;;` blocks (routines and events only with "include foreign tables", because restoring them needs extra privileges).
+View definitions lose the source database qualifier so a view never points at the original database.
+
+Paging: keyset by primary key when its sort order equals its comparison order (integers, decimals, strings, binary, dates);
+ENUM/SET/FLOAT/DOUBLE/BIT keys are paged with `ORDER BY key LIMIT … OFFSET …`; binary key values are hex encoded in the JSON cursor.
+
+### Import (restore)
+
+* Exactly-once resume: the number of applied statements per part is stored in the table `swbi_import_progress` of the target
+  database, committed in the same transaction as each data statement (InnoDB). DDL commits implicitly; its progress is written
+  right after it and the first statement after a resume tolerates "already exists". MyISAM tables: a crash between a statement and
+  its progress update can repeat that single statement.
+* The part's session settings are applied again before a part is continued in the middle.
+* Views that reference later objects are deferred; the deferred statements are persisted in the progress table and created at
+  the end in as many passes as needed. The progress table is removed after a complete import; a fresh import drops leftovers.
+* A statement larger than the target server's `max_allowed_packet` stops the import with an explicit message (raise the
+  limit and run the restore again).
 
 ### Consistency
 
@@ -77,7 +96,7 @@ and UTC time zone. Binary columns are hex literals, text is escaped by the drive
 * `db_consistent_snapshot`: the export runs in a *single* invocation inside `START TRANSACTION WITH CONSISTENT SNAPSHOT`
   (REPEATABLE READ). That is transactionally consistent **for InnoDB tables only**; MyISAM tables are warned about.
   It cannot be resumed (a crash restarts the export) and ignores the time budget, so use it from the CLI.
-* Tables without primary key are paged with LIMIT/OFFSET (unstable under concurrent writes).
+* Tables without primary key are paged with LIMIT/OFFSET in physical order (unstable under concurrent writes).
 
 ## Incremental and differential backups
 

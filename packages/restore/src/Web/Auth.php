@@ -10,7 +10,8 @@ use SWBackupIt\Core\Support\AtomicFile;
  * Authentication for the web based restore wizard (PLAN.md §13.1/§13.6, §24).
  *
  * - No token configured / expired / app locked => nothing is possible, nothing about backups is revealed.
- * - A single random token (shown once to the operator) is stored only as SHA-256; compared in constant time.
+ * - A single random token (shown once to the operator) is stored only as SHA-256; compared in constant time; it allows exactly
+ *   one login (marker file created exclusively), further logins need a new token.
  * - Failed logins are rate limited globally (not per IP: proxy headers can be spoofed): 5 failures in 15 minutes lock logins
  *   for the remaining window, successful tokens do not reset the counter.
  * - Sessions: random id in an HttpOnly, SameSite=Strict (Secure on https) cookie, server side state, idle timeout, CSRF token per session.
@@ -72,6 +73,17 @@ final class Auth
 
             return ['ok' => false, 'retryAfter' => 0, 'sessionId' => ''];
         }
+        // One-time token: exactly one login per token (exclusive create is atomic, also for parallel requests). The session
+        // created by that login stays valid; a new token (WebSetup::initialize) is needed for another login.
+        $used = @fopen($this->stateDirectory . '/token-used', 'x');
+        if ($used === false) {
+            $failures[] = $now;
+            AtomicFile::writeJson($file, ['failures' => $failures]);
+
+            return ['ok' => false, 'retryAfter' => 0, 'sessionId' => ''];
+        }
+        fwrite($used, gmdate('c') . "\n");
+        fclose($used);
         $id = bin2hex(random_bytes(32));
         $this->writeSession($id, ['created' => $now, 'last' => $now, 'csrf' => bin2hex(random_bytes(24)), 'data' => []]);
 

@@ -87,4 +87,36 @@ class MultisiteTest extends WP_UnitTestCase {
 		$this->assertFalse( current_user_can( Capabilities::RESTORE ), 'site admins of a subsite cannot restore or download the network' );
 		restore_current_blog();
 	}
+
+	public function test_schema_bump_on_a_subsite_request_grants_capabilities_only_on_the_main_site(): void {
+		$blog_id = self::factory()->blog->create();
+		switch_to_blog( $blog_id );
+		delete_site_option( Schema::VERSION_OPTION );
+		\SWBackupIt\WordPress\Plugin::instance()->maybe_migrate();
+		$this->assertFalse( get_role( 'administrator' )->has_cap( Capabilities::DOWNLOAD ), 'the subsite role got nothing' );
+		restore_current_blog();
+		$this->assertTrue( get_role( 'administrator' )->has_cap( Capabilities::DOWNLOAD ), 'the main site role has the caps' );
+	}
+
+	public function test_sensitive_capabilities_require_a_super_admin_even_if_a_role_has_them(): void {
+		$blog_id = self::factory()->blog->create();
+		$admin   = self::factory()->user->create( array( 'role' => 'subscriber' ) );
+		add_user_to_blog( $blog_id, $admin, 'administrator' );
+		switch_to_blog( $blog_id );
+		foreach ( Capabilities::all() as $cap ) {
+			get_role( 'administrator' )->add_cap( $cap ); // E.g. granted by an old version of the plugin.
+		}
+		wp_set_current_user( $admin );
+		foreach ( Capabilities::network_sensitive() as $cap ) {
+			$this->assertFalse( current_user_can( $cap ), $cap );
+		}
+		$this->assertTrue( current_user_can( Capabilities::VIEW ), 'non-sensitive caps stay delegable' );
+		restore_current_blog();
+
+		Capabilities::revoke_all();
+		switch_to_blog( $blog_id );
+		$this->assertFalse( get_role( 'administrator' )->has_cap( Capabilities::VIEW ), 'revoked on every site' );
+		restore_current_blog();
+		$this->assertFalse( get_role( 'administrator' )->has_cap( Capabilities::VIEW ) );
+	}
 }

@@ -56,8 +56,9 @@ final class HealthController extends BaseController {
 		$staging  = Settings::staging_dir();
 		$writable = is_dir( $staging ) ? wp_is_writable( $staging ) : wp_is_writable( dirname( $staging ) );
 		$add( 'staging_writable', __( 'Staging directory', 'swbackupit' ), $writable ? 'ok' : 'error', $writable ? __( 'Writable', 'swbackupit' ) : __( 'Not writable', 'swbackupit' ) );
-		if ( Settings::is_inside_docroot( dirname( $staging ) ) || Settings::is_inside_docroot( $staging ) ) {
-			$add( 'staging_public', __( 'Staging location', 'swbackupit' ), 'warning', __( 'The staging directory is inside the web root. Make sure the web server denies access or choose a directory outside the web root in the settings.', 'swbackupit' ) );
+		if ( Settings::is_inside_docroot( $staging ) ) {
+			// An error, not a warning: .htaccess/web.config only protect on Apache/IIS; nginx and others serve the files.
+			$add( 'staging_public', __( 'Staging location', 'swbackupit' ), 'error', __( 'The staging directory is inside the web root: unless the web server denies access to it, anyone who knows a file name can download backups including the database. Choose a directory outside the web root in the settings, or deny access in the web server configuration (see the user guide).', 'swbackupit' ) );
 		}
 		$free = is_dir( $staging ) ? @disk_free_space( $staging ) : false; // phpcs:ignore WordPress.PHP.NoSilencedErrors.Discouraged -- unsupported on some hosts, handled below.
 		if ( false !== $free ) {

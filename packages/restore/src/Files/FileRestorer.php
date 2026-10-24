@@ -28,6 +28,9 @@ use ZipArchive;
  */
 final class FileRestorer
 {
+    /** Upper bound of paths listed per note (skipped symlinks, inconsistent files) in the restore result. */
+    public const MAX_REPORTED_SYMLINKS = 50;
+
     private ?ZipArchive $zip = null;
     private ?string $zipKey = null;
 
@@ -117,6 +120,11 @@ final class FileRestorer
         if ($type === 'l') {
             $this->logger->notice('Symlink from backup not recreated (policy).', ['path' => $relative]);
             $state['skipped']++;
+            // Reported to the user at the end of the restore (bounded list) so links can be recreated manually.
+            $state['symlinks'] = (int) ($state['symlinks'] ?? 0) + 1;
+            if (count($state['symlink_list'] ?? []) < self::MAX_REPORTED_SYMLINKS) {
+                $state['symlink_list'][] = $relative . ' -> ' . (string) ($entry['lt'] ?? '?');
+            }
 
             return;
         }
@@ -180,6 +188,13 @@ final class FileRestorer
         // Re-validate after creating directories (a directory could have been replaced by a symlink meanwhile).
         $target = PathGuard::resolveBelow($this->options->targetPath, $relative);
         $this->extract($entry, $relative, $target);
+        if ($status === 'changed') {
+            // The file changed while it was archived; its content may mix old and new data. Reported to the user.
+            $state['changed'] = (int) ($state['changed'] ?? 0) + 1;
+            if (count($state['changed_list'] ?? []) < self::MAX_REPORTED_SYMLINKS) {
+                $state['changed_list'][] = $relative;
+            }
+        }
         $state['files']++;
         $state['bytes'] += (int) $entry['s'];
         if ($state['bytes'] > $this->options->limits->maxTotalBytes) {

@@ -44,6 +44,7 @@ final class WebSetup
         AtomicFile::removeTree($state . '/sessions');
         @unlink($state . '/locked');
         @unlink($state . '/ratelimit.json');
+        @unlink($state . '/token-used');
 
         return $token;
     }

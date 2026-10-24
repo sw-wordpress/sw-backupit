@@ -6,17 +6,20 @@ namespace SWBackupIt\Core\Retention;
 
 use DateTimeImmutable;
 use DateTimeZone;
-use SWBackupIt\Core\Domain\BackupType;
 
 /**
  * Pure retention decision logic (PLAN.md §11): count, age, storage, grandfather-father-son.
  *
- * Safety rules that always apply: protected backups are kept; the newest valid full backup is kept; every ancestor
+ * Safety rules that always apply: protected backups are kept; the newest valid backup and the newest valid self-contained
+ * backup of every type (full, files only, database only) are kept, even when a storage limit cannot be met; every ancestor
  * of a kept backup is kept (chain aware); backups with unreliable metadata are never deleted; with no active rule
  * nothing is deleted.
  */
 final class RetentionPlanner
 {
+    private const NEWEST = 'newest valid backup';
+    private const NEWEST_OF_TYPE = 'newest valid backup of type ';
+
     /**
      * @param list<BackupRecord> $records
      */
@@ -50,11 +53,16 @@ final class RetentionPlanner
                 $plan->keep[$record->id][] = 'protected';
             }
         }
+        // Files-only and database-only profiles have no "full" backups; their newest backup must be protected the same way.
+        $anchored = [];
         foreach ($reliable as $record) {
-            if (!$record->type->isDelta() && $record->type === BackupType::Full) {
-                $plan->keep[$record->id][] = 'newest valid full backup';
-                break;
+            if (!$record->type->isDelta() && !isset($anchored[$record->type->value])) {
+                $anchored[$record->type->value] = true;
+                $plan->keep[$record->id][] = self::NEWEST_OF_TYPE . $record->type->value;
             }
+        }
+        if ($reliable !== []) {
+            $plan->keep[$reliable[0]->id][] = self::NEWEST;
         }
         if ($policy->maxCount > 0) {
             foreach (array_slice($reliable, 0, $policy->maxCount) as $record) {
@@ -169,7 +177,7 @@ final class RetentionPlanner
                 continue;
             }
             $reasons = $plan->keep[$record->id];
-            $essential = array_filter($reasons, static fn (string $reason): bool => $reason === 'newest valid full backup' || str_starts_with($reason, 'required by '));
+            $essential = array_filter($reasons, static fn (string $reason): bool => $reason === self::NEWEST || str_starts_with($reason, self::NEWEST_OF_TYPE) || str_starts_with($reason, 'required by '));
             if ($essential !== []) {
                 continue;
             }

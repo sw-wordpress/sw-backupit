@@ -44,4 +44,19 @@ final readonly class RestoreRequest
         public bool $migrationDryRun = false,
     ) {
     }
+
+    /**
+     * Identifies what this request restores where. Resume state is only reused for an identical request, so a new restore
+     * (other target, database, selection, ...) never continues at the phase/offset of an earlier one. Contains no secrets.
+     */
+    public function fingerprint(): string
+    {
+        $database = $this->database === null ? null : [$this->database->host, $this->database->port, $this->database->socket, $this->database->name];
+
+        return hash('sha256', (string) json_encode([
+            realpath($this->backupDirectory) ?: $this->backupDirectory, realpath($this->targetPath) ?: $this->targetPath,
+            $this->restoreFiles, $this->restoreDatabase, $database, $this->overwrite->value, $this->selection->toArray(),
+            $this->dryRun, $this->replacements, $this->newTablePrefix, $this->migrationDryRun,
+        ]));
+    }
 }

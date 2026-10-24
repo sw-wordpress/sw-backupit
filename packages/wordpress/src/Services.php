@@ -109,7 +109,8 @@ final class Services {
 		return $this->get(
 			EventDispatcher::class,
 			function (): EventDispatcher {
-				$dispatcher = new EventDispatcher();
+				// Isolated listener failures (e.g. catalog registration, notifications) must be visible, not swallowed.
+				$dispatcher = new EventDispatcher( new \SWBackupIt\WordPress\Support\PluginLogger() );
 				( new HookBridge() )->register( $dispatcher );
 				( new LifecycleListener( $this->jobs(), $this->backups(), $this->schedules(), $this->notifier() ) )->register( $dispatcher );
 				return $dispatcher;
@@ -136,7 +137,7 @@ final class Services {
 	}
 
 	public function job_service(): JobService {
-		return $this->get( JobService::class, fn () => new JobService( $this->runner(), $this->jobs(), $this->cron() ) );
+		return $this->get( JobService::class, fn () => new JobService( $this->runner(), $this->jobs(), $this->cron(), $this->schedules() ) );
 	}
 
 	public function schedule_runner(): ScheduleRunner {

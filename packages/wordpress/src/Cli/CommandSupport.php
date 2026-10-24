@@ -21,24 +21,40 @@ use SWBackupIt\WordPress\Support\Settings;
 trait CommandSupport {
 	/**
 	 * Runs ticks in this process until the job reaches a resting state.
+	 *
+	 * @param string $job_id         Job id.
+	 * @param bool   $wait_for_retry Wait for transient retries and for another worker holding the job (interactive
+	 *                               commands). When false the job is left to the next run (system cron: no pile-up).
 	 */
-	private function run_job( string $job_id ): JobStatus {
+	private function run_job( string $job_id, bool $wait_for_retry = true ): JobStatus {
 		$service = Services::instance()->job_service();
-		$status  = JobStatus::Pending;
 		while ( true ) {
 			$result = $service->tick( $job_id, 60.0 );
 			$status = $result->status;
 			\WP_CLI::debug( 'tick: ' . $status->value . ' ' . $result->note, 'swbackupit' );
+			if ( $result->shouldContinue ) {
+				continue;
+			}
+			$job = Services::instance()->jobs()->find( $job_id );
 			if ( JobStatus::RetryWaiting === $status ) {
-				$job  = Services::instance()->jobs()->find( $job_id );
+				if ( ! $wait_for_retry ) {
+					return $status;
+				}
 				$wait = max( 1, ( $job->nextRetryAt?->getTimestamp() ?? time() ) - time() );
 				\WP_CLI::log( sprintf( 'Transient error, retrying in %d seconds.', $wait ) );
 				sleep( min( $wait, 900 ) );
 				continue;
 			}
-			if ( ! $result->shouldContinue ) {
-				return $status;
+			if ( ! $job->status->isTerminal() && JobStatus::Paused !== $job->status && $job->hasLeaseAt( \SWBackupIt\WordPress\Support\Time::now() ) ) {
+				// Another worker (WP-Cron, a second CLI process) holds the job: it is still running, so wait instead of failing.
+				if ( ! $wait_for_retry ) {
+					return $job->status;
+				}
+				\WP_CLI::debug( 'job is held by another worker, waiting', 'swbackupit' );
+				sleep( 5 );
+				continue;
 			}
+			return $status;
 		}
 	}
 	private function resolve_profile( string $identifier ): \SWBackupIt\Core\Domain\BackupProfile {

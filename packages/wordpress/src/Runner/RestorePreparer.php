@@ -74,6 +74,28 @@ final class RestorePreparer {
 		return $removed;
 	}
 
+	/**
+	 * Removes every prepared wizard directory and its state directory regardless of age (deactivation/uninstall).
+	 *
+	 * @return int Number of removed wizard directories.
+	 */
+	public function remove_all(): int {
+		$removed = 0;
+		$root    = untrailingslashit( ABSPATH );
+		foreach ( glob( $root . '/' . self::PREFIX . '*', GLOB_ONLYDIR ) ?: array() as $dir ) {
+			AtomicFile::removeTree( $dir );
+			++$removed;
+		}
+		$states = array_merge(
+			glob( dirname( $root ) . '/.swbi-restore-state-' . self::PREFIX . '*', GLOB_ONLYDIR ) ?: array(),
+			glob( untrailingslashit( Settings::staging_dir() ) . '/restore-state-' . self::PREFIX . '*', GLOB_ONLYDIR ) ?: array()
+		);
+		foreach ( $states as $dir ) {
+			AtomicFile::removeTree( $dir );
+		}
+		return $removed;
+	}
+
 	private function install_app( string $dir ): void {
 		$bundled = SWBACKUPIT_DIR . 'restore-app';
 		if ( is_file( $bundled . '/index.php' ) ) {

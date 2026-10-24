@@ -205,7 +205,7 @@ final class SchedulesController extends BaseController {
 			return $this->error( 'swbi_invalid_param', __( 'The schedule is invalid.', 'swbackupit' ), 400, $errors );
 		}
 
-		$data = array(
+		$data           = array(
 			'name'            => (string) $merged['name'],
 			'profile_id'      => (int) $merged['profile_id'],
 			'enabled'         => (int) $merged['enabled'],
@@ -217,11 +217,16 @@ final class SchedulesController extends BaseController {
 			'monthday'        => (int) $merged['monthday'],
 			'retry_max'       => (int) $merged['retry_max'],
 			'retry_backoff'   => (int) $merged['retry_backoff'],
-			'next_run_at'     => $merged['enabled'] ? Time::to_db( ScheduleCalculator::next_run( $merged, Time::now() ) ) : null,
 		);
-		if ( null === $current || (int) $current['enabled'] !== (int) $merged['enabled'] || $current['frequency'] !== $merged['frequency'] ) {
+		$timing_changed = null === $current;
+		foreach ( array( 'enabled', 'frequency', 'cron_expression', 'timezone', 'time_of_day', 'weekday', 'monthday' ) as $key ) {
+			$timing_changed = $timing_changed || (string) $current[ $key ] !== (string) $merged[ $key ];
+		}
+		if ( $timing_changed || null === $current['next_run_at'] ) {
+			$data['next_run_at'] = $merged['enabled'] ? Time::to_db( ScheduleCalculator::next_run( $merged, Time::now() ) ) : null;
 			$data['retry_count'] = 0;
 		}
+		// Otherwise (e.g. a rename) next_run_at is kept: it may hold a pending retry.
 		return $data;
 	}
 }

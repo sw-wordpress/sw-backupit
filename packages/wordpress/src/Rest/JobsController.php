@@ -9,6 +9,7 @@ declare(strict_types=1);
 
 namespace SWBackupIt\WordPress\Rest;
 
+use SWBackupIt\Core\Domain\Step;
 use SWBackupIt\Core\Exception\JobNotFoundException;
 use SWBackupIt\WordPress\Support\Capabilities;
 use SWBackupIt\WordPress\Support\Settings;
@@ -79,7 +80,8 @@ final class JobsController extends BaseController {
 					'phase'    => array(
 						'type'    => 'string',
 						'default' => '',
-						'enum'    => array( '', 'init', 'preflight', 'scan', 'export', 'archive', 'encrypt', 'verify_local', 'upload', 'verify_remote', 'finalize', 'retention', 'notify' ),
+						// Derived from the Step enum, so new steps (e.g. manifest) are always filterable.
+						'enum'    => array_merge( array( '', 'init' ), array_map( static fn ( Step $step ): string => $step->value, Step::cases() ) ),
 					),
 					'limit'    => array(
 						'type'    => 'integer',

@@ -21,6 +21,11 @@ use SWBackupIt\Core\Support\ResourceBudget;
  *   reported through $onPart so the caller can checkpoint it. The cursor describes the position
  *   directly after the last closed part: resuming discards any half-written part.
  * - Tables without a primary key are paged with LIMIT/OFFSET (order not guaranteed under concurrent writes).
+ * - Keyset paging needs a primary key whose sort order equals its comparison order; keys with ENUM/SET (sorted by index,
+ *   compared as strings), FLOAT/DOUBLE (inexact cursor values) or other exotic types are paged with ORDER BY key + OFFSET.
+ *   Binary key values are kept hex encoded in the (JSON) cursor.
+ * - BIT columns are exported as integers; only real generated columns (VIRTUAL/STORED/PERSISTENT) are skipped, columns with
+ *   an expression default (MySQL 8: DEFAULT_GENERATED) are exported.
  *
  * Consistency: see docs/backup-format.md. A transactionally consistent snapshot is only possible
  * for InnoDB tables when the whole export runs in ONE invocation ($consistentSnapshot = true).
@@ -69,6 +74,9 @@ final class DatabaseExporter
             ];
         }
         try {
+            // The parts declare utf8mb4 (SET NAMES in every part header): read with the same connection charset whatever
+            // DB_CHARSET says, so the server converts each column losslessly (also latin1 columns holding legacy bytes).
+            $this->pdo->exec('SET NAMES utf8mb4');
             if ($consistentSnapshot) {
                 $this->pdo->exec('SET SESSION TRANSACTION ISOLATION LEVEL REPEATABLE READ');
                 $this->pdo->exec('START TRANSACTION WITH CONSISTENT SNAPSHOT');
@@ -172,7 +180,7 @@ final class DatabaseExporter
             if (!is_array($create) || !isset($create[1])) {
                 throw new DatabaseException('Cannot read table structure.', ['table' => $name]);
             }
-            $writer->write("-- Table structure for {$name}\nDROP TABLE IF EXISTS " . self::id($name) . ";\n" . $create[1] . ";\n\n");
+            $writer->write("-- Table structure for " . str_replace(["\r", "\n"], " ", $name) . "\nDROP TABLE IF EXISTS " . self::id($name) . ";\n" . $create[1] . ";\n\n");
             $cursor['structure'] = true;
 
             return;
@@ -180,7 +188,8 @@ final class DatabaseExporter
 
         $columns = $this->columns($name);
         $primary = $this->primaryKey($name);
-        $rows = $this->fetchBatch($name, $columns, $primary, $cursor, $batchRows);
+        $keyset = $this->supportsKeyset($columns, $primary);
+        $rows = $this->fetchBatch($name, $columns, $primary, $keyset, $cursor, $batchRows);
         if ($rows === []) {
             $cursor['table_rows'][$name] = (int) $cursor['rows_done'];
             $cursor['ti'] = $index + 1;
@@ -213,9 +222,15 @@ final class DatabaseExporter
         // $rows is never empty here, so the buffer always holds the last (partial) statement.
         $writer->write($prefix . implode(",\n", $buffer) . ";\n");
         $cursor['rows_done'] = (int) $cursor['rows_done'] + count($rows);
-        if ($primary !== []) {
+        if ($keyset) {
             $lastRow = $rows[array_key_last($rows)];
-            $cursor['pk'] = array_map(static fn (string $column): string => (string) $lastRow[$column], $primary);
+            $kinds = array_column($columns, 'kind', 'name');
+            $next = array_map(static fn (string $column): string => $kinds[$column] === 'binary' ? bin2hex((string) $lastRow[$column]) : (string) $lastRow[$column], $primary);
+            if ($next === $cursor['pk']) {
+                // Defensive: a key whose comparison does not advance would loop forever and duplicate rows.
+                throw new DatabaseException('Primary key paging does not advance.', ['table' => $name]);
+            }
+            $cursor['pk'] = $next;
         } else {
             $cursor['offset'] = (int) $cursor['offset'] + count($rows);
         }
@@ -255,13 +270,17 @@ final class DatabaseExporter
         $tables = $cursor['tables'];
         $selected = array_column($tables, 'name');
         $blocks = [];
+        // MySQL qualifies every column of a view definition with the source database (`db`.`table`.`col`); restored into a
+        // database with another name, such a view would read the original database. The qualifier is removed.
+        $qualifier = self::id((string) PdoHelper::query($this->pdo, 'SELECT DATABASE()')->fetchColumn()) . '.';
         foreach ($tables as $table) {
             if ($table['type'] !== 'view') {
                 continue;
             }
             $row = PdoHelper::query($this->pdo, 'SHOW CREATE VIEW ' . self::id($table['name']))->fetch(PDO::FETCH_NUM);
             if (is_array($row) && isset($row[1])) {
-                $blocks[] = 'DROP VIEW IF EXISTS ' . self::id($table['name']) . ";\n" . self::stripDefiner((string) $row[1]) . ";\n";
+                $definition = str_replace($qualifier, '', self::stripDefiner((string) $row[1]));
+                $blocks[] = 'DROP VIEW IF EXISTS ' . self::id($table['name']) . ";\n" . $definition . ";\n";
             }
         }
         foreach (PdoHelper::query($this->pdo, 'SHOW TRIGGERS')->fetchAll() as $trigger) {
@@ -295,26 +314,64 @@ final class DatabaseExporter
     }
 
     /**
-     * @return list<array{name: string, kind: string}>
+     * @return list<array{name: string, kind: string, type: string}>
      */
     private function columns(string $table): array
     {
         $columns = [];
         foreach (PdoHelper::query($this->pdo, 'SHOW COLUMNS FROM ' . self::id($table))->fetchAll() as $row) {
-            $extra = strtoupper((string) ($row['Extra'] ?? ''));
-            if (str_contains($extra, 'GENERATED') || str_contains($extra, 'VIRTUAL') || str_contains($extra, 'PERSISTENT')) {
+            if (self::isGeneratedColumn((string) ($row['Extra'] ?? ''))) {
                 continue;
             }
             $type = strtolower((string) $row['Type']);
             $kind = match (true) {
-                preg_match('/^(tiny|medium|long)?blob|^(var)?binary|^bit|^geometry|^point|^linestring|^polygon|^multi|^geometrycollection/', $type) === 1 => 'binary',
+                str_starts_with($type, 'bit') => 'bit',
+                preg_match('/^(tiny|medium|long)?blob|^(var)?binary|^geometry|^point|^linestring|^polygon|^multi|^geometrycollection/', $type) === 1 => 'binary',
                 preg_match('/^(tiny|small|medium|big)?int|^decimal|^numeric|^float|^double|^real|^year/', $type) === 1 => 'numeric',
                 default => 'text',
             };
-            $columns[] = ['name' => (string) $row['Field'], 'kind' => $kind];
+            $columns[] = ['name' => (string) $row['Field'], 'kind' => $kind, 'type' => $type];
         }
 
         return $columns;
+    }
+
+    /**
+     * Only real generated columns are skipped; MySQL 8 reports "DEFAULT_GENERATED" for columns with an expression default
+     * (e.g. DEFAULT CURRENT_TIMESTAMP) whose values must be exported.
+     */
+    public static function isGeneratedColumn(string $extra): bool
+    {
+        $extra = str_replace('DEFAULT_GENERATED', '', strtoupper($extra));
+
+        return str_contains($extra, 'GENERATED') || str_contains($extra, 'VIRTUAL') || str_contains($extra, 'PERSISTENT');
+    }
+
+    /**
+     * Keyset paging is only correct when the key's sort order equals its comparison order and the values round-trip exactly.
+     *
+     * @param list<array{name: string, kind: string, type: string}> $columns
+     * @param list<string> $primary
+     */
+    private function supportsKeyset(array $columns, array $primary): bool
+    {
+        if ($primary === []) {
+            return false;
+        }
+        $types = array_column($columns, 'type', 'name');
+        foreach ($primary as $column) {
+            if (!isset($types[$column]) || !self::isKeysetSafeType($types[$column])) {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    /** Whether "ORDER BY col" and "col > ?" agree for this column type (not for ENUM/SET/FLOAT/DOUBLE/BIT/...). */
+    public static function isKeysetSafeType(string $type): bool
+    {
+        return preg_match('/^((tiny|small|medium|big)?int|decimal|numeric|year|(var)?char|(tiny|medium|long)?text|(var)?binary|date|datetime|timestamp|time)\b/', strtolower($type)) === 1;
     }
 
     /**
@@ -329,27 +386,32 @@ final class DatabaseExporter
     }
 
     /**
-     * @param list<array{name: string, kind: string}> $columns
+     * @param list<array{name: string, kind: string, type: string}> $columns
      * @param list<string> $primary
      * @param array<string, mixed> $cursor
      * @return list<array<string, string|null>>
      */
-    private function fetchBatch(string $table, array $columns, array $primary, array $cursor, int $limit): array
+    private function fetchBatch(string $table, array $columns, array $primary, bool $keyset, array $cursor, int $limit): array
     {
-        $select = 'SELECT ' . implode(',', array_map(static fn (array $c): string => self::id($c['name']), $columns))
-            . ' FROM ' . self::id($table);
-        if ($primary === []) {
-            $statement = $this->pdo->prepare($select . ' LIMIT ' . $limit . ' OFFSET ' . (int) $cursor['offset']);
+        $select = 'SELECT ' . implode(',', array_map(
+            static fn (array $c): string => $c['kind'] === 'bit' ? 'CAST(' . self::id($c['name']) . ' AS UNSIGNED) AS ' . self::id($c['name']) : self::id($c['name']),
+            $columns,
+        )) . ' FROM ' . self::id($table);
+        $order = implode(',', array_map(self::id(...), $primary));
+        if (!$keyset) {
+            // A stable order for keys that cannot be paged by keyset; tables without a key keep the physical order.
+            $orderBy = $primary === [] ? '' : ' ORDER BY ' . $order;
+            $statement = $this->pdo->prepare($select . $orderBy . ' LIMIT ' . $limit . ' OFFSET ' . (int) $cursor['offset']);
             $statement->execute();
 
             return array_values($statement->fetchAll());
         }
-        $order = implode(',', array_map(self::id(...), $primary));
         $params = [];
         $where = '';
         if (is_array($cursor['pk'])) {
+            $kinds = array_column($columns, 'kind', 'name');
             $left = '(' . $order . ')';
-            $right = '(' . implode(',', array_fill(0, count($primary), '?')) . ')';
+            $right = '(' . implode(',', array_map(static fn (string $column): string => $kinds[$column] === 'binary' ? 'UNHEX(?)' : '?', $primary)) . ')';
             $where = " WHERE {$left} > {$right}";
             $params = array_values($cursor['pk']);
         }
@@ -366,6 +428,14 @@ final class DatabaseExporter
         }
         if ($kind === 'binary') {
             return $value === '' ? "''" : '0x' . bin2hex($value);
+        }
+        if ($kind === 'bit') {
+            // Selected as CAST(... AS UNSIGNED): a decimal string that may exceed PHP_INT_MAX (BIT(64)).
+            if (preg_match('/^\d+$/', $value) !== 1) {
+                throw new DatabaseException('Unexpected BIT value.');
+            }
+
+            return $value;
         }
         if ($kind === 'numeric' && preg_match('/^-?\d+(\.\d+)?([eE][-+]?\d+)?$/', $value) === 1) {
             return $value;

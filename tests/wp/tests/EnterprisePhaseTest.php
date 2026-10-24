@@ -30,7 +30,11 @@ class EnterprisePhaseTest extends WP_UnitTestCase {
 		foreach ( Schema::tables() as $table ) {
 			$wpdb->query( 'DELETE FROM ' . Schema::table( $table ) );
 		}
-		wp_set_current_user( self::factory()->user->create( array( 'role' => 'administrator', 'user_login' => 'auditor' ) ) );
+		$admin = self::factory()->user->create( array( 'role' => 'administrator', 'user_login' => 'auditor' ) );
+		if ( is_multisite() ) {
+			grant_super_admin( $admin ); // Network wide plugin: managed by super admins.
+		}
+		wp_set_current_user( $admin );
 	}
 
 	public function tear_down(): void {
@@ -132,15 +136,21 @@ class EnterprisePhaseTest extends WP_UnitTestCase {
 		$profile = $this->request( 'POST', '/profiles', array( 'name' => 'PreUpdate', 'type' => 'files', 'include_paths' => array( 'wp-includes/js/jquery' ) ) )->get_data();
 		add_filter( 'swbi_allow_before_backup', '__return_false' );
 		Settings::update( array( 'pre_update_backup' => array( 'core' => true, 'profile_id' => (int) $profile['id'], 'block_on_failure' => false ) ) );
-		$this->assertTrue( ( new PreUpdateBackup() )->before_install( true, array( 'type' => 'core' ) ), 'default: the update is not blocked' );
+		// Core updates go through the real Core_Upgrader::download_package() (upgrader_pre_install never fires for core).
+		require_once ABSPATH . 'wp-admin/includes/class-wp-upgrader.php';
+		$fake_package = static fn ( $reply ) => false === $reply ? '/nonexistent/wordpress.zip' : $reply; // No network access.
+		add_filter( 'upgrader_pre_download', $fake_package, 20 );
+		$upgrader = new Core_Upgrader( new Automatic_Upgrader_Skin() );
+		$this->assertSame( '/nonexistent/wordpress.zip', $upgrader->download_package( 'https://downloads.wordpress.org/release/wordpress.zip' ), 'default: the update is not blocked' );
 
 		delete_transient( 'swbi_pre_update_lock' );
 		global $wpdb;
 		$wpdb->query( 'DELETE FROM ' . Schema::table( 'jobs' ) );
 		Settings::update( array( 'pre_update_backup' => array( 'block_on_failure' => true ) ) );
-		$result = ( new PreUpdateBackup() )->before_install( true, array( 'type' => 'core' ) );
+		$result = $upgrader->download_package( 'https://downloads.wordpress.org/release/wordpress.zip' );
 		$this->assertInstanceOf( WP_Error::class, $result );
 		$this->assertSame( 'swbi_pre_update_backup_failed', $result->get_error_code() );
+		remove_filter( 'upgrader_pre_download', $fake_package, 20 );
 		remove_filter( 'swbi_allow_before_backup', '__return_false' );
 	}
 

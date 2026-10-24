@@ -29,255 +29,255 @@ msgstr "Restauration indisponible"
 msgid "The restore application is not initialised, has expired or was locked after use."
 msgstr "L'application de restauration n'est pas initialisée, a expiré ou a été verrouillée après utilisation."
 
-#: packages/restore/src/Web/View.php:44 packages/restore/src/Web/View.php:129
+#: packages/restore/src/Web/View.php:47 packages/restore/src/Web/View.php:132
 msgid "Back"
 msgstr "Retour"
 
-#: packages/restore/src/Web/View.php:44
+#: packages/restore/src/Web/View.php:47
 msgid "Error"
 msgstr "Erreur"
 
-#: packages/restore/src/Web/View.php:51
+#: packages/restore/src/Web/View.php:54
 msgid "Enter the one-time restore token that was displayed when the restore was prepared."
 msgstr "Saisissez le jeton de restauration à usage unique qui a été affiché lors de la préparation de la restauration."
 
-#: packages/restore/src/Web/View.php:51 packages/restore/src/Web/View.php:53
+#: packages/restore/src/Web/View.php:54 packages/restore/src/Web/View.php:56
 msgid "Sign in"
 msgstr "Se connecter"
 
-#: packages/restore/src/Web/View.php:52
+#: packages/restore/src/Web/View.php:55
 msgid "Restore token"
 msgstr "Jeton de restauration"
 
-#: packages/restore/src/Web/View.php:63 packages/restore/src/Web/View.php:72
+#: packages/restore/src/Web/View.php:66 packages/restore/src/Web/View.php:75
 msgid "Choose a backup"
 msgstr "Choisir une sauvegarde"
 
-#: packages/restore/src/Web/View.php:63
+#: packages/restore/src/Web/View.php:66
 msgid "No backups were found in the configured backups directory."
 msgstr "Aucune sauvegarde n'a été trouvée dans le répertoire de sauvegardes configuré."
 
-#: packages/restore/src/Web/View.php:70 packages/restore/src/Web/View.php:87
+#: packages/restore/src/Web/View.php:73 packages/restore/src/Web/View.php:90
 msgid "Backup"
 msgstr "Sauvegarde"
 
-#: packages/restore/src/Web/View.php:70
+#: packages/restore/src/Web/View.php:73
 msgid "Created (UTC)"
 msgstr "Créée le (UTC)"
 
-#: packages/restore/src/Web/View.php:70 packages/restore/src/Web/View.php:94
+#: packages/restore/src/Web/View.php:73 packages/restore/src/Web/View.php:97
 msgid "Files"
 msgstr "Fichiers"
 
-#: packages/restore/src/Web/View.php:70
+#: packages/restore/src/Web/View.php:73
 msgid "Size"
 msgstr "Taille"
 
-#: packages/restore/src/Web/View.php:70 packages/restore/src/Web/View.php:88
+#: packages/restore/src/Web/View.php:73 packages/restore/src/Web/View.php:91
 msgid "Source site"
 msgstr "Site source"
 
-#: packages/restore/src/Web/View.php:70 packages/restore/src/Web/View.php:87
+#: packages/restore/src/Web/View.php:73 packages/restore/src/Web/View.php:90
 msgid "Type"
 msgstr "Type"
 
-#: packages/restore/src/Web/View.php:87
+#: packages/restore/src/Web/View.php:90
 msgid "Created"
 msgstr "Créée le"
 
-#: packages/restore/src/Web/View.php:88
+#: packages/restore/src/Web/View.php:91
 msgid "Source path"
 msgstr "Chemin source"
 
-#: packages/restore/src/Web/View.php:91
+#: packages/restore/src/Web/View.php:94
 msgid "Encryption"
 msgstr "Chiffrement"
 
-#: packages/restore/src/Web/View.php:91
+#: packages/restore/src/Web/View.php:94
 msgid "Passphrase or key (base64:…)"
 msgstr "Phrase secrète ou clé (base64:…)"
 
-#: packages/restore/src/Web/View.php:94
+#: packages/restore/src/Web/View.php:97
 msgid "Restore files"
 msgstr "Restaurer les fichiers"
 
-#: packages/restore/src/Web/View.php:95
+#: packages/restore/src/Web/View.php:98
 msgid "Target directory (absolute path of the WordPress installation)"
 msgstr "Répertoire cible (chemin absolu de l'installation WordPress)"
 
-#: packages/restore/src/Web/View.php:96
+#: packages/restore/src/Web/View.php:99
 msgid "Type the target directory again to confirm"
 msgstr "Saisissez à nouveau le répertoire cible pour confirmer"
 
-#: packages/restore/src/Web/View.php:97
+#: packages/restore/src/Web/View.php:100
 msgid "Always overwrite"
 msgstr "Toujours écraser"
 
-#: packages/restore/src/Web/View.php:97
+#: packages/restore/src/Web/View.php:100
 msgid "Existing files"
 msgstr "Fichiers existants"
 
-#: packages/restore/src/Web/View.php:97
+#: packages/restore/src/Web/View.php:100
 msgid "Never overwrite"
 msgstr "Ne jamais écraser"
 
-#: packages/restore/src/Web/View.php:97
+#: packages/restore/src/Web/View.php:100
 msgid "Overwrite only if different"
 msgstr "Écraser uniquement si différent"
 
-#: packages/restore/src/Web/View.php:98
+#: packages/restore/src/Web/View.php:101
 msgid "Only these paths (optional, one per line)"
 msgstr "Uniquement ces chemins (facultatif, un par ligne)"
 
-#: packages/restore/src/Web/View.php:103 packages/restore/src/Web/View.php:131
+#: packages/restore/src/Web/View.php:106 packages/restore/src/Web/View.php:134
 msgid "Database"
 msgstr "Base de données"
 
-#: packages/restore/src/Web/View.php:103
+#: packages/restore/src/Web/View.php:106
 msgid "Restore the database (existing tables with the same names are dropped)"
 msgstr "Restaurer la base de données (les tables existantes portant les mêmes noms sont supprimées)"
 
-#: packages/restore/src/Web/View.php:104
+#: packages/restore/src/Web/View.php:107
 msgid "Host"
 msgstr "Hôte"
 
-#: packages/restore/src/Web/View.php:104
+#: packages/restore/src/Web/View.php:107
 msgid "Port"
 msgstr "Port"
 
-#: packages/restore/src/Web/View.php:105
+#: packages/restore/src/Web/View.php:108
 msgid "Database name"
 msgstr "Nom de la base de données"
 
-#: packages/restore/src/Web/View.php:105
+#: packages/restore/src/Web/View.php:108
 msgid "Type the database name again to confirm"
 msgstr "Saisissez à nouveau le nom de la base de données pour confirmer"
 
-#: packages/restore/src/Web/View.php:106
+#: packages/restore/src/Web/View.php:109
 msgid "Password"
 msgstr "Mot de passe"
 
-#: packages/restore/src/Web/View.php:106
+#: packages/restore/src/Web/View.php:109
 msgid "User"
 msgstr "Utilisateur"
 
-#: packages/restore/src/Web/View.php:107
+#: packages/restore/src/Web/View.php:110
 msgid "Migration (optional)"
 msgstr "Migration (facultatif)"
 
-#: packages/restore/src/Web/View.php:107
+#: packages/restore/src/Web/View.php:110
 msgid "New URL"
 msgstr "Nouvelle URL"
 
-#: packages/restore/src/Web/View.php:107
+#: packages/restore/src/Web/View.php:110
 msgid "Old URL"
 msgstr "Ancienne URL"
 
-#: packages/restore/src/Web/View.php:108
+#: packages/restore/src/Web/View.php:111
 msgid "New path"
 msgstr "Nouveau chemin"
 
-#: packages/restore/src/Web/View.php:108
+#: packages/restore/src/Web/View.php:111
 msgid "Old path"
 msgstr "Ancien chemin"
 
-#: packages/restore/src/Web/View.php:109
+#: packages/restore/src/Web/View.php:112
 msgid "New table prefix"
 msgstr "Nouveau préfixe de table"
 
-#: packages/restore/src/Web/View.php:112
+#: packages/restore/src/Web/View.php:115
 msgid "Check backup & compare"
 msgstr "Vérifier la sauvegarde et comparer"
 
-#: packages/restore/src/Web/View.php:112
+#: packages/restore/src/Web/View.php:115
 msgid "Restore settings"
 msgstr "Paramètres de restauration"
 
-#: packages/restore/src/Web/View.php:129
+#: packages/restore/src/Web/View.php:132
 msgid "Backup check failed"
 msgstr "Échec de la vérification de la sauvegarde"
 
-#: packages/restore/src/Web/View.php:129
+#: packages/restore/src/Web/View.php:132
 msgid "The backup did not pass verification. Nothing was changed."
 msgstr "La sauvegarde n'a pas réussi la vérification. Rien n'a été modifié."
 
-#: packages/restore/src/Web/View.php:131
+#: packages/restore/src/Web/View.php:134
 msgid "Target"
 msgstr "Cible"
 
-#: packages/restore/src/Web/View.php:131
+#: packages/restore/src/Web/View.php:134
 msgid "The backup passed verification."
 msgstr "La sauvegarde a réussi la vérification."
 
-#: packages/restore/src/Web/View.php:132
+#: packages/restore/src/Web/View.php:135
 msgid "not restored"
 msgstr "non restauré"
 
-#: packages/restore/src/Web/View.php:136
+#: packages/restore/src/Web/View.php:139
 msgid "Comparison with the target directory"
 msgstr "Comparaison avec le répertoire cible"
 
-#: packages/restore/src/Web/View.php:136
+#: packages/restore/src/Web/View.php:139
 msgid "Modified locally"
 msgstr "Modifié localement"
 
-#: packages/restore/src/Web/View.php:136
+#: packages/restore/src/Web/View.php:139
 msgid "Only in backup"
 msgstr "Uniquement dans la sauvegarde"
 
-#: packages/restore/src/Web/View.php:137
+#: packages/restore/src/Web/View.php:140
 msgid "Identical"
 msgstr "Identique"
 
-#: packages/restore/src/Web/View.php:137
+#: packages/restore/src/Web/View.php:140
 msgid "Not comparable"
 msgstr "Non comparable"
 
-#: packages/restore/src/Web/View.php:137
+#: packages/restore/src/Web/View.php:140
 msgid "Only local"
 msgstr "Uniquement en local"
 
-#: packages/restore/src/Web/View.php:139
+#: packages/restore/src/Web/View.php:142
 msgid "Cancel"
 msgstr "Annuler"
 
-#: packages/restore/src/Web/View.php:139
+#: packages/restore/src/Web/View.php:142
 msgid "Start restore"
 msgstr "Lancer la restauration"
 
-#: packages/restore/src/Web/View.php:141
+#: packages/restore/src/Web/View.php:144
 msgid "Ready to restore"
 msgstr "Prêt à restaurer"
 
-#: packages/restore/src/Web/View.php:149
+#: packages/restore/src/Web/View.php:152
 msgid "Starting…"
 msgstr "Démarrage…"
 
-#: packages/restore/src/Web/View.php:150
+#: packages/restore/src/Web/View.php:153
 msgid "Lock and remove the restore application"
 msgstr "Verrouiller et supprimer l'application de restauration"
 
-#: packages/restore/src/Web/View.php:152
+#: packages/restore/src/Web/View.php:155
 msgid "Phase"
 msgstr "Phase"
 
-#: packages/restore/src/Web/View.php:152
+#: packages/restore/src/Web/View.php:155
 msgid "Restoring…"
 msgstr "Restauration en cours…"
 
-#: packages/restore/src/Web/View.php:152
+#: packages/restore/src/Web/View.php:155
 msgid "files restored"
 msgstr "fichiers restaurés"
 
-#: packages/restore/src/Web/View.php:153
+#: packages/restore/src/Web/View.php:156
 msgid "The restore FAILED. It can be resumed: reload this page to continue."
 msgstr "La restauration a ÉCHOUÉ. Elle peut être reprise : rechargez cette page pour continuer."
 
-#: packages/restore/src/Web/View.php:153
+#: packages/restore/src/Web/View.php:156
 msgid "The restore completed successfully."
 msgstr "La restauration s'est terminée avec succès."
 
-#: packages/restore/src/Web/View.php:154
+#: packages/restore/src/Web/View.php:157
 msgid "Connection lost. Reload this page to resume the restore."
 msgstr "Connexion perdue. Rechargez cette page pour reprendre la restauration."
 
@@ -301,6 +301,10 @@ msgstr "Le jeton n'est pas valide."
 #: packages/restore/src/Web/WebApp.php:103
 msgid "You were signed out."
 msgstr "Vous avez été déconnecté."
+
+#: packages/restore/src/Web/WebApp.php:227
+msgid "No restore is running."
+msgstr "Aucune restauration n'est en cours."
 
 #: packages/restore/src/Web/WebApp.php:277
 msgid "The restore completed. The restore application is now locked and its files were removed."
@@ -331,7 +335,7 @@ msgstr "L'interface d'administration de SWBackupIt n'a pas été compilée. Inst
 msgid "SWBackupIt requires JavaScript."
 msgstr "SWBackupIt nécessite JavaScript."
 
-#: packages/wordpress/src/Repository/BackupRepository.php:222
+#: packages/wordpress/src/Repository/BackupRepository.php:228
 msgid "Local staging"
 msgstr "Préparation locale"
 
@@ -341,46 +345,54 @@ msgstr "Préparation locale"
 msgid "%s (copy)"
 msgstr "%s (copie)"
 
-#: packages/wordpress/src/Rest/BackupsController.php:174
+#: packages/wordpress/src/Repository/StorageTargetRepository.php:84
+msgid "The directory is inside the web root, where backups could be downloaded by anyone. Choose a directory outside the web root."
+msgstr "Le répertoire se trouve dans la racine web, où n'importe qui pourrait télécharger les sauvegardes. Choisissez un répertoire en dehors de la racine web."
+
+#: packages/wordpress/src/Rest/BackupsController.php:175
 msgid "A restore is never executed inside WordPress. Use \"Prepare restore\" and continue in the standalone restore application (or the restore CLI)."
 msgstr "Une restauration n'est jamais exécutée dans WordPress. Utilisez « Préparer la restauration » et poursuivez dans l'application de restauration autonome (ou la CLI de restauration)."
 
-#: packages/wordpress/src/Rest/BackupsController.php:187
-#: packages/wordpress/src/Rest/BackupsController.php:225
-#: packages/wordpress/src/Rest/BackupsController.php:256
-#: packages/wordpress/src/Rest/BackupsController.php:269
-#: packages/wordpress/src/Rest/BackupsController.php:286
-#: packages/wordpress/src/Rest/BackupsController.php:308
-#: packages/wordpress/src/Rest/BackupsController.php:319
-#: packages/wordpress/src/Rest/BackupsController.php:373
+#: packages/wordpress/src/Rest/BackupsController.php:188
+#: packages/wordpress/src/Rest/BackupsController.php:226
+#: packages/wordpress/src/Rest/BackupsController.php:257
+#: packages/wordpress/src/Rest/BackupsController.php:270
+#: packages/wordpress/src/Rest/BackupsController.php:287
+#: packages/wordpress/src/Rest/BackupsController.php:313
+#: packages/wordpress/src/Rest/BackupsController.php:324
+#: packages/wordpress/src/Rest/BackupsController.php:397
 #: packages/wordpress/src/Runner/RestoreTestService.php:26
 msgid "Backup not found."
 msgstr "Sauvegarde introuvable."
 
-#: packages/wordpress/src/Rest/BackupsController.php:191
+#: packages/wordpress/src/Rest/BackupsController.php:192
 msgid "The mode must be metadata or sha256."
 msgstr "Le mode doit être metadata ou sha256."
 
-#: packages/wordpress/src/Rest/BackupsController.php:272
+#: packages/wordpress/src/Rest/BackupsController.php:273
 msgid "Deleting a backup requires confirming its id."
 msgstr "La suppression d'une sauvegarde nécessite de confirmer son identifiant."
 
-#: packages/wordpress/src/Rest/BackupsController.php:275
+#: packages/wordpress/src/Rest/BackupsController.php:276
 msgid "The backup is protected. Remove the protection first."
 msgstr "La sauvegarde est protégée. Retirez d'abord la protection."
 
-#: packages/wordpress/src/Rest/BackupsController.php:396
-msgid "The requested file does not exist."
-msgstr "Le fichier demandé n'existe pas."
+#: packages/wordpress/src/Rest/BackupsController.php:291
+msgid "There is no local copy of this backup to verify. Its copies on the storage targets are verified during upload; download the backup from a storage target to verify it here."
+msgstr "Il n'existe aucune copie locale de cette sauvegarde à vérifier. Ses copies sur les destinations de stockage sont vérifiées lors du transfert ; téléchargez la sauvegarde depuis une destination de stockage pour la vérifier ici."
 
-#: packages/wordpress/src/Rest/BackupsController.php:406
+#: packages/wordpress/src/Rest/BackupsController.php:382
 msgid "Cannot read the file."
 msgstr "Impossible de lire le fichier."
 
+#: packages/wordpress/src/Rest/BackupsController.php:419
+msgid "The requested file does not exist."
+msgstr "Le fichier demandé n'existe pas."
+
 #: packages/wordpress/src/Rest/BaseController.php:104
-#: packages/wordpress/src/Rest/JobsController.php:142
-#: packages/wordpress/src/Rest/JobsController.php:153
-#: packages/wordpress/src/Support/CoreMessages.php:122
+#: packages/wordpress/src/Rest/JobsController.php:144
+#: packages/wordpress/src/Rest/JobsController.php:155
+#: packages/wordpress/src/Support/CoreMessages.php:123
 msgid "Job not found."
 msgstr "Tâche introuvable."
 
@@ -424,24 +436,24 @@ msgstr "Répertoire de préparation"
 msgid "Writable"
 msgstr "Accessible en écriture"
 
-#: packages/wordpress/src/Rest/HealthController.php:60
+#: packages/wordpress/src/Rest/HealthController.php:61
 msgid "Staging location"
 msgstr "Emplacement de préparation"
 
-#: packages/wordpress/src/Rest/HealthController.php:60
-msgid "The staging directory is inside the web root. Make sure the web server denies access or choose a directory outside the web root in the settings."
-msgstr "Le répertoire de préparation se trouve dans la racine web. Assurez-vous que le serveur web en interdit l'accès ou choisissez dans les réglages un répertoire situé en dehors de la racine web."
+#: packages/wordpress/src/Rest/HealthController.php:61
+msgid "The staging directory is inside the web root: unless the web server denies access to it, anyone who knows a file name can download backups including the database. Choose a directory outside the web root in the settings, or deny access in the web server configuration (see the user guide)."
+msgstr "Le répertoire de préparation se trouve dans la racine web : à moins que le serveur web n'en interdise l'accès, toute personne connaissant un nom de fichier peut télécharger les sauvegardes, base de données comprise. Choisissez un répertoire en dehors de la racine web dans les réglages, ou interdisez l'accès dans la configuration du serveur web (voir le guide de l'utilisateur)."
 
-#: packages/wordpress/src/Rest/HealthController.php:64
+#: packages/wordpress/src/Rest/HealthController.php:65
 msgid "Free disk space"
 msgstr "Espace disque libre"
 
-#: packages/wordpress/src/Rest/HealthController.php:69
+#: packages/wordpress/src/Rest/HealthController.php:70
 msgid "WP-Cron only runs when your site receives visitors. For reliable schedules use a real system cron job: * * * * * wp swbackupit schedule run-due"
 msgstr "WP-Cron ne s'exécute que lorsque votre site reçoit des visites. Pour des planifications fiables, utilisez une vraie tâche cron système : * * * * * wp swbackupit schedule run-due"
 
 #. translators: %s: schedule names
-#: packages/wordpress/src/Rest/HealthController.php:78
+#: packages/wordpress/src/Rest/HealthController.php:79
 #, php-format
 msgid "Overdue schedules: %s"
 msgstr "Planifications en retard : %s"
@@ -490,7 +502,7 @@ msgid "Invalid cron expression."
 msgstr "Expression cron invalide."
 
 #: packages/wordpress/src/Rest/SchedulesController.php:193
-#: packages/wordpress/src/Support/Settings.php:107
+#: packages/wordpress/src/Support/Settings.php:115
 msgid "Unknown timezone."
 msgstr "Fuseau horaire inconnu."
 
@@ -522,12 +534,12 @@ msgstr "Destination de stockage introuvable."
 msgid "The storage target is used by a profile."
 msgstr "La destination de stockage est utilisée par un profil."
 
-#: packages/wordpress/src/Runner/BackgroundChecks.php:48
+#: packages/wordpress/src/Runner/BackgroundChecks.php:53
 msgid "A stored backup failed its integrity check"
 msgstr "Une sauvegarde stockée a échoué au contrôle d'intégrité"
 
 #. translators: 1: backup id, 2: details
-#: packages/wordpress/src/Runner/BackgroundChecks.php:49
+#: packages/wordpress/src/Runner/BackgroundChecks.php:54
 #, php-format
 msgid "Backup %1$s is damaged or incomplete: %2$s"
 msgstr "La sauvegarde %1$s est endommagée ou incomplète : %2$s"
@@ -556,23 +568,24 @@ msgstr "L'espace de stockage des sauvegardes est presque épuisé"
 msgid "Only %s are free in the backup staging directory."
 msgstr "Seuls %s sont libres dans le répertoire de préparation des sauvegardes."
 
-#: packages/wordpress/src/Runner/JobService.php:42
+#: packages/wordpress/src/Runner/JobService.php:92
+#: packages/wordpress/src/Runner/JobService.php:108
 msgid "Another backup is already running."
 msgstr "Une autre sauvegarde est déjà en cours."
 
-#: packages/wordpress/src/Runner/JobService.php:83
+#: packages/wordpress/src/Runner/JobService.php:146
 msgid "The job cannot be paused in its current state."
 msgstr "La tâche ne peut pas être mise en pause dans son état actuel."
 
-#: packages/wordpress/src/Runner/JobService.php:94
+#: packages/wordpress/src/Runner/JobService.php:157
 msgid "Only paused jobs can be resumed."
 msgstr "Seules les tâches en pause peuvent être reprises."
 
-#: packages/wordpress/src/Runner/JobService.php:104
+#: packages/wordpress/src/Runner/JobService.php:172
 msgid "The job has already finished."
 msgstr "La tâche est déjà terminée."
 
-#: packages/wordpress/src/Runner/JobService.php:125
+#: packages/wordpress/src/Runner/JobService.php:194
 msgid "Only failed jobs can be retried."
 msgstr "Seules les tâches échouées peuvent être relancées."
 
@@ -622,7 +635,7 @@ msgstr "Échec de la sauvegarde « %s »"
 msgid "The backup \"%1$s\" failed: %2$s"
 msgstr "La sauvegarde « %1$s » a échoué : %2$s"
 
-#: packages/wordpress/src/Runner/PreUpdateBackup.php:91
+#: packages/wordpress/src/Runner/PreUpdateBackup.php:155
 msgid "The update was stopped because the backup before the update failed."
 msgstr "La mise à jour a été interrompue car la sauvegarde précédant la mise à jour a échoué."
 
@@ -642,19 +655,29 @@ msgstr "Ce site n'utilise pas HTTPS : le jeton de restauration et le mot de pas
 msgid "The backup is encrypted: have the key or passphrase ready."
 msgstr "La sauvegarde est chiffrée : tenez la clé ou la phrase secrète à disposition."
 
-#: packages/wordpress/src/Runner/RestorePreparer.php:97
+#: packages/wordpress/src/Runner/RestorePreparer.php:119
 msgid "The restore application files are missing from this installation."
 msgstr "Les fichiers de l'application de restauration sont absents de cette installation."
 
-#: packages/wordpress/src/Runner/RestoreTestService.php:41
+#: packages/wordpress/src/Runner/RestoreTestService.php:50
 msgid "Test restore of a backup failed"
 msgstr "Échec de la restauration de test d'une sauvegarde"
 
 #. translators: %s: backup id
-#: packages/wordpress/src/Runner/RestoreTestService.php:42
+#: packages/wordpress/src/Runner/RestoreTestService.php:51
 #, php-format
 msgid "The automated test restore of backup %s failed. The backup may not be restorable."
 msgstr "La restauration de test automatisée de la sauvegarde %s a échoué. La sauvegarde n'est peut-être pas restaurable."
+
+#: packages/wordpress/src/Runner/RestoreTestService.php:58
+msgid "Test restore of a backup succeeded"
+msgstr "Restauration de test d'une sauvegarde réussie"
+
+#. translators: %s: backup id
+#: packages/wordpress/src/Runner/RestoreTestService.php:59
+#, php-format
+msgid "The automated test restore of backup %s succeeded."
+msgstr "La restauration de test automatique de la sauvegarde %s a réussi."
 
 #: packages/wordpress/src/Support/CoreMessages.php:34
 msgid "A backup file failed verification."
@@ -701,720 +724,752 @@ msgid "A raw key must be exactly 32 bytes."
 msgstr "Une clé brute doit faire exactement 32 octets."
 
 #: packages/wordpress/src/Support/CoreMessages.php:45
+msgid "A statement is larger than max_allowed_packet of the target database server. Raise max_allowed_packet and run the restore again to continue."
+msgstr "Une instruction dépasse max_allowed_packet du serveur de base de données cible. Augmentez max_allowed_packet et relancez la restauration pour continuer."
+
+#: packages/wordpress/src/Support/CoreMessages.php:46
 msgid "Archive entry is larger than declared (possible zip bomb)."
 msgstr "L'entrée de l'archive est plus grande que déclaré (bombe ZIP possible)."
 
-#: packages/wordpress/src/Support/CoreMessages.php:46
+#: packages/wordpress/src/Support/CoreMessages.php:47
 msgid "Archive entry is missing."
 msgstr "L'entrée de l'archive est manquante."
 
-#: packages/wordpress/src/Support/CoreMessages.php:47
+#: packages/wordpress/src/Support/CoreMessages.php:48
 msgid "Archive entry is truncated."
 msgstr "L'entrée de l'archive est tronquée."
 
-#: packages/wordpress/src/Support/CoreMessages.php:48
+#: packages/wordpress/src/Support/CoreMessages.php:49
 msgid "Archive entry size differs from the index."
 msgstr "La taille de l'entrée de l'archive diffère de l'index."
 
-#: packages/wordpress/src/Support/CoreMessages.php:49
+#: packages/wordpress/src/Support/CoreMessages.php:50
 msgid "Archive volume checksum mismatch."
 msgstr "La somme de contrôle du volume d'archive ne correspond pas."
 
-#: packages/wordpress/src/Support/CoreMessages.php:50
+#: packages/wordpress/src/Support/CoreMessages.php:51
 msgid "Archive volume has an unexpected entry count."
 msgstr "Le volume d'archive contient un nombre d'entrées inattendu."
 
-#: packages/wordpress/src/Support/CoreMessages.php:51
+#: packages/wordpress/src/Support/CoreMessages.php:52
 msgid "Archive volume has an unexpected size."
 msgstr "Le volume d'archive a une taille inattendue."
 
-#: packages/wordpress/src/Support/CoreMessages.php:52
+#: packages/wordpress/src/Support/CoreMessages.php:53
 msgid "Archive volume is missing or has an unexpected size."
 msgstr "Le volume d'archive est manquant ou a une taille inattendue."
 
-#: packages/wordpress/src/Support/CoreMessages.php:53
+#: packages/wordpress/src/Support/CoreMessages.php:54
 msgid "Archive volume is missing."
 msgstr "Le volume d'archive est manquant."
 
-#: packages/wordpress/src/Support/CoreMessages.php:54
+#: packages/wordpress/src/Support/CoreMessages.php:55
 msgid "Archive volume is not a valid ZIP file."
 msgstr "Le volume d'archive n'est pas un fichier ZIP valide."
 
-#: packages/wordpress/src/Support/CoreMessages.php:55
+#: packages/wordpress/src/Support/CoreMessages.php:56
 msgid "Backup directory does not exist."
 msgstr "Le répertoire de sauvegarde n'existe pas."
 
-#: packages/wordpress/src/Support/CoreMessages.php:56
+#: packages/wordpress/src/Support/CoreMessages.php:57
 msgid "Backup has no manifest (incomplete backup?)."
 msgstr "La sauvegarde n'a pas de manifeste (sauvegarde incomplète ?)."
 
-#: packages/wordpress/src/Support/CoreMessages.php:57
+#: packages/wordpress/src/Support/CoreMessages.php:58
 msgid "Backup verification failed"
 msgstr "Échec de la vérification de la sauvegarde"
 
-#: packages/wordpress/src/Support/CoreMessages.php:58
+#: packages/wordpress/src/Support/CoreMessages.php:59
 msgid "Backup was created by a newer, unsupported format version."
 msgstr "La sauvegarde a été créée avec une version de format plus récente, non prise en charge."
 
-#: packages/wordpress/src/Support/CoreMessages.php:59
+#: packages/wordpress/src/Support/CoreMessages.php:60
 msgid "Batch rows must be between 1 and 100000."
 msgstr "Le nombre de lignes par lot doit être compris entre 1 et 100000."
 
-#: packages/wordpress/src/Support/CoreMessages.php:60
+#: packages/wordpress/src/Support/CoreMessages.php:61
 msgid "Cannot connect to the database."
 msgstr "Impossible de se connecter à la base de données."
 
-#: packages/wordpress/src/Support/CoreMessages.php:61
+#: packages/wordpress/src/Support/CoreMessages.php:62
 msgid "Cannot create archive volume."
 msgstr "Impossible de créer le volume d'archive."
 
-#: packages/wordpress/src/Support/CoreMessages.php:62
+#: packages/wordpress/src/Support/CoreMessages.php:63
 msgid "Cannot create database export part."
 msgstr "Impossible de créer la partie d'export de la base de données."
 
-#: packages/wordpress/src/Support/CoreMessages.php:63
+#: packages/wordpress/src/Support/CoreMessages.php:64
 msgid "Cannot create directory."
 msgstr "Impossible de créer le répertoire."
 
-#: packages/wordpress/src/Support/CoreMessages.php:64
+#: packages/wordpress/src/Support/CoreMessages.php:65
 msgid "Cannot encode JSON."
 msgstr "Impossible d'encoder en JSON."
 
-#: packages/wordpress/src/Support/CoreMessages.php:65
+#: packages/wordpress/src/Support/CoreMessages.php:66
 msgid "Cannot finalize archive volume."
 msgstr "Impossible de finaliser le volume d'archive."
 
-#: packages/wordpress/src/Support/CoreMessages.php:66
+#: packages/wordpress/src/Support/CoreMessages.php:67
 msgid "Cannot finalize database export part."
 msgstr "Impossible de finaliser la partie d'export de la base de données."
 
-#: packages/wordpress/src/Support/CoreMessages.php:67
+#: packages/wordpress/src/Support/CoreMessages.php:68
 msgid "Cannot finalize file."
 msgstr "Impossible de finaliser le fichier."
 
-#: packages/wordpress/src/Support/CoreMessages.php:68
+#: packages/wordpress/src/Support/CoreMessages.php:69
 msgid "Cannot finalize the decrypted file."
 msgstr "Impossible de finaliser le fichier déchiffré."
 
-#: packages/wordpress/src/Support/CoreMessages.php:69
+#: packages/wordpress/src/Support/CoreMessages.php:70
 msgid "Cannot finalize the downloaded file."
 msgstr "Impossible de finaliser le fichier téléchargé."
 
-#: packages/wordpress/src/Support/CoreMessages.php:70
+#: packages/wordpress/src/Support/CoreMessages.php:71
 msgid "Cannot finalize the encrypted file."
 msgstr "Impossible de finaliser le fichier chiffré."
 
-#: packages/wordpress/src/Support/CoreMessages.php:71
+#: packages/wordpress/src/Support/CoreMessages.php:72
 msgid "Cannot hash the file index."
 msgstr "Impossible de calculer l'empreinte de l'index des fichiers."
 
-#: packages/wordpress/src/Support/CoreMessages.php:72
+#: packages/wordpress/src/Support/CoreMessages.php:73
 msgid "Cannot hash the local file."
 msgstr "Impossible de calculer l'empreinte du fichier local."
 
-#: packages/wordpress/src/Support/CoreMessages.php:73
+#: packages/wordpress/src/Support/CoreMessages.php:74
 msgid "Cannot lock job."
 msgstr "Impossible de verrouiller la tâche."
 
-#: packages/wordpress/src/Support/CoreMessages.php:74
+#: packages/wordpress/src/Support/CoreMessages.php:75
 msgid "Cannot move the restored file into place."
 msgstr "Impossible de déplacer le fichier restauré à son emplacement."
 
-#: packages/wordpress/src/Support/CoreMessages.php:75
+#: packages/wordpress/src/Support/CoreMessages.php:76
 msgid "Cannot open archive volume."
 msgstr "Impossible d'ouvrir le volume d'archive."
 
-#: packages/wordpress/src/Support/CoreMessages.php:76
+#: packages/wordpress/src/Support/CoreMessages.php:77
 msgid "Cannot open database export part."
 msgstr "Impossible d'ouvrir la partie d'export de la base de données."
 
-#: packages/wordpress/src/Support/CoreMessages.php:77
+#: packages/wordpress/src/Support/CoreMessages.php:78
 msgid "Cannot open file for archiving."
 msgstr "Impossible d'ouvrir le fichier pour l'archivage."
 
-#: packages/wordpress/src/Support/CoreMessages.php:78
+#: packages/wordpress/src/Support/CoreMessages.php:79
 msgid "Cannot open file index."
 msgstr "Impossible d'ouvrir l'index des fichiers."
 
-#: packages/wordpress/src/Support/CoreMessages.php:79
+#: packages/wordpress/src/Support/CoreMessages.php:80
 msgid "Cannot open job lock."
 msgstr "Impossible d'ouvrir le verrou de la tâche."
 
-#: packages/wordpress/src/Support/CoreMessages.php:80
+#: packages/wordpress/src/Support/CoreMessages.php:81
 msgid "Cannot read archive entry."
 msgstr "Impossible de lire l'entrée de l'archive."
 
-#: packages/wordpress/src/Support/CoreMessages.php:81
+#: packages/wordpress/src/Support/CoreMessages.php:82
 msgid "Cannot read file."
 msgstr "Impossible de lire le fichier."
 
-#: packages/wordpress/src/Support/CoreMessages.php:82
+#: packages/wordpress/src/Support/CoreMessages.php:83
 msgid "Cannot read table structure."
 msgstr "Impossible de lire la structure de la table."
 
-#: packages/wordpress/src/Support/CoreMessages.php:83
+#: packages/wordpress/src/Support/CoreMessages.php:84
 msgid "Cannot read the encrypted file."
 msgstr "Impossible de lire le fichier chiffré."
 
-#: packages/wordpress/src/Support/CoreMessages.php:84
+#: packages/wordpress/src/Support/CoreMessages.php:85
 msgid "Cannot read the file to encrypt."
 msgstr "Impossible de lire le fichier à chiffrer."
 
-#: packages/wordpress/src/Support/CoreMessages.php:85
+#: packages/wordpress/src/Support/CoreMessages.php:86
 msgid "Cannot read the local file."
 msgstr "Impossible de lire le fichier local."
 
-#: packages/wordpress/src/Support/CoreMessages.php:86
+#: packages/wordpress/src/Support/CoreMessages.php:87
 msgid "Cannot write database export (disk full?)."
 msgstr "Impossible d'écrire l'export de la base de données (disque plein ?)."
 
-#: packages/wordpress/src/Support/CoreMessages.php:87
+#: packages/wordpress/src/Support/CoreMessages.php:88
 msgid "Cannot write file index (disk full?)."
 msgstr "Impossible d'écrire l'index des fichiers (disque plein ?)."
 
-#: packages/wordpress/src/Support/CoreMessages.php:88
+#: packages/wordpress/src/Support/CoreMessages.php:89
 msgid "Cannot write file."
 msgstr "Impossible d'écrire le fichier."
 
-#: packages/wordpress/src/Support/CoreMessages.php:89
+#: packages/wordpress/src/Support/CoreMessages.php:90
 msgid "Cannot write the decrypted file."
 msgstr "Impossible d'écrire le fichier déchiffré."
 
-#: packages/wordpress/src/Support/CoreMessages.php:90
+#: packages/wordpress/src/Support/CoreMessages.php:91
 msgid "Cannot write the downloaded file."
 msgstr "Impossible d'écrire le fichier téléchargé."
 
-#: packages/wordpress/src/Support/CoreMessages.php:91
+#: packages/wordpress/src/Support/CoreMessages.php:92
 msgid "Cannot write the encrypted file."
 msgstr "Impossible d'écrire le fichier chiffré."
 
-#: packages/wordpress/src/Support/CoreMessages.php:92
+#: packages/wordpress/src/Support/CoreMessages.php:93
 msgid "Cannot write to the restore target (permissions?)."
 msgstr "Impossible d'écrire dans la cible de restauration (permissions ?)."
 
-#: packages/wordpress/src/Support/CoreMessages.php:93
+#: packages/wordpress/src/Support/CoreMessages.php:94
 msgid "Checksum mismatch while restoring a file."
 msgstr "Somme de contrôle incorrecte lors de la restauration d'un fichier."
 
-#: packages/wordpress/src/Support/CoreMessages.php:94
+#: packages/wordpress/src/Support/CoreMessages.php:95
 msgid "Compression level must be between 1 and 9."
 msgstr "Le niveau de compression doit être compris entre 1 et 9."
 
-#: packages/wordpress/src/Support/CoreMessages.php:95
+#: packages/wordpress/src/Support/CoreMessages.php:96
 msgid "Constant is not allowed to be changed."
 msgstr "La modification de la constante n'est pas autorisée."
 
-#: packages/wordpress/src/Support/CoreMessages.php:96
+#: packages/wordpress/src/Support/CoreMessages.php:97
 msgid "Corrupt file index line."
 msgstr "Ligne de l'index des fichiers corrompue."
 
-#: packages/wordpress/src/Support/CoreMessages.php:97
+#: packages/wordpress/src/Support/CoreMessages.php:98
 msgid "Credentials in the endpoint URL are not allowed."
 msgstr "Les identifiants dans l'URL du point de terminaison ne sont pas autorisés."
 
-#: packages/wordpress/src/Support/CoreMessages.php:98
+#: packages/wordpress/src/Support/CoreMessages.php:99
 msgid "Database export failed."
 msgstr "Échec de l'export de la base de données."
 
-#: packages/wordpress/src/Support/CoreMessages.php:99
+#: packages/wordpress/src/Support/CoreMessages.php:100
 msgid "Database export part is corrupt (read failed)."
 msgstr "La partie d'export de la base de données est corrompue (échec de lecture)."
 
-#: packages/wordpress/src/Support/CoreMessages.php:100
+#: packages/wordpress/src/Support/CoreMessages.php:101
 msgid "Database import failed."
 msgstr "Échec de l'import de la base de données."
 
-#: packages/wordpress/src/Support/CoreMessages.php:101
+#: packages/wordpress/src/Support/CoreMessages.php:102
 msgid "Database part size is too small."
 msgstr "La taille des parties de la base de données est trop petite."
 
-#: packages/wordpress/src/Support/CoreMessages.php:102
+#: packages/wordpress/src/Support/CoreMessages.php:103
 msgid "Database query failed."
 msgstr "Échec de la requête de base de données."
 
-#: packages/wordpress/src/Support/CoreMessages.php:103
+#: packages/wordpress/src/Support/CoreMessages.php:104
 msgid "Decryption failed: wrong key or the data was modified."
 msgstr "Échec du déchiffrement : clé incorrecte ou données modifiées."
 
-#: packages/wordpress/src/Support/CoreMessages.php:104
+#: packages/wordpress/src/Support/CoreMessages.php:105
 msgid "Disk write failed (disk full?)."
 msgstr "Échec de l'écriture sur le disque (disque plein ?)."
 
-#: packages/wordpress/src/Support/CoreMessages.php:105
+#: packages/wordpress/src/Support/CoreMessages.php:106
 msgid "Encryption keys must not be serialized."
 msgstr "Les clés de chiffrement ne doivent pas être sérialisées."
 
-#: packages/wordpress/src/Support/CoreMessages.php:106
+#: packages/wordpress/src/Support/CoreMessages.php:107
 msgid "Encryption requires the PHP 'sodium' extension."
 msgstr "Le chiffrement nécessite l'extension PHP « sodium »."
 
-#: packages/wordpress/src/Support/CoreMessages.php:107
+#: packages/wordpress/src/Support/CoreMessages.php:108
 msgid "External paths must be absolute and free of traversal."
 msgstr "Les chemins externes doivent être absolus et exempts de traversée de répertoires."
 
-#: packages/wordpress/src/Support/CoreMessages.php:108
+#: packages/wordpress/src/Support/CoreMessages.php:109
 msgid "File contains invalid JSON."
 msgstr "Le fichier contient du JSON invalide."
 
-#: packages/wordpress/src/Support/CoreMessages.php:109
+#: packages/wordpress/src/Support/CoreMessages.php:110
 msgid "File does not contain a JSON object."
 msgstr "Le fichier ne contient pas d'objet JSON."
 
-#: packages/wordpress/src/Support/CoreMessages.php:110
+#: packages/wordpress/src/Support/CoreMessages.php:111
 msgid "File index and archive volumes are inconsistent."
 msgstr "L'index des fichiers et les volumes d'archive sont incohérents."
 
-#: packages/wordpress/src/Support/CoreMessages.php:111
+#: packages/wordpress/src/Support/CoreMessages.php:112
 msgid "File index entry count differs from the inventory."
 msgstr "Le nombre d'entrées de l'index des fichiers diffère de l'inventaire."
 
-#: packages/wordpress/src/Support/CoreMessages.php:112
+#: packages/wordpress/src/Support/CoreMessages.php:113
 msgid "File index references a missing volume."
 msgstr "L'index des fichiers référence un volume manquant."
 
-#: packages/wordpress/src/Support/CoreMessages.php:113
+#: packages/wordpress/src/Support/CoreMessages.php:114
 msgid "Files and database restored into the isolated environment."
 msgstr "Fichiers et base de données restaurés dans l'environnement isolé."
 
-#: packages/wordpress/src/Support/CoreMessages.php:114
+#: packages/wordpress/src/Support/CoreMessages.php:115
 msgid "Finishing the archive volume failed."
 msgstr "Échec de la finalisation du volume d'archive."
 
-#: packages/wordpress/src/Support/CoreMessages.php:115
+#: packages/wordpress/src/Support/CoreMessages.php:116
 msgid "Invalid backup id."
 msgstr "Identifiant de sauvegarde invalide."
 
-#: packages/wordpress/src/Support/CoreMessages.php:116
+#: packages/wordpress/src/Support/CoreMessages.php:117
 msgid "Invalid database charset."
 msgstr "Jeu de caractères de la base de données invalide."
 
-#: packages/wordpress/src/Support/CoreMessages.php:117
+#: packages/wordpress/src/Support/CoreMessages.php:118
 msgid "Invalid database name."
 msgstr "Nom de base de données invalide."
 
-#: packages/wordpress/src/Support/CoreMessages.php:118
+#: packages/wordpress/src/Support/CoreMessages.php:119
 msgid "Invalid job state transition."
 msgstr "Transition d'état de la tâche invalide."
 
-#: packages/wordpress/src/Support/CoreMessages.php:119
+#: packages/wordpress/src/Support/CoreMessages.php:120
 msgid "Invalid relative path in profile."
 msgstr "Chemin relatif invalide dans le profil."
 
-#: packages/wordpress/src/Support/CoreMessages.php:120
+#: packages/wordpress/src/Support/CoreMessages.php:121
 msgid "Invalid table prefix."
 msgstr "Préfixe de table invalide."
 
-#: packages/wordpress/src/Support/CoreMessages.php:121
+#: packages/wordpress/src/Support/CoreMessages.php:122
 msgid "Job already exists."
 msgstr "La tâche existe déjà."
 
-#: packages/wordpress/src/Support/CoreMessages.php:123
+#: packages/wordpress/src/Support/CoreMessages.php:124
 msgid "Manifest contains an invalid database part entry."
 msgstr "Le manifeste contient une entrée de partie de base de données invalide."
 
-#: packages/wordpress/src/Support/CoreMessages.php:124
+#: packages/wordpress/src/Support/CoreMessages.php:125
 msgid "Manifest contains an invalid volume entry."
 msgstr "Le manifeste contient une entrée de volume invalide."
 
-#: packages/wordpress/src/Support/CoreMessages.php:125
+#: packages/wordpress/src/Support/CoreMessages.php:126
 msgid "Manifest database section is invalid."
 msgstr "La section base de données du manifeste est invalide."
 
-#: packages/wordpress/src/Support/CoreMessages.php:126
+#: packages/wordpress/src/Support/CoreMessages.php:127
 msgid "Manifest file index description is invalid."
 msgstr "La description de l'index des fichiers du manifeste est invalide."
 
-#: packages/wordpress/src/Support/CoreMessages.php:127
+#: packages/wordpress/src/Support/CoreMessages.php:128
 msgid "Manifest has an invalid backup id."
 msgstr "Le manifeste contient un identifiant de sauvegarde invalide."
 
-#: packages/wordpress/src/Support/CoreMessages.php:128
+#: packages/wordpress/src/Support/CoreMessages.php:129
 msgid "Manifest has an invalid backup type."
 msgstr "Le manifeste contient un type de sauvegarde invalide."
 
-#: packages/wordpress/src/Support/CoreMessages.php:129
+#: packages/wordpress/src/Support/CoreMessages.php:130
 msgid "Manifest has an invalid creation date."
 msgstr "Le manifeste contient une date de création invalide."
 
-#: packages/wordpress/src/Support/CoreMessages.php:130
+#: packages/wordpress/src/Support/CoreMessages.php:131
 msgid "Manifest has no valid format version."
 msgstr "Le manifeste n'a pas de version de format valide."
 
-#: packages/wordpress/src/Support/CoreMessages.php:131
+#: packages/wordpress/src/Support/CoreMessages.php:132
 msgid "Manifest is unreadable."
 msgstr "Le manifeste est illisible."
 
-#: packages/wordpress/src/Support/CoreMessages.php:132
+#: packages/wordpress/src/Support/CoreMessages.php:133
 msgid "Memory limit must be at least 16 MB."
 msgstr "La limite de mémoire doit être d'au moins 16 Mo."
 
-#: packages/wordpress/src/Support/CoreMessages.php:133
+#: packages/wordpress/src/Support/CoreMessages.php:134
 msgid "No account with CREATE DATABASE privilege available."
 msgstr "Aucun compte disposant du privilège CREATE DATABASE n'est disponible."
 
-#: packages/wordpress/src/Support/CoreMessages.php:134
+#: packages/wordpress/src/Support/CoreMessages.php:135
 msgid "No database connection configured."
 msgstr "Aucune connexion à la base de données configurée."
 
-#: packages/wordpress/src/Support/CoreMessages.php:135
+#: packages/wordpress/src/Support/CoreMessages.php:136
 msgid "No storage manager is configured."
 msgstr "Aucun gestionnaire de stockage n'est configuré."
 
-#: packages/wordpress/src/Support/CoreMessages.php:136
+#: packages/wordpress/src/Support/CoreMessages.php:137
 msgid "Not a SWBackupIt manifest."
 msgstr "Ce n'est pas un manifeste SWBackupIt."
 
-#: packages/wordpress/src/Support/CoreMessages.php:137
+#: packages/wordpress/src/Support/CoreMessages.php:138
 msgid "Not an SWBackupIt encrypted file."
 msgstr "Ce n'est pas un fichier chiffré SWBackupIt."
 
-#: packages/wordpress/src/Support/CoreMessages.php:138
+#: packages/wordpress/src/Support/CoreMessages.php:139
 msgid "Not enough free disk space in the staging directory."
 msgstr "Espace disque libre insuffisant dans le répertoire de préparation."
 
-#: packages/wordpress/src/Support/CoreMessages.php:139
+#: packages/wordpress/src/Support/CoreMessages.php:140
 msgid "Object lock needs mode GOVERNANCE or COMPLIANCE and 1-3650 retention days."
 msgstr "Le verrouillage d'objet nécessite le mode GOVERNANCE ou COMPLIANCE et une rétention de 1 à 3650 jours."
 
-#: packages/wordpress/src/Support/CoreMessages.php:140
+#: packages/wordpress/src/Support/CoreMessages.php:141
 msgid "Only before_* events may use the blocking failure policy."
 msgstr "Seuls les événements before_* peuvent utiliser la politique d'échec bloquante."
 
-#: packages/wordpress/src/Support/CoreMessages.php:141
+#: packages/wordpress/src/Support/CoreMessages.php:142
 msgid "Paths outside the WordPress directory are not supported yet (planned for a later release)."
 msgstr "Les chemins situés en dehors du répertoire WordPress ne sont pas encore pris en charge (prévu dans une prochaine version)."
 
-#: packages/wordpress/src/Support/CoreMessages.php:142
+#: packages/wordpress/src/Support/CoreMessages.php:143
+msgid "Primary key paging does not advance."
+msgstr "La pagination par clé primaire ne progresse pas."
+
+#: packages/wordpress/src/Support/CoreMessages.php:144
 msgid "Profile name must not be empty."
 msgstr "Le nom du profil ne doit pas être vide."
 
-#: packages/wordpress/src/Support/CoreMessages.php:143
+#: packages/wordpress/src/Support/CoreMessages.php:145
 msgid "Query failed."
 msgstr "Échec de la requête."
 
-#: packages/wordpress/src/Support/CoreMessages.php:144
+#: packages/wordpress/src/Support/CoreMessages.php:146
 msgid "Reading the archive entry failed."
 msgstr "Échec de la lecture de l'entrée de l'archive."
 
-#: packages/wordpress/src/Support/CoreMessages.php:145
+#: packages/wordpress/src/Support/CoreMessages.php:147
 msgid "Refusing to replace a non-regular file."
 msgstr "Refus de remplacer un fichier non régulier."
 
-#: packages/wordpress/src/Support/CoreMessages.php:146
+#: packages/wordpress/src/Support/CoreMessages.php:148
 msgid "Refusing to restore into the filesystem root."
 msgstr "Refus de restaurer à la racine du système de fichiers."
 
-#: packages/wordpress/src/Support/CoreMessages.php:147
+#: packages/wordpress/src/Support/CoreMessages.php:149
 msgid "Refusing to write through a symlink."
 msgstr "Refus d'écrire à travers un lien symbolique."
 
-#: packages/wordpress/src/Support/CoreMessages.php:148
+#: packages/wordpress/src/Support/CoreMessages.php:150
 msgid "Relative paths must not contain traversal segments."
 msgstr "Les chemins relatifs ne doivent pas contenir de segments de traversée."
 
-#: packages/wordpress/src/Support/CoreMessages.php:149
+#: packages/wordpress/src/Support/CoreMessages.php:151
 msgid "Remote verification failed; uploading again."
 msgstr "Échec de la vérification distante ; nouvel envoi en cours."
 
-#: packages/wordpress/src/Support/CoreMessages.php:150
+#: packages/wordpress/src/Support/CoreMessages.php:152
 msgid "Required PHP extension 'pdo_mysql' is missing."
 msgstr "L'extension PHP requise « pdo_mysql » est absente."
 
-#: packages/wordpress/src/Support/CoreMessages.php:151
+#: packages/wordpress/src/Support/CoreMessages.php:153
 msgid "Required PHP extension 'zip' is missing."
 msgstr "L'extension PHP requise « zip » est absente."
 
-#: packages/wordpress/src/Support/CoreMessages.php:152
+#: packages/wordpress/src/Support/CoreMessages.php:154
 msgid "Restore exceeded the configured total size limit."
 msgstr "La restauration a dépassé la limite de taille totale configurée."
 
-#: packages/wordpress/src/Support/CoreMessages.php:153
+#: packages/wordpress/src/Support/CoreMessages.php:155
 msgid "Restored file size differs from the index."
 msgstr "La taille du fichier restauré diffère de l'index."
 
-#: packages/wordpress/src/Support/CoreMessages.php:154
+#: packages/wordpress/src/Support/CoreMessages.php:156
 msgid "Run the preflight check first; the backup must verify successfully."
 msgstr "Exécutez d'abord la vérification préalable ; la sauvegarde doit être vérifiée avec succès."
 
-#: packages/wordpress/src/Support/CoreMessages.php:155
+#: packages/wordpress/src/Support/CoreMessages.php:157
 msgid "Set the SFTP host key fingerprint (or explicitly accept the risk of an unverified host)."
 msgstr "Renseignez l'empreinte de la clé d'hôte SFTP (ou acceptez explicitement le risque d'un hôte non vérifié)."
 
-#: packages/wordpress/src/Support/CoreMessages.php:156
+#: packages/wordpress/src/Support/CoreMessages.php:158
 msgid "Some database objects could not be created (unresolved dependencies)."
 msgstr "Certains objets de la base de données n'ont pas pu être créés (dépendances non résolues)."
 
-#: packages/wordpress/src/Support/CoreMessages.php:157
+#: packages/wordpress/src/Support/CoreMessages.php:159
+msgid "Some database settings in wp-config.php are not plain values and were NOT updated. Check them before using the site:"
+msgstr "Certains réglages de base de données dans wp-config.php ne sont pas des valeurs simples et n'ont PAS été mis à jour. Vérifiez-les avant d'utiliser le site :"
+
+#: packages/wordpress/src/Support/CoreMessages.php:160
 msgid "Storage targets must not be serialized."
 msgstr "Les destinations de stockage ne doivent pas être sérialisées."
 
-#: packages/wordpress/src/Support/CoreMessages.php:158
+#: packages/wordpress/src/Support/CoreMessages.php:161
 msgid "Suspicious compression ratio, refusing to extract."
 msgstr "Taux de compression suspect, extraction refusée."
 
-#: packages/wordpress/src/Support/CoreMessages.php:159
+#: packages/wordpress/src/Support/CoreMessages.php:162
+msgid "Symbolic links from the backup were not recreated (security policy). Recreate them manually if needed:"
+msgstr "Les liens symboliques de la sauvegarde n'ont pas été recréés (politique de sécurité). Recréez-les manuellement si nécessaire :"
+
+#: packages/wordpress/src/Support/CoreMessages.php:163
 msgid "Target root does not exist."
 msgstr "La racine cible n'existe pas."
 
-#: packages/wordpress/src/Support/CoreMessages.php:160
+#: packages/wordpress/src/Support/CoreMessages.php:164
 msgid "Temporary database error during export."
 msgstr "Erreur temporaire de la base de données pendant l'export."
 
-#: packages/wordpress/src/Support/CoreMessages.php:161
+#: packages/wordpress/src/Support/CoreMessages.php:165
 msgid "The PHP sodium extension is required for encryption."
 msgstr "L'extension PHP sodium est requise pour le chiffrement."
 
-#: packages/wordpress/src/Support/CoreMessages.php:162
+#: packages/wordpress/src/Support/CoreMessages.php:166
 msgid "The SFTP root must be an absolute path without \"..\"."
 msgstr "La racine SFTP doit être un chemin absolu sans « .. »."
 
-#: packages/wordpress/src/Support/CoreMessages.php:163
+#: packages/wordpress/src/Support/CoreMessages.php:167
 msgid "The WordPress directory is not readable."
 msgstr "Le répertoire WordPress n'est pas lisible."
 
-#: packages/wordpress/src/Support/CoreMessages.php:164
+#: packages/wordpress/src/Support/CoreMessages.php:168
 msgid "The WordPress options table is readable (siteurl present)."
 msgstr "La table des options WordPress est lisible (siteurl présent)."
 
-#: packages/wordpress/src/Support/CoreMessages.php:165
+#: packages/wordpress/src/Support/CoreMessages.php:169
 msgid "The backup contains more entries than the configured limit."
 msgstr "La sauvegarde contient plus d'entrées que la limite configurée."
 
-#: packages/wordpress/src/Support/CoreMessages.php:166
+#: packages/wordpress/src/Support/CoreMessages.php:170
 msgid "The backup exceeds the configured restore size limit."
 msgstr "La sauvegarde dépasse la limite de taille de restauration configurée."
 
-#: packages/wordpress/src/Support/CoreMessages.php:167
+#: packages/wordpress/src/Support/CoreMessages.php:171
 msgid "The backup was not found in the configured backups directory."
 msgstr "La sauvegarde est introuvable dans le répertoire de sauvegardes configuré."
 
-#: packages/wordpress/src/Support/CoreMessages.php:168
+#: packages/wordpress/src/Support/CoreMessages.php:172
 msgid "The backups directory does not exist."
 msgstr "Le répertoire de sauvegardes n'existe pas."
 
-#: packages/wordpress/src/Support/CoreMessages.php:169
+#: packages/wordpress/src/Support/CoreMessages.php:173
 msgid "The base backup is encrypted but no key store is available."
 msgstr "La sauvegarde de base est chiffrée, mais aucun magasin de clés n'est disponible."
 
-#: packages/wordpress/src/Support/CoreMessages.php:170
+#: packages/wordpress/src/Support/CoreMessages.php:174
 msgid "The bucket name is invalid."
 msgstr "Le nom du bucket est invalide."
 
-#: packages/wordpress/src/Support/CoreMessages.php:171
+#: packages/wordpress/src/Support/CoreMessages.php:175
 msgid "The encrypted file failed the decryption round trip."
 msgstr "Le fichier chiffré a échoué au test aller-retour de déchiffrement."
 
-#: packages/wordpress/src/Support/CoreMessages.php:172
+#: packages/wordpress/src/Support/CoreMessages.php:176
 msgid "The encrypted file is corrupt (invalid chunk length)."
 msgstr "Le fichier chiffré est corrompu (longueur de bloc invalide)."
 
-#: packages/wordpress/src/Support/CoreMessages.php:173
+#: packages/wordpress/src/Support/CoreMessages.php:177
 msgid "The encrypted file is truncated."
 msgstr "Le fichier chiffré est tronqué."
 
-#: packages/wordpress/src/Support/CoreMessages.php:174
+#: packages/wordpress/src/Support/CoreMessages.php:178
 msgid "The endpoint URL is invalid."
 msgstr "L'URL du point de terminaison est invalide."
 
-#: packages/wordpress/src/Support/CoreMessages.php:175
+#: packages/wordpress/src/Support/CoreMessages.php:179
 msgid "The endpoint must use http or https."
 msgstr "Le point de terminaison doit utiliser http ou https."
 
-#: packages/wordpress/src/Support/CoreMessages.php:176
+#: packages/wordpress/src/Support/CoreMessages.php:180
 msgid "The endpoint points to a private or reserved network address."
 msgstr "Le point de terminaison pointe vers une adresse réseau privée ou réservée."
 
-#: packages/wordpress/src/Support/CoreMessages.php:177
+#: packages/wordpress/src/Support/CoreMessages.php:181
 msgid "The file changed while it was being uploaded."
 msgstr "Le fichier a changé pendant son envoi."
 
-#: packages/wordpress/src/Support/CoreMessages.php:178
+#: packages/wordpress/src/Support/CoreMessages.php:182
 msgid "The file index references an invalid backup id."
 msgstr "L'index des fichiers référence un identifiant de sauvegarde invalide."
 
-#: packages/wordpress/src/Support/CoreMessages.php:179
+#: packages/wordpress/src/Support/CoreMessages.php:183
 msgid "The file was encrypted with a raw key but a passphrase was supplied."
 msgstr "Le fichier a été chiffré avec une clé brute, mais une phrase secrète a été fournie."
 
-#: packages/wordpress/src/Support/CoreMessages.php:180
+#: packages/wordpress/src/Support/CoreMessages.php:184
 msgid "The host name could not be resolved."
 msgstr "Le nom d'hôte n'a pas pu être résolu."
 
-#: packages/wordpress/src/Support/CoreMessages.php:181
+#: packages/wordpress/src/Support/CoreMessages.php:185
 msgid "The host name is invalid."
 msgstr "Le nom d'hôte est invalide."
 
-#: packages/wordpress/src/Support/CoreMessages.php:182
+#: packages/wordpress/src/Support/CoreMessages.php:186
+msgid "The job lease was lost to another worker."
+msgstr "Le verrou de la tâche a été repris par un autre processus."
+
+#: packages/wordpress/src/Support/CoreMessages.php:187
 msgid "The key derivation parameters are out of the accepted range."
 msgstr "Les paramètres de dérivation de clé sont hors de la plage acceptée."
 
-#: packages/wordpress/src/Support/CoreMessages.php:183
+#: packages/wordpress/src/Support/CoreMessages.php:188
 msgid "The key id must be 1-64 characters of A-Z a-z 0-9 . _ -"
 msgstr "L'identifiant de clé doit comporter de 1 à 64 caractères parmi A-Z a-z 0-9 . _ -"
 
-#: packages/wordpress/src/Support/CoreMessages.php:184
+#: packages/wordpress/src/Support/CoreMessages.php:189
 msgid "The local file changed while it was being uploaded."
 msgstr "Le fichier local a changé pendant son envoi."
 
-#: packages/wordpress/src/Support/CoreMessages.php:185
+#: packages/wordpress/src/Support/CoreMessages.php:190
 msgid "The local file to upload does not exist."
 msgstr "Le fichier local à envoyer n'existe pas."
 
-#: packages/wordpress/src/Support/CoreMessages.php:186
+#: packages/wordpress/src/Support/CoreMessages.php:191
 msgid "The local storage directory cannot be created."
 msgstr "Le répertoire de stockage local ne peut pas être créé."
 
-#: packages/wordpress/src/Support/CoreMessages.php:187
+#: packages/wordpress/src/Support/CoreMessages.php:192
 msgid "The passphrase must be at least 8 characters long."
 msgstr "La phrase secrète doit comporter au moins 8 caractères."
 
-#: packages/wordpress/src/Support/CoreMessages.php:188
+#: packages/wordpress/src/Support/CoreMessages.php:193
 msgid "The port is invalid."
 msgstr "Le port est invalide."
 
-#: packages/wordpress/src/Support/CoreMessages.php:189
+#: packages/wordpress/src/Support/CoreMessages.php:194
 msgid "The restore application directory does not exist."
 msgstr "Le répertoire de l'application de restauration n'existe pas."
 
-#: packages/wordpress/src/Support/CoreMessages.php:190
+#: packages/wordpress/src/Support/CoreMessages.php:195
 msgid "The restore has not completed successfully; the application stays available."
 msgstr "La restauration ne s'est pas terminée avec succès ; l'application reste disponible."
 
-#: packages/wordpress/src/Support/CoreMessages.php:191
+#: packages/wordpress/src/Support/CoreMessages.php:196
 msgid "The restore target and the backup directory must not contain each other."
 msgstr "La cible de restauration et le répertoire de sauvegarde ne doivent pas se contenir mutuellement."
 
-#: packages/wordpress/src/Support/CoreMessages.php:192
+#: packages/wordpress/src/Support/CoreMessages.php:197
 msgid "The restore target directory does not exist."
 msgstr "Le répertoire cible de la restauration n'existe pas."
 
-#: packages/wordpress/src/Support/CoreMessages.php:193
+#: packages/wordpress/src/Support/CoreMessages.php:198
 msgid "The scratch database could not be created (missing privilege)."
 msgstr "La base de données temporaire n'a pas pu être créée (privilège manquant)."
 
-#: packages/wordpress/src/Support/CoreMessages.php:194
+#: packages/wordpress/src/Support/CoreMessages.php:199
 msgid "The staging directory is not writable."
 msgstr "Le répertoire de préparation n'est pas accessible en écriture."
 
-#: packages/wordpress/src/Support/CoreMessages.php:195
+#: packages/wordpress/src/Support/CoreMessages.php:200
 msgid "The storage target does not exist."
 msgstr "La destination de stockage n'existe pas."
 
-#: packages/wordpress/src/Support/CoreMessages.php:196
+#: packages/wordpress/src/Support/CoreMessages.php:201
 msgid "The target database name was not confirmed correctly."
 msgstr "Le nom de la base de données cible n'a pas été confirmé correctement."
 
-#: packages/wordpress/src/Support/CoreMessages.php:197
+#: packages/wordpress/src/Support/CoreMessages.php:202
 msgid "The target directory must be an existing absolute path."
 msgstr "Le répertoire cible doit être un chemin absolu existant."
 
-#: packages/wordpress/src/Support/CoreMessages.php:198
+#: packages/wordpress/src/Support/CoreMessages.php:203
 msgid "The target is outside the permitted restore locations."
 msgstr "La cible est en dehors des emplacements de restauration autorisés."
 
-#: packages/wordpress/src/Support/CoreMessages.php:199
+#: packages/wordpress/src/Support/CoreMessages.php:204
 msgid "The token lifetime must be between 1 minute and 7 days."
 msgstr "La durée de validité du jeton doit être comprise entre 1 minute et 7 jours."
 
-#: packages/wordpress/src/Support/CoreMessages.php:200
+#: packages/wordpress/src/Support/CoreMessages.php:205
+msgid "These files changed while the backup was running; their restored content may be inconsistent:"
+msgstr "Ces fichiers ont été modifiés pendant la sauvegarde ; leur contenu restauré peut être incohérent :"
+
+#: packages/wordpress/src/Support/CoreMessages.php:206
 msgid "This backup is encrypted. Provide the encryption key to read its contents."
 msgstr "Cette sauvegarde est chiffrée. Fournissez la clé de chiffrement pour en lire le contenu."
 
-#: packages/wordpress/src/Support/CoreMessages.php:201
+#: packages/wordpress/src/Support/CoreMessages.php:207
 msgid "Time budget must be between 1 and 3600 seconds."
 msgstr "Le budget de temps doit être compris entre 1 et 3600 secondes."
 
-#: packages/wordpress/src/Support/CoreMessages.php:202
+#: packages/wordpress/src/Support/CoreMessages.php:208
 msgid "Type the database name twice to confirm the database restore."
 msgstr "Saisissez deux fois le nom de la base de données pour confirmer la restauration de la base de données."
 
-#: packages/wordpress/src/Support/CoreMessages.php:203
+#: packages/wordpress/src/Support/CoreMessages.php:209
 msgid "URL migration needs a valid old and new URL (http:// or https://)."
 msgstr "La migration d'URL nécessite une ancienne et une nouvelle URL valides (http:// ou https://)."
 
-#: packages/wordpress/src/Support/CoreMessages.php:204
+#: packages/wordpress/src/Support/CoreMessages.php:210
 msgid "Unencrypted http endpoints require the private network opt-in."
 msgstr "Les points de terminaison http non chiffrés nécessitent l'activation explicite du réseau privé."
 
-#: packages/wordpress/src/Support/CoreMessages.php:205
+#: packages/wordpress/src/Support/CoreMessages.php:211
+msgid "Unexpected BIT value."
+msgstr "Valeur BIT inattendue."
+
+#: packages/wordpress/src/Support/CoreMessages.php:212
 msgid "Unexpected data after the end of the encrypted stream."
 msgstr "Données inattendues après la fin du flux chiffré."
 
-#: packages/wordpress/src/Support/CoreMessages.php:206
+#: packages/wordpress/src/Support/CoreMessages.php:213
 msgid "Unknown backup type."
 msgstr "Type de sauvegarde inconnu."
 
-#: packages/wordpress/src/Support/CoreMessages.php:207
+#: packages/wordpress/src/Support/CoreMessages.php:214
 msgid "Unsafe path: absolute path."
 msgstr "Chemin non sûr : chemin absolu."
 
-#: packages/wordpress/src/Support/CoreMessages.php:208
+#: packages/wordpress/src/Support/CoreMessages.php:215
 msgid "Unsafe path: control character."
 msgstr "Chemin non sûr : caractère de contrôle."
 
-#: packages/wordpress/src/Support/CoreMessages.php:209
+#: packages/wordpress/src/Support/CoreMessages.php:216
 msgid "Unsafe path: empty or too long."
 msgstr "Chemin non sûr : vide ou trop long."
 
-#: packages/wordpress/src/Support/CoreMessages.php:210
+#: packages/wordpress/src/Support/CoreMessages.php:217
 msgid "Unsafe path: forbidden character."
 msgstr "Chemin non sûr : caractère interdit."
 
-#: packages/wordpress/src/Support/CoreMessages.php:211
+#: packages/wordpress/src/Support/CoreMessages.php:218
 msgid "Unsafe path: traversal or empty segment."
 msgstr "Chemin non sûr : traversée ou segment vide."
 
-#: packages/wordpress/src/Support/CoreMessages.php:212
+#: packages/wordpress/src/Support/CoreMessages.php:219
 msgid "Unsupported compression method."
 msgstr "Méthode de compression non prise en charge."
 
-#: packages/wordpress/src/Support/CoreMessages.php:213
+#: packages/wordpress/src/Support/CoreMessages.php:220
 msgid "Unsupported encryption format version."
 msgstr "Version du format de chiffrement non prise en charge."
 
-#: packages/wordpress/src/Support/CoreMessages.php:214
+#: packages/wordpress/src/Support/CoreMessages.php:221
 msgid "Unsupported encryption parameters."
 msgstr "Paramètres de chiffrement non pris en charge."
 
-#: packages/wordpress/src/Support/CoreMessages.php:215
+#: packages/wordpress/src/Support/CoreMessages.php:222
 msgid "Unsupported storage type."
 msgstr "Type de stockage non pris en charge."
 
-#: packages/wordpress/src/Support/CoreMessages.php:216
+#: packages/wordpress/src/Support/CoreMessages.php:223
 msgid "Unsupported success policy."
 msgstr "Politique de succès non prise en charge."
 
-#: packages/wordpress/src/Support/CoreMessages.php:217
+#: packages/wordpress/src/Support/CoreMessages.php:224
 msgid "Upload to one or more storage targets failed temporarily and will be retried."
 msgstr "L'envoi vers une ou plusieurs destinations de stockage a échoué temporairement et sera retenté."
 
-#: packages/wordpress/src/Support/CoreMessages.php:218
+#: packages/wordpress/src/Support/CoreMessages.php:225
 msgid "Volume already closed."
 msgstr "Volume déjà fermé."
 
-#: packages/wordpress/src/Support/CoreMessages.php:219
+#: packages/wordpress/src/Support/CoreMessages.php:226
 msgid "Volume size is too small."
 msgstr "La taille du volume est trop petite."
 
-#: packages/wordpress/src/Support/CoreMessages.php:220
+#: packages/wordpress/src/Support/CoreMessages.php:227
 msgid "Writing failed (disk full?)."
 msgstr "Échec de l'écriture (disque plein ?)."
 
-#: packages/wordpress/src/Support/CoreMessages.php:221
+#: packages/wordpress/src/Support/CoreMessages.php:228
 msgid "Writing the archive entry failed."
 msgstr "Échec de l'écriture de l'entrée de l'archive."
 
-#: packages/wordpress/src/Support/CoreMessages.php:222
+#: packages/wordpress/src/Support/CoreMessages.php:229
 msgid "Writing to the restore target failed (disk full?)."
 msgstr "Échec de l'écriture dans la cible de restauration (disque plein ?)."
 
-#: packages/wordpress/src/Support/CoreMessages.php:223
+#: packages/wordpress/src/Support/CoreMessages.php:230
 msgid "siteurl option missing in the restored database."
 msgstr "Option siteurl absente de la base de données restaurée."
 
-#: packages/wordpress/src/Support/CoreMessages.php:224
+#: packages/wordpress/src/Support/CoreMessages.php:231
 msgid "wp-config.php was not found in the restore target."
 msgstr "wp-config.php est introuvable dans la cible de restauration."
+
+#: packages/wordpress/src/Support/CoreMessages.php:232
+msgid "wp-config.php was not found in the target; database settings were not updated."
+msgstr "wp-config.php est introuvable dans la cible ; les réglages de base de données n'ont pas été mis à jour."
 
 #: packages/wordpress/src/Support/DefaultProfiles.php:46
 msgid "Full backup (everything, without cache)"
@@ -1438,27 +1493,31 @@ msgstr "Sauvegarde incrémentielle des médias, des thèmes et des extensions (a
 msgid "Details: %s"
 msgstr "Détails : %s"
 
-#: packages/wordpress/src/Support/Settings.php:98
+#: packages/wordpress/src/Support/Settings.php:106
 msgid "The time budget must be between 1 and 3600 seconds."
 msgstr "Le budget de temps doit être compris entre 1 et 3600 secondes."
 
-#: packages/wordpress/src/Support/Settings.php:101
+#: packages/wordpress/src/Support/Settings.php:109
 msgid "Resource limits are out of range."
 msgstr "Les limites de ressources sont hors plage."
 
-#: packages/wordpress/src/Support/Settings.php:104
+#: packages/wordpress/src/Support/Settings.php:112
 msgid "Unknown cron mode."
 msgstr "Mode cron inconnu."
 
-#: packages/wordpress/src/Support/Settings.php:110
+#: packages/wordpress/src/Support/Settings.php:118
 msgid "Unknown log level."
 msgstr "Niveau de journalisation inconnu."
 
-#: packages/wordpress/src/Support/Settings.php:114
+#: packages/wordpress/src/Support/Settings.php:122
 msgid "The staging directory must be an absolute path without \"..\"."
 msgstr "Le répertoire de préparation doit être un chemin absolu sans « .. »."
 
-#: packages/wordpress/src/Support/Settings.php:118
+#: packages/wordpress/src/Support/Settings.php:125
+msgid "The staging directory is inside the web root, where backups could be downloaded by anyone. Choose a directory outside the web root."
+msgstr "Le répertoire de préparation se trouve dans la racine web, où n'importe qui pourrait télécharger les sauvegardes. Choisissez un répertoire en dehors de la racine web."
+
+#: packages/wordpress/src/Support/Settings.php:129
 msgid "Invalid notification recipient."
 msgstr "Destinataire de notification invalide."
 
@@ -1471,3 +1530,6 @@ msgstr "SWBackupIt nécessite PHP %1$s ou une version plus récente. Vous utilis
 #: swbackupit.php:54
 msgid "SWBackupIt: the vendor directory is missing. Install the release package or run \"composer install\"."
 msgstr "SWBackupIt : le répertoire vendor est manquant. Installez le paquet de la version publiée ou exécutez « composer install »."
+
+#~ msgid "The staging directory is inside the web root. Make sure the web server denies access or choose a directory outside the web root in the settings."
+#~ msgstr "Le répertoire de préparation se trouve dans la racine web. Assurez-vous que le serveur web en interdit l'accès ou choisissez dans les réglages un répertoire situé en dehors de la racine web."

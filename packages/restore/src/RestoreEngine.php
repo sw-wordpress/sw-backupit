@@ -47,6 +47,12 @@ final class RestoreEngine
     {
         $store = new RestoreStateStore($request->stateDirectory);
         $state = $store->load();
+        if ($state !== [] && ($state['fingerprint'] ?? null) !== $request->fingerprint()) {
+            // State of a different restore (other target, database, selection, ...): never continue it for this request.
+            $this->logger->notice('Discarding restore state of a different restore request.');
+            $store->clear();
+            $state = [];
+        }
         $phase = (string) ($state['phase'] ?? 'start');
         $set = null;
         try {
@@ -54,7 +60,7 @@ final class RestoreEngine
             $target = $this->confirmTarget($request, $set);
             if ($phase === 'start') {
                 $this->events->dispatch(Events::BEFORE_RESTORE, ['backup_id' => $set->manifest()->backupId(), 'target' => $target]);
-                $state = ['phase' => $request->verifyFirst ? 'verify' : 'files', 'started' => time()];
+                $state = ['phase' => $request->verifyFirst ? 'verify' : 'files', 'started' => time(), 'fingerprint' => $request->fingerprint()];
                 $store->save($state);
             }
             while (true) {
@@ -76,6 +82,9 @@ final class RestoreEngine
                         );
                         $state['files'] = $result->state;
                         if ($result->failures !== []) {
+                            // The file phase starts over on the next run so the failed entries are retried (files restored
+                            // correctly meanwhile are skipped as identical in the default overwrite mode).
+                            unset($state['files']);
                             $store->save($state);
 
                             return $this->failed($set, 'files', $result->failures, $state);
@@ -110,7 +119,7 @@ final class RestoreEngine
                     $state['phase'] = 'config';
                     $store->save($state);
                 } elseif ($phase === 'config') {
-                    $messages = $this->updateConfig($request, $set, $target);
+                    $messages = [...$this->fileNotes($state), ...$this->updateConfig($request, $set, $target)];
                     $state['phase'] = 'done';
                     $state['messages'] = $messages;
                     $store->save($state);
@@ -193,6 +202,11 @@ final class RestoreEngine
         $importer = new SqlImporter($pdo, $this->logger);
         $parts = $set->manifest()->databaseParts();
         $db = is_array($state['database'] ?? null) ? $state['database'] : ['part' => 0, 'statements' => 0];
+        if ($db === ['part' => 0, 'statements' => 0]) {
+            // A fresh import: progress of an earlier, interrupted URL migration in this database is obsolete.
+            SqlImporter::reset($pdo);
+            DatabaseMigrator::reset($pdo);
+        }
         while ($db['part'] < count($parts)) {
             $part = $parts[$db['part']];
             $path = $set->databasePartPath((string) $part['name']);
@@ -233,7 +247,11 @@ final class RestoreEngine
         $prefix = $oldPrefix;
         if ($request->newTablePrefix !== null && $request->newTablePrefix !== $oldPrefix && !$request->migrationDryRun) {
             if (($state['prefix_migrated'] ?? false) !== true) {
-                $count = (new TablePrefixMigrator($pdo))->migrate($oldPrefix, $request->newTablePrefix);
+                $backupTables = array_values(array_filter(array_map(
+                    static fn (mixed $table): string => is_array($table) ? (string) ($table['name'] ?? '') : '',
+                    (array) ($set->manifest()->section('database')['tables'] ?? []),
+                )));
+                $count = (new TablePrefixMigrator($pdo))->migrate($oldPrefix, $request->newTablePrefix, $backupTables !== [] ? $backupTables : null);
                 $state['prefix_migrated'] = true;
                 $store->save($state);
                 $this->logger->info('Table prefix migrated.', ['tables' => $count]);
@@ -249,6 +267,39 @@ final class RestoreEngine
         }
 
         return true;
+    }
+
+    /**
+     * Notes about files that need the user's attention: symlinks are never recreated (security policy), files that changed
+     * while they were archived may be inconsistent.
+     *
+     * @param array<string, mixed> $state
+     * @return list<string>
+     */
+    private function fileNotes(array $state): array
+    {
+        $files = is_array($state['files'] ?? null) ? $state['files'] : [];
+        $notes = [];
+        $groups = [
+            'symlinks' => ['symlink_list', 'Symbolic links from the backup were not recreated (security policy). Recreate them manually if needed:'],
+            'changed' => ['changed_list', 'These files changed while the backup was running; their restored content may be inconsistent:'],
+        ];
+        foreach ($groups as $counter => [$listKey, $headline]) {
+            $count = (int) ($files[$counter] ?? 0);
+            if ($count === 0) {
+                continue;
+            }
+            $list = array_values((array) ($files[$listKey] ?? []));
+            $notes[] = $headline;
+            foreach ($list as $item) {
+                $notes[] = '  ' . (string) $item;
+            }
+            if ($count > count($list)) {
+                $notes[] = '  … (+' . ($count - count($list)) . ')';
+            }
+        }
+
+        return $notes;
     }
 
     /**
@@ -279,6 +330,15 @@ final class RestoreEngine
         }
         $changed = (new WpConfigEditor($path))->update($constants, $prefix !== '' ? $prefix : null);
         $this->logger->info('wp-config.php updated.', ['changed' => $changed]);
+        // Constants defined with expressions (getenv(), other constants, ...) cannot be rewritten safely. The restored copy could
+        // otherwise silently keep using the original database, so the user has to check them.
+        $missing = array_values(array_diff(['DB_NAME', 'DB_USER', 'DB_PASSWORD', 'DB_HOST'], $changed));
+        if ($missing !== []) {
+            $messages[] = 'Some database settings in wp-config.php are not plain values and were NOT updated. Check them before using the site:';
+            foreach ($missing as $constant) {
+                $messages[] = '  ' . $constant;
+            }
+        }
 
         return $messages;
     }
