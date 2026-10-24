@@ -349,50 +349,55 @@ msgstr ""
 msgid "The directory is inside the web root, where backups could be downloaded by anyone. Choose a directory outside the web root."
 msgstr ""
 
-#: packages/wordpress/src/Rest/BackupsController.php:175
+#: packages/wordpress/src/Rest/BackupsController.php:187
 msgid "A restore is never executed inside WordPress. Use \"Prepare restore\" and continue in the standalone restore application (or the restore CLI)."
 msgstr ""
 
-#: packages/wordpress/src/Rest/BackupsController.php:188
-#: packages/wordpress/src/Rest/BackupsController.php:226
-#: packages/wordpress/src/Rest/BackupsController.php:257
-#: packages/wordpress/src/Rest/BackupsController.php:270
-#: packages/wordpress/src/Rest/BackupsController.php:287
-#: packages/wordpress/src/Rest/BackupsController.php:313
-#: packages/wordpress/src/Rest/BackupsController.php:324
-#: packages/wordpress/src/Rest/BackupsController.php:397
+#: packages/wordpress/src/Rest/BackupsController.php:200
+#: packages/wordpress/src/Rest/BackupsController.php:238
+#: packages/wordpress/src/Rest/BackupsController.php:269
+#: packages/wordpress/src/Rest/BackupsController.php:282
+#: packages/wordpress/src/Rest/BackupsController.php:299
+#: packages/wordpress/src/Rest/BackupsController.php:325
+#: packages/wordpress/src/Rest/BackupsController.php:336
+#: packages/wordpress/src/Rest/BackupsController.php:409
+#: packages/wordpress/src/Rest/BackupsController.php:443
 #: packages/wordpress/src/Runner/RestoreTestService.php:26
 msgid "Backup not found."
 msgstr ""
 
-#: packages/wordpress/src/Rest/BackupsController.php:192
+#: packages/wordpress/src/Rest/BackupsController.php:204
 msgid "The mode must be metadata or sha256."
 msgstr ""
 
-#: packages/wordpress/src/Rest/BackupsController.php:273
+#: packages/wordpress/src/Rest/BackupsController.php:285
 msgid "Deleting a backup requires confirming its id."
 msgstr ""
 
-#: packages/wordpress/src/Rest/BackupsController.php:276
+#: packages/wordpress/src/Rest/BackupsController.php:288
 msgid "The backup is protected. Remove the protection first."
 msgstr ""
 
-#: packages/wordpress/src/Rest/BackupsController.php:291
+#: packages/wordpress/src/Rest/BackupsController.php:303
 msgid "There is no local copy of this backup to verify. Its copies on the storage targets are verified during upload; download the backup from a storage target to verify it here."
 msgstr ""
 
-#: packages/wordpress/src/Rest/BackupsController.php:382
+#: packages/wordpress/src/Rest/BackupsController.php:394
 msgid "Cannot read the file."
 msgstr ""
 
-#: packages/wordpress/src/Rest/BackupsController.php:419
+#: packages/wordpress/src/Rest/BackupsController.php:412
+msgid "The backup has no complete local copy. Download it from a storage target first."
+msgstr ""
+
+#: packages/wordpress/src/Rest/BackupsController.php:465
 msgid "The requested file does not exist."
 msgstr ""
 
 #: packages/wordpress/src/Rest/BaseController.php:104
 #: packages/wordpress/src/Rest/JobsController.php:144
 #: packages/wordpress/src/Rest/JobsController.php:155
-#: packages/wordpress/src/Support/CoreMessages.php:123
+#: packages/wordpress/src/Support/CoreMessages.php:125
 msgid "Job not found."
 msgstr ""
 
@@ -639,6 +644,39 @@ msgstr ""
 msgid "The update was stopped because the backup before the update failed."
 msgstr ""
 
+#: packages/wordpress/src/Runner/RecoveryPackage.php:45
+#: packages/wordpress/src/Support/CoreMessages.php:118
+msgid "Invalid backup id."
+msgstr ""
+
+#. translators: %s: backup id
+#: packages/wordpress/src/Runner/RecoveryPackage.php:58
+#, php-format
+msgid "The backup %s has no complete local copy. Download it from a storage target first."
+msgstr ""
+
+#. translators: %s: backup id
+#: packages/wordpress/src/Runner/RecoveryPackage.php:90
+#, php-format
+msgid "SWBackupIt recovery package for backup %s"
+msgstr ""
+
+#: packages/wordpress/src/Runner/RecoveryPackage.php:92
+msgid "Contents: backups/ holds the backup and every base backup it needs, swbackupit-restore/ the standalone restore application (needs PHP 8.2 with zip and PDO MySQL, no WordPress)."
+msgstr ""
+
+#: packages/wordpress/src/Runner/RecoveryPackage.php:94
+msgid "Restore on the command line:"
+msgstr ""
+
+#: packages/wordpress/src/Runner/RecoveryPackage.php:100
+msgid "Restore in the browser: copy swbackupit-restore/ into the web root of the new server (keep backups/ outside of it), run \"php swbackupit-restore/bin/swbackupit-restore web-init --backups=/path/to/backups --app-dir=/path/to/swbackupit-restore\" and open the shown address with the shown one-time token."
+msgstr ""
+
+#: packages/wordpress/src/Runner/RecoveryPackage.php:104
+msgid "The backup is encrypted. The key or passphrase is not part of this package: you need it for the restore."
+msgstr ""
+
 #: packages/wordpress/src/Runner/RestorePreparer.php:34
 msgid "The local copy of this backup was removed. Download it from a storage target first."
 msgstr ""
@@ -655,7 +693,7 @@ msgstr ""
 msgid "The backup is encrypted: have the key or passphrase ready."
 msgstr ""
 
-#: packages/wordpress/src/Runner/RestorePreparer.php:119
+#: packages/wordpress/src/Runner/RestorePreparer.php:126
 msgid "The restore application files are missing from this installation."
 msgstr ""
 
@@ -696,778 +734,790 @@ msgid "A directory exists where a file must be restored."
 msgstr ""
 
 #: packages/wordpress/src/Support/CoreMessages.php:38
-msgid "A downloaded file failed verification."
+msgid "A directory of the recovery package does not exist."
 msgstr ""
 
 #: packages/wordpress/src/Support/CoreMessages.php:39
-msgid "A file exceeds the configured per-file size limit."
+msgid "A downloaded file failed verification."
 msgstr ""
 
 #: packages/wordpress/src/Support/CoreMessages.php:40
-msgid "A file exists where a directory must be created."
+msgid "A file exceeds the configured per-file size limit."
 msgstr ""
 
 #: packages/wordpress/src/Support/CoreMessages.php:41
-msgid "A listener vetoed the operation."
+msgid "A file exists where a directory must be created."
 msgstr ""
 
 #: packages/wordpress/src/Support/CoreMessages.php:42
-msgid "A local storage target needs an absolute path without \"..\"."
+msgid "A file of the recovery package cannot be read."
 msgstr ""
 
 #: packages/wordpress/src/Support/CoreMessages.php:43
-msgid "A path component is not a directory."
+msgid "A listener vetoed the operation."
 msgstr ""
 
 #: packages/wordpress/src/Support/CoreMessages.php:44
-msgid "A raw key must be exactly 32 bytes."
+msgid "A local storage target needs an absolute path without \"..\"."
 msgstr ""
 
 #: packages/wordpress/src/Support/CoreMessages.php:45
-msgid "A statement is larger than max_allowed_packet of the target database server. Raise max_allowed_packet and run the restore again to continue."
+msgid "A path component is not a directory."
 msgstr ""
 
 #: packages/wordpress/src/Support/CoreMessages.php:46
-msgid "Archive entry is larger than declared (possible zip bomb)."
+msgid "A raw key must be exactly 32 bytes."
 msgstr ""
 
 #: packages/wordpress/src/Support/CoreMessages.php:47
-msgid "Archive entry is missing."
+msgid "A statement is larger than max_allowed_packet of the target database server. Raise max_allowed_packet and run the restore again to continue."
 msgstr ""
 
 #: packages/wordpress/src/Support/CoreMessages.php:48
-msgid "Archive entry is truncated."
+msgid "Archive entry is larger than declared (possible zip bomb)."
 msgstr ""
 
 #: packages/wordpress/src/Support/CoreMessages.php:49
-msgid "Archive entry size differs from the index."
+msgid "Archive entry is missing."
 msgstr ""
 
 #: packages/wordpress/src/Support/CoreMessages.php:50
-msgid "Archive volume checksum mismatch."
+msgid "Archive entry is truncated."
 msgstr ""
 
 #: packages/wordpress/src/Support/CoreMessages.php:51
-msgid "Archive volume has an unexpected entry count."
+msgid "Archive entry size differs from the index."
 msgstr ""
 
 #: packages/wordpress/src/Support/CoreMessages.php:52
-msgid "Archive volume has an unexpected size."
+msgid "Archive volume checksum mismatch."
 msgstr ""
 
 #: packages/wordpress/src/Support/CoreMessages.php:53
-msgid "Archive volume is missing or has an unexpected size."
+msgid "Archive volume has an unexpected entry count."
 msgstr ""
 
 #: packages/wordpress/src/Support/CoreMessages.php:54
-msgid "Archive volume is missing."
+msgid "Archive volume has an unexpected size."
 msgstr ""
 
 #: packages/wordpress/src/Support/CoreMessages.php:55
-msgid "Archive volume is not a valid ZIP file."
+msgid "Archive volume is missing or has an unexpected size."
 msgstr ""
 
 #: packages/wordpress/src/Support/CoreMessages.php:56
-msgid "Backup directory does not exist."
+msgid "Archive volume is missing."
 msgstr ""
 
 #: packages/wordpress/src/Support/CoreMessages.php:57
-msgid "Backup has no manifest (incomplete backup?)."
+msgid "Archive volume is not a valid ZIP file."
 msgstr ""
 
 #: packages/wordpress/src/Support/CoreMessages.php:58
-msgid "Backup verification failed"
+msgid "Backup directory does not exist."
 msgstr ""
 
 #: packages/wordpress/src/Support/CoreMessages.php:59
-msgid "Backup was created by a newer, unsupported format version."
+msgid "Backup has no manifest (incomplete backup?)."
 msgstr ""
 
 #: packages/wordpress/src/Support/CoreMessages.php:60
-msgid "Batch rows must be between 1 and 100000."
+msgid "Backup verification failed"
 msgstr ""
 
 #: packages/wordpress/src/Support/CoreMessages.php:61
-msgid "Cannot connect to the database."
+msgid "Backup was created by a newer, unsupported format version."
 msgstr ""
 
 #: packages/wordpress/src/Support/CoreMessages.php:62
-msgid "Cannot create archive volume."
+msgid "Batch rows must be between 1 and 100000."
 msgstr ""
 
 #: packages/wordpress/src/Support/CoreMessages.php:63
-msgid "Cannot create database export part."
+msgid "Cannot connect to the database."
 msgstr ""
 
 #: packages/wordpress/src/Support/CoreMessages.php:64
-msgid "Cannot create directory."
+msgid "Cannot create archive volume."
 msgstr ""
 
 #: packages/wordpress/src/Support/CoreMessages.php:65
-msgid "Cannot encode JSON."
+msgid "Cannot create database export part."
 msgstr ""
 
 #: packages/wordpress/src/Support/CoreMessages.php:66
-msgid "Cannot finalize archive volume."
+msgid "Cannot create directory."
 msgstr ""
 
 #: packages/wordpress/src/Support/CoreMessages.php:67
-msgid "Cannot finalize database export part."
+msgid "Cannot encode JSON."
 msgstr ""
 
 #: packages/wordpress/src/Support/CoreMessages.php:68
-msgid "Cannot finalize file."
+msgid "Cannot finalize archive volume."
 msgstr ""
 
 #: packages/wordpress/src/Support/CoreMessages.php:69
-msgid "Cannot finalize the decrypted file."
+msgid "Cannot finalize database export part."
 msgstr ""
 
 #: packages/wordpress/src/Support/CoreMessages.php:70
-msgid "Cannot finalize the downloaded file."
+msgid "Cannot finalize file."
 msgstr ""
 
 #: packages/wordpress/src/Support/CoreMessages.php:71
-msgid "Cannot finalize the encrypted file."
+msgid "Cannot finalize the decrypted file."
 msgstr ""
 
 #: packages/wordpress/src/Support/CoreMessages.php:72
-msgid "Cannot hash the file index."
+msgid "Cannot finalize the downloaded file."
 msgstr ""
 
 #: packages/wordpress/src/Support/CoreMessages.php:73
-msgid "Cannot hash the local file."
+msgid "Cannot finalize the encrypted file."
 msgstr ""
 
 #: packages/wordpress/src/Support/CoreMessages.php:74
-msgid "Cannot lock job."
+msgid "Cannot hash the file index."
 msgstr ""
 
 #: packages/wordpress/src/Support/CoreMessages.php:75
-msgid "Cannot move the restored file into place."
+msgid "Cannot hash the local file."
 msgstr ""
 
 #: packages/wordpress/src/Support/CoreMessages.php:76
-msgid "Cannot open archive volume."
+msgid "Cannot lock job."
 msgstr ""
 
 #: packages/wordpress/src/Support/CoreMessages.php:77
-msgid "Cannot open database export part."
+msgid "Cannot move the restored file into place."
 msgstr ""
 
 #: packages/wordpress/src/Support/CoreMessages.php:78
-msgid "Cannot open file for archiving."
+msgid "Cannot open archive volume."
 msgstr ""
 
 #: packages/wordpress/src/Support/CoreMessages.php:79
-msgid "Cannot open file index."
+msgid "Cannot open database export part."
 msgstr ""
 
 #: packages/wordpress/src/Support/CoreMessages.php:80
-msgid "Cannot open job lock."
+msgid "Cannot open file for archiving."
 msgstr ""
 
 #: packages/wordpress/src/Support/CoreMessages.php:81
-msgid "Cannot read archive entry."
+msgid "Cannot open file index."
 msgstr ""
 
 #: packages/wordpress/src/Support/CoreMessages.php:82
-msgid "Cannot read file."
+msgid "Cannot open job lock."
 msgstr ""
 
 #: packages/wordpress/src/Support/CoreMessages.php:83
-msgid "Cannot read table structure."
+msgid "Cannot read archive entry."
 msgstr ""
 
 #: packages/wordpress/src/Support/CoreMessages.php:84
-msgid "Cannot read the encrypted file."
+msgid "Cannot read file."
 msgstr ""
 
 #: packages/wordpress/src/Support/CoreMessages.php:85
-msgid "Cannot read the file to encrypt."
+msgid "Cannot read table structure."
 msgstr ""
 
 #: packages/wordpress/src/Support/CoreMessages.php:86
-msgid "Cannot read the local file."
+msgid "Cannot read the encrypted file."
 msgstr ""
 
 #: packages/wordpress/src/Support/CoreMessages.php:87
-msgid "Cannot write database export (disk full?)."
+msgid "Cannot read the file to encrypt."
 msgstr ""
 
 #: packages/wordpress/src/Support/CoreMessages.php:88
-msgid "Cannot write file index (disk full?)."
+msgid "Cannot read the local file."
 msgstr ""
 
 #: packages/wordpress/src/Support/CoreMessages.php:89
-msgid "Cannot write file."
+msgid "Cannot write database export (disk full?)."
 msgstr ""
 
 #: packages/wordpress/src/Support/CoreMessages.php:90
-msgid "Cannot write the decrypted file."
+msgid "Cannot write file index (disk full?)."
 msgstr ""
 
 #: packages/wordpress/src/Support/CoreMessages.php:91
-msgid "Cannot write the downloaded file."
+msgid "Cannot write file."
 msgstr ""
 
 #: packages/wordpress/src/Support/CoreMessages.php:92
-msgid "Cannot write the encrypted file."
+msgid "Cannot write the decrypted file."
 msgstr ""
 
 #: packages/wordpress/src/Support/CoreMessages.php:93
-msgid "Cannot write to the restore target (permissions?)."
+msgid "Cannot write the downloaded file."
 msgstr ""
 
 #: packages/wordpress/src/Support/CoreMessages.php:94
-msgid "Checksum mismatch while restoring a file."
+msgid "Cannot write the encrypted file."
 msgstr ""
 
 #: packages/wordpress/src/Support/CoreMessages.php:95
-msgid "Compression level must be between 1 and 9."
+msgid "Cannot write to the restore target (permissions?)."
 msgstr ""
 
 #: packages/wordpress/src/Support/CoreMessages.php:96
-msgid "Constant is not allowed to be changed."
+msgid "Checksum mismatch while restoring a file."
 msgstr ""
 
 #: packages/wordpress/src/Support/CoreMessages.php:97
-msgid "Corrupt file index line."
+msgid "Compression level must be between 1 and 9."
 msgstr ""
 
 #: packages/wordpress/src/Support/CoreMessages.php:98
-msgid "Credentials in the endpoint URL are not allowed."
+msgid "Constant is not allowed to be changed."
 msgstr ""
 
 #: packages/wordpress/src/Support/CoreMessages.php:99
-msgid "Database export failed."
+msgid "Corrupt file index line."
 msgstr ""
 
 #: packages/wordpress/src/Support/CoreMessages.php:100
-msgid "Database export part is corrupt (read failed)."
+msgid "Credentials in the endpoint URL are not allowed."
 msgstr ""
 
 #: packages/wordpress/src/Support/CoreMessages.php:101
-msgid "Database import failed."
+msgid "Database export failed."
 msgstr ""
 
 #: packages/wordpress/src/Support/CoreMessages.php:102
-msgid "Database part size is too small."
+msgid "Database export part is corrupt (read failed)."
 msgstr ""
 
 #: packages/wordpress/src/Support/CoreMessages.php:103
-msgid "Database query failed."
+msgid "Database import failed."
 msgstr ""
 
 #: packages/wordpress/src/Support/CoreMessages.php:104
-msgid "Decryption failed: wrong key or the data was modified."
+msgid "Database part size is too small."
 msgstr ""
 
 #: packages/wordpress/src/Support/CoreMessages.php:105
-msgid "Disk write failed (disk full?)."
+msgid "Database query failed."
 msgstr ""
 
 #: packages/wordpress/src/Support/CoreMessages.php:106
-msgid "Encryption keys must not be serialized."
+msgid "Decryption failed: wrong key or the data was modified."
 msgstr ""
 
 #: packages/wordpress/src/Support/CoreMessages.php:107
-msgid "Encryption requires the PHP 'sodium' extension."
+msgid "Disk write failed (disk full?)."
 msgstr ""
 
 #: packages/wordpress/src/Support/CoreMessages.php:108
-msgid "External paths must be absolute and free of traversal."
+msgid "Encryption keys must not be serialized."
 msgstr ""
 
 #: packages/wordpress/src/Support/CoreMessages.php:109
-msgid "File contains invalid JSON."
+msgid "Encryption requires the PHP 'sodium' extension."
 msgstr ""
 
 #: packages/wordpress/src/Support/CoreMessages.php:110
-msgid "File does not contain a JSON object."
+msgid "External paths must be absolute and free of traversal."
 msgstr ""
 
 #: packages/wordpress/src/Support/CoreMessages.php:111
-msgid "File index and archive volumes are inconsistent."
+msgid "File contains invalid JSON."
 msgstr ""
 
 #: packages/wordpress/src/Support/CoreMessages.php:112
-msgid "File index entry count differs from the inventory."
+msgid "File does not contain a JSON object."
 msgstr ""
 
 #: packages/wordpress/src/Support/CoreMessages.php:113
-msgid "File index references a missing volume."
+msgid "File index and archive volumes are inconsistent."
 msgstr ""
 
 #: packages/wordpress/src/Support/CoreMessages.php:114
-msgid "Files and database restored into the isolated environment."
+msgid "File index entry count differs from the inventory."
 msgstr ""
 
 #: packages/wordpress/src/Support/CoreMessages.php:115
-msgid "Finishing the archive volume failed."
+msgid "File index references a missing volume."
 msgstr ""
 
 #: packages/wordpress/src/Support/CoreMessages.php:116
-msgid "Invalid backup id."
+msgid "Files and database restored into the isolated environment."
 msgstr ""
 
 #: packages/wordpress/src/Support/CoreMessages.php:117
-msgid "Invalid database charset."
-msgstr ""
-
-#: packages/wordpress/src/Support/CoreMessages.php:118
-msgid "Invalid database name."
+msgid "Finishing the archive volume failed."
 msgstr ""
 
 #: packages/wordpress/src/Support/CoreMessages.php:119
-msgid "Invalid job state transition."
+msgid "Invalid database charset."
 msgstr ""
 
 #: packages/wordpress/src/Support/CoreMessages.php:120
-msgid "Invalid relative path in profile."
+msgid "Invalid database name."
 msgstr ""
 
 #: packages/wordpress/src/Support/CoreMessages.php:121
-msgid "Invalid table prefix."
+msgid "Invalid job state transition."
 msgstr ""
 
 #: packages/wordpress/src/Support/CoreMessages.php:122
-msgid "Job already exists."
+msgid "Invalid relative path in profile."
+msgstr ""
+
+#: packages/wordpress/src/Support/CoreMessages.php:123
+msgid "Invalid table prefix."
 msgstr ""
 
 #: packages/wordpress/src/Support/CoreMessages.php:124
-msgid "Manifest contains an invalid database part entry."
-msgstr ""
-
-#: packages/wordpress/src/Support/CoreMessages.php:125
-msgid "Manifest contains an invalid volume entry."
+msgid "Job already exists."
 msgstr ""
 
 #: packages/wordpress/src/Support/CoreMessages.php:126
-msgid "Manifest database section is invalid."
+msgid "Manifest contains an invalid database part entry."
 msgstr ""
 
 #: packages/wordpress/src/Support/CoreMessages.php:127
-msgid "Manifest file index description is invalid."
+msgid "Manifest contains an invalid volume entry."
 msgstr ""
 
 #: packages/wordpress/src/Support/CoreMessages.php:128
-msgid "Manifest has an invalid backup id."
+msgid "Manifest database section is invalid."
 msgstr ""
 
 #: packages/wordpress/src/Support/CoreMessages.php:129
-msgid "Manifest has an invalid backup type."
+msgid "Manifest file index description is invalid."
 msgstr ""
 
 #: packages/wordpress/src/Support/CoreMessages.php:130
-msgid "Manifest has an invalid creation date."
+msgid "Manifest has an invalid backup id."
 msgstr ""
 
 #: packages/wordpress/src/Support/CoreMessages.php:131
-msgid "Manifest has no valid format version."
+msgid "Manifest has an invalid backup type."
 msgstr ""
 
 #: packages/wordpress/src/Support/CoreMessages.php:132
-msgid "Manifest is unreadable."
+msgid "Manifest has an invalid creation date."
 msgstr ""
 
 #: packages/wordpress/src/Support/CoreMessages.php:133
-msgid "Memory limit must be at least 16 MB."
+msgid "Manifest has no valid format version."
 msgstr ""
 
 #: packages/wordpress/src/Support/CoreMessages.php:134
-msgid "No account with CREATE DATABASE privilege available."
+msgid "Manifest is unreadable."
 msgstr ""
 
 #: packages/wordpress/src/Support/CoreMessages.php:135
-msgid "No database connection configured."
+msgid "Memory limit must be at least 16 MB."
 msgstr ""
 
 #: packages/wordpress/src/Support/CoreMessages.php:136
-msgid "No storage manager is configured."
+msgid "No account with CREATE DATABASE privilege available."
 msgstr ""
 
 #: packages/wordpress/src/Support/CoreMessages.php:137
-msgid "Not a SWBackupIt manifest."
+msgid "No database connection configured."
 msgstr ""
 
 #: packages/wordpress/src/Support/CoreMessages.php:138
-msgid "Not an SWBackupIt encrypted file."
+msgid "No storage manager is configured."
 msgstr ""
 
 #: packages/wordpress/src/Support/CoreMessages.php:139
-msgid "Not enough free disk space in the staging directory."
+msgid "Not a SWBackupIt manifest."
 msgstr ""
 
 #: packages/wordpress/src/Support/CoreMessages.php:140
-msgid "Object lock needs mode GOVERNANCE or COMPLIANCE and 1-3650 retention days."
+msgid "Not an SWBackupIt encrypted file."
 msgstr ""
 
 #: packages/wordpress/src/Support/CoreMessages.php:141
-msgid "Only before_* events may use the blocking failure policy."
+msgid "Not enough free disk space in the staging directory."
 msgstr ""
 
 #: packages/wordpress/src/Support/CoreMessages.php:142
-msgid "Paths outside the WordPress directory are not supported yet (planned for a later release)."
+msgid "Object lock needs mode GOVERNANCE or COMPLIANCE and 1-3650 retention days."
 msgstr ""
 
 #: packages/wordpress/src/Support/CoreMessages.php:143
-msgid "Primary key paging does not advance."
+msgid "Only before_* events may use the blocking failure policy."
 msgstr ""
 
 #: packages/wordpress/src/Support/CoreMessages.php:144
-msgid "Profile name must not be empty."
+msgid "Paths outside the WordPress directory are not supported yet (planned for a later release)."
 msgstr ""
 
 #: packages/wordpress/src/Support/CoreMessages.php:145
-msgid "Query failed."
+msgid "Primary key paging does not advance."
 msgstr ""
 
 #: packages/wordpress/src/Support/CoreMessages.php:146
-msgid "Reading the archive entry failed."
+msgid "Profile name must not be empty."
 msgstr ""
 
 #: packages/wordpress/src/Support/CoreMessages.php:147
-msgid "Refusing to replace a non-regular file."
+msgid "Query failed."
 msgstr ""
 
 #: packages/wordpress/src/Support/CoreMessages.php:148
-msgid "Refusing to restore into the filesystem root."
+msgid "Reading the archive entry failed."
 msgstr ""
 
 #: packages/wordpress/src/Support/CoreMessages.php:149
-msgid "Refusing to write through a symlink."
+msgid "Refusing to replace a non-regular file."
 msgstr ""
 
 #: packages/wordpress/src/Support/CoreMessages.php:150
-msgid "Relative paths must not contain traversal segments."
+msgid "Refusing to restore into the filesystem root."
 msgstr ""
 
 #: packages/wordpress/src/Support/CoreMessages.php:151
-msgid "Remote verification failed; uploading again."
+msgid "Refusing to write through a symlink."
 msgstr ""
 
 #: packages/wordpress/src/Support/CoreMessages.php:152
-msgid "Required PHP extension 'pdo_mysql' is missing."
+msgid "Relative paths must not contain traversal segments."
 msgstr ""
 
 #: packages/wordpress/src/Support/CoreMessages.php:153
-msgid "Required PHP extension 'zip' is missing."
+msgid "Remote verification failed; uploading again."
 msgstr ""
 
 #: packages/wordpress/src/Support/CoreMessages.php:154
-msgid "Restore exceeded the configured total size limit."
+msgid "Required PHP extension 'pdo_mysql' is missing."
 msgstr ""
 
 #: packages/wordpress/src/Support/CoreMessages.php:155
-msgid "Restored file size differs from the index."
+msgid "Required PHP extension 'zip' is missing."
 msgstr ""
 
 #: packages/wordpress/src/Support/CoreMessages.php:156
-msgid "Run the preflight check first; the backup must verify successfully."
+msgid "Restore exceeded the configured total size limit."
 msgstr ""
 
 #: packages/wordpress/src/Support/CoreMessages.php:157
-msgid "Set the SFTP host key fingerprint (or explicitly accept the risk of an unverified host)."
+msgid "Restored file size differs from the index."
 msgstr ""
 
 #: packages/wordpress/src/Support/CoreMessages.php:158
-msgid "Some database objects could not be created (unresolved dependencies)."
+msgid "Run the preflight check first; the backup must verify successfully."
 msgstr ""
 
 #: packages/wordpress/src/Support/CoreMessages.php:159
-msgid "Some database settings in wp-config.php are not plain values and were NOT updated. Check them before using the site:"
+msgid "Set the SFTP host key fingerprint (or explicitly accept the risk of an unverified host)."
 msgstr ""
 
 #: packages/wordpress/src/Support/CoreMessages.php:160
-msgid "Storage targets must not be serialized."
+msgid "Some database objects could not be created (unresolved dependencies)."
 msgstr ""
 
 #: packages/wordpress/src/Support/CoreMessages.php:161
-msgid "Suspicious compression ratio, refusing to extract."
+msgid "Some database settings in wp-config.php are not plain values and were NOT updated. Check them before using the site:"
 msgstr ""
 
 #: packages/wordpress/src/Support/CoreMessages.php:162
-msgid "Symbolic links from the backup were not recreated (security policy). Recreate them manually if needed:"
+msgid "Storage targets must not be serialized."
 msgstr ""
 
 #: packages/wordpress/src/Support/CoreMessages.php:163
-msgid "Target root does not exist."
+msgid "Suspicious compression ratio, refusing to extract."
 msgstr ""
 
 #: packages/wordpress/src/Support/CoreMessages.php:164
-msgid "Temporary database error during export."
+msgid "Symbolic links from the backup were not recreated (security policy). Recreate them manually if needed:"
 msgstr ""
 
 #: packages/wordpress/src/Support/CoreMessages.php:165
-msgid "The PHP sodium extension is required for encryption."
+msgid "Target root does not exist."
 msgstr ""
 
 #: packages/wordpress/src/Support/CoreMessages.php:166
-msgid "The SFTP root must be an absolute path without \"..\"."
+msgid "Temporary database error during export."
 msgstr ""
 
 #: packages/wordpress/src/Support/CoreMessages.php:167
-msgid "The WordPress directory is not readable."
+msgid "The PHP sodium extension is required for encryption."
 msgstr ""
 
 #: packages/wordpress/src/Support/CoreMessages.php:168
-msgid "The WordPress options table is readable (siteurl present)."
+msgid "The SFTP root must be an absolute path without \"..\"."
 msgstr ""
 
 #: packages/wordpress/src/Support/CoreMessages.php:169
-msgid "The backup contains more entries than the configured limit."
+msgid "The WordPress directory is not readable."
 msgstr ""
 
 #: packages/wordpress/src/Support/CoreMessages.php:170
-msgid "The backup exceeds the configured restore size limit."
+msgid "The WordPress options table is readable (siteurl present)."
 msgstr ""
 
 #: packages/wordpress/src/Support/CoreMessages.php:171
-msgid "The backup was not found in the configured backups directory."
+msgid "The backup contains more entries than the configured limit."
 msgstr ""
 
 #: packages/wordpress/src/Support/CoreMessages.php:172
-msgid "The backups directory does not exist."
+msgid "The backup exceeds the configured restore size limit."
 msgstr ""
 
 #: packages/wordpress/src/Support/CoreMessages.php:173
-msgid "The base backup is encrypted but no key store is available."
+msgid "The backup was not found in the configured backups directory."
 msgstr ""
 
 #: packages/wordpress/src/Support/CoreMessages.php:174
-msgid "The bucket name is invalid."
+msgid "The backups directory does not exist."
 msgstr ""
 
 #: packages/wordpress/src/Support/CoreMessages.php:175
-msgid "The encrypted file failed the decryption round trip."
+msgid "The base backup is encrypted but no key store is available."
 msgstr ""
 
 #: packages/wordpress/src/Support/CoreMessages.php:176
-msgid "The encrypted file is corrupt (invalid chunk length)."
+msgid "The bucket name is invalid."
 msgstr ""
 
 #: packages/wordpress/src/Support/CoreMessages.php:177
-msgid "The encrypted file is truncated."
+msgid "The encrypted file failed the decryption round trip."
 msgstr ""
 
 #: packages/wordpress/src/Support/CoreMessages.php:178
-msgid "The endpoint URL is invalid."
+msgid "The encrypted file is corrupt (invalid chunk length)."
 msgstr ""
 
 #: packages/wordpress/src/Support/CoreMessages.php:179
-msgid "The endpoint must use http or https."
+msgid "The encrypted file is truncated."
 msgstr ""
 
 #: packages/wordpress/src/Support/CoreMessages.php:180
-msgid "The endpoint points to a private or reserved network address."
+msgid "The endpoint URL is invalid."
 msgstr ""
 
 #: packages/wordpress/src/Support/CoreMessages.php:181
-msgid "The file changed while it was being uploaded."
+msgid "The endpoint must use http or https."
 msgstr ""
 
 #: packages/wordpress/src/Support/CoreMessages.php:182
-msgid "The file index references an invalid backup id."
+msgid "The endpoint points to a private or reserved network address."
 msgstr ""
 
 #: packages/wordpress/src/Support/CoreMessages.php:183
-msgid "The file was encrypted with a raw key but a passphrase was supplied."
+msgid "The file changed while it was being uploaded."
 msgstr ""
 
 #: packages/wordpress/src/Support/CoreMessages.php:184
-msgid "The host name could not be resolved."
+msgid "The file index references an invalid backup id."
 msgstr ""
 
 #: packages/wordpress/src/Support/CoreMessages.php:185
-msgid "The host name is invalid."
+msgid "The file was encrypted with a raw key but a passphrase was supplied."
 msgstr ""
 
 #: packages/wordpress/src/Support/CoreMessages.php:186
-msgid "The job lease was lost to another worker."
+msgid "The host name could not be resolved."
 msgstr ""
 
 #: packages/wordpress/src/Support/CoreMessages.php:187
-msgid "The key derivation parameters are out of the accepted range."
+msgid "The host name is invalid."
 msgstr ""
 
 #: packages/wordpress/src/Support/CoreMessages.php:188
-msgid "The key id must be 1-64 characters of A-Z a-z 0-9 . _ -"
+msgid "The job lease was lost to another worker."
 msgstr ""
 
 #: packages/wordpress/src/Support/CoreMessages.php:189
-msgid "The local file changed while it was being uploaded."
+msgid "The key derivation parameters are out of the accepted range."
 msgstr ""
 
 #: packages/wordpress/src/Support/CoreMessages.php:190
-msgid "The local file to upload does not exist."
+msgid "The key id must be 1-64 characters of A-Z a-z 0-9 . _ -"
 msgstr ""
 
 #: packages/wordpress/src/Support/CoreMessages.php:191
-msgid "The local storage directory cannot be created."
+msgid "The local file changed while it was being uploaded."
 msgstr ""
 
 #: packages/wordpress/src/Support/CoreMessages.php:192
-msgid "The passphrase must be at least 8 characters long."
+msgid "The local file to upload does not exist."
 msgstr ""
 
 #: packages/wordpress/src/Support/CoreMessages.php:193
-msgid "The port is invalid."
+msgid "The local storage directory cannot be created."
 msgstr ""
 
 #: packages/wordpress/src/Support/CoreMessages.php:194
-msgid "The restore application directory does not exist."
+msgid "The passphrase must be at least 8 characters long."
 msgstr ""
 
 #: packages/wordpress/src/Support/CoreMessages.php:195
-msgid "The restore has not completed successfully; the application stays available."
+msgid "The port is invalid."
 msgstr ""
 
 #: packages/wordpress/src/Support/CoreMessages.php:196
-msgid "The restore target and the backup directory must not contain each other."
+msgid "The restore application directory does not exist."
 msgstr ""
 
 #: packages/wordpress/src/Support/CoreMessages.php:197
-msgid "The restore target directory does not exist."
+msgid "The restore has not completed successfully; the application stays available."
 msgstr ""
 
 #: packages/wordpress/src/Support/CoreMessages.php:198
-msgid "The scratch database could not be created (missing privilege)."
+msgid "The restore target and the backup directory must not contain each other."
 msgstr ""
 
 #: packages/wordpress/src/Support/CoreMessages.php:199
-msgid "The staging directory is not writable."
+msgid "The restore target directory does not exist."
 msgstr ""
 
 #: packages/wordpress/src/Support/CoreMessages.php:200
-msgid "The storage target does not exist."
+msgid "The scratch database could not be created (missing privilege)."
 msgstr ""
 
 #: packages/wordpress/src/Support/CoreMessages.php:201
-msgid "The target database name was not confirmed correctly."
+msgid "The selected tables are not part of the backup."
 msgstr ""
 
 #: packages/wordpress/src/Support/CoreMessages.php:202
-msgid "The target directory must be an existing absolute path."
+msgid "The staging directory is not writable."
 msgstr ""
 
 #: packages/wordpress/src/Support/CoreMessages.php:203
-msgid "The target is outside the permitted restore locations."
+msgid "The storage target does not exist."
 msgstr ""
 
 #: packages/wordpress/src/Support/CoreMessages.php:204
-msgid "The token lifetime must be between 1 minute and 7 days."
+msgid "The target database name was not confirmed correctly."
 msgstr ""
 
 #: packages/wordpress/src/Support/CoreMessages.php:205
-msgid "These files changed while the backup was running; their restored content may be inconsistent:"
+msgid "The target directory must be an existing absolute path."
 msgstr ""
 
 #: packages/wordpress/src/Support/CoreMessages.php:206
-msgid "This backup is encrypted. Provide the encryption key to read its contents."
+msgid "The target is outside the permitted restore locations."
 msgstr ""
 
 #: packages/wordpress/src/Support/CoreMessages.php:207
-msgid "Time budget must be between 1 and 3600 seconds."
+msgid "The token lifetime must be between 1 minute and 7 days."
 msgstr ""
 
 #: packages/wordpress/src/Support/CoreMessages.php:208
-msgid "Type the database name twice to confirm the database restore."
+msgid "These files changed while the backup was running; their restored content may be inconsistent:"
 msgstr ""
 
 #: packages/wordpress/src/Support/CoreMessages.php:209
-msgid "URL migration needs a valid old and new URL (http:// or https://)."
+msgid "This backup is encrypted. Provide the encryption key to read its contents."
 msgstr ""
 
 #: packages/wordpress/src/Support/CoreMessages.php:210
-msgid "Unencrypted http endpoints require the private network opt-in."
+msgid "Time budget must be between 1 and 3600 seconds."
 msgstr ""
 
 #: packages/wordpress/src/Support/CoreMessages.php:211
-msgid "Unexpected BIT value."
+msgid "Type the database name twice to confirm the database restore."
 msgstr ""
 
 #: packages/wordpress/src/Support/CoreMessages.php:212
-msgid "Unexpected data after the end of the encrypted stream."
+msgid "URL migration needs a valid old and new URL (http:// or https://)."
 msgstr ""
 
 #: packages/wordpress/src/Support/CoreMessages.php:213
-msgid "Unknown backup type."
+msgid "Unencrypted http endpoints require the private network opt-in."
 msgstr ""
 
 #: packages/wordpress/src/Support/CoreMessages.php:214
-msgid "Unsafe path: absolute path."
+msgid "Unexpected BIT value."
 msgstr ""
 
 #: packages/wordpress/src/Support/CoreMessages.php:215
-msgid "Unsafe path: control character."
+msgid "Unexpected data after the end of the encrypted stream."
 msgstr ""
 
 #: packages/wordpress/src/Support/CoreMessages.php:216
-msgid "Unsafe path: empty or too long."
+msgid "Unknown backup type."
 msgstr ""
 
 #: packages/wordpress/src/Support/CoreMessages.php:217
-msgid "Unsafe path: forbidden character."
+msgid "Unsafe path: absolute path."
 msgstr ""
 
 #: packages/wordpress/src/Support/CoreMessages.php:218
-msgid "Unsafe path: traversal or empty segment."
+msgid "Unsafe path: control character."
 msgstr ""
 
 #: packages/wordpress/src/Support/CoreMessages.php:219
-msgid "Unsupported compression method."
+msgid "Unsafe path: empty or too long."
 msgstr ""
 
 #: packages/wordpress/src/Support/CoreMessages.php:220
-msgid "Unsupported encryption format version."
+msgid "Unsafe path: forbidden character."
 msgstr ""
 
 #: packages/wordpress/src/Support/CoreMessages.php:221
-msgid "Unsupported encryption parameters."
+msgid "Unsafe path: traversal or empty segment."
 msgstr ""
 
 #: packages/wordpress/src/Support/CoreMessages.php:222
-msgid "Unsupported storage type."
+msgid "Unsupported compression method."
 msgstr ""
 
 #: packages/wordpress/src/Support/CoreMessages.php:223
-msgid "Unsupported success policy."
+msgid "Unsupported encryption format version."
 msgstr ""
 
 #: packages/wordpress/src/Support/CoreMessages.php:224
-msgid "Upload to one or more storage targets failed temporarily and will be retried."
+msgid "Unsupported encryption parameters."
 msgstr ""
 
 #: packages/wordpress/src/Support/CoreMessages.php:225
-msgid "Volume already closed."
+msgid "Unsupported storage type."
 msgstr ""
 
 #: packages/wordpress/src/Support/CoreMessages.php:226
-msgid "Volume size is too small."
+msgid "Unsupported success policy."
 msgstr ""
 
 #: packages/wordpress/src/Support/CoreMessages.php:227
-msgid "Writing failed (disk full?)."
+msgid "Upload to one or more storage targets failed temporarily and will be retried."
 msgstr ""
 
 #: packages/wordpress/src/Support/CoreMessages.php:228
-msgid "Writing the archive entry failed."
+msgid "Volume already closed."
 msgstr ""
 
 #: packages/wordpress/src/Support/CoreMessages.php:229
-msgid "Writing to the restore target failed (disk full?)."
+msgid "Volume size is too small."
 msgstr ""
 
 #: packages/wordpress/src/Support/CoreMessages.php:230
-msgid "siteurl option missing in the restored database."
+msgid "Writing failed (disk full?)."
 msgstr ""
 
 #: packages/wordpress/src/Support/CoreMessages.php:231
-msgid "wp-config.php was not found in the restore target."
+msgid "Writing the archive entry failed."
 msgstr ""
 
 #: packages/wordpress/src/Support/CoreMessages.php:232
+msgid "Writing the recovery package failed."
+msgstr ""
+
+#: packages/wordpress/src/Support/CoreMessages.php:233
+msgid "Writing to the restore target failed (disk full?)."
+msgstr ""
+
+#: packages/wordpress/src/Support/CoreMessages.php:234
+msgid "siteurl option missing in the restored database."
+msgstr ""
+
+#: packages/wordpress/src/Support/CoreMessages.php:235
+msgid "wp-config.php was not found in the restore target."
+msgstr ""
+
+#: packages/wordpress/src/Support/CoreMessages.php:236
 msgid "wp-config.php was not found in the target; database settings were not updated."
 msgstr ""
 

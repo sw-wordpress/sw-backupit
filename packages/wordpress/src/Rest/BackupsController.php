@@ -14,10 +14,12 @@ use SWBackupIt\Core\Exception\SwbiException;
 use SWBackupIt\Restore\Backup\BackupSet;
 use SWBackupIt\Restore\Files\Comparator;
 use SWBackupIt\WordPress\Runner\BackgroundChecks;
+use SWBackupIt\WordPress\Runner\RecoveryPackage;
 use SWBackupIt\WordPress\Runner\RestorePreparer;
 use SWBackupIt\WordPress\Runner\RestoreTestService;
 use SWBackupIt\Restore\Backup\Verifier;
 use SWBackupIt\WordPress\Support\Capabilities;
+use SWBackupIt\WordPress\Support\PluginLogger;
 use SWBackupIt\WordPress\Support\Settings;
 
 final class BackupsController extends BaseController {
@@ -135,6 +137,16 @@ final class BackupsController extends BaseController {
 						'enum'    => array( 'volume', 'manifest', 'index', 'database' ),
 					),
 				),
+			)
+		);
+		register_rest_route(
+			self::NAMESPACE,
+			'/backups/(?P<id>[0-9a-f-]{36})/package',
+			array(
+				'methods'             => \WP_REST_Server::READABLE,
+				'callback'            => array( $this, 'package' ),
+				'permission_callback' => $this->can( Capabilities::DOWNLOAD ),
+				'args'                => $id,
 			)
 		);
 		register_rest_route(
@@ -383,6 +395,40 @@ final class BackupsController extends BaseController {
 		}
 		do_action( 'swbi_backup_downloaded', (string) $request['id'], basename( $path ) );
 		$this->stream( $handle, $path );
+		exit;
+	}
+
+	/**
+	 * Streams the complete recovery package (backup + chain + restore application) as one ZIP.
+	 *
+	 * @return \WP_Error|void
+	 */
+	public function package( \WP_REST_Request $request ) {
+		$id = (string) $request['id'];
+		if ( null === $this->services()->backups()->find_row( $id ) ) {
+			return $this->error( 'swbi_not_found', __( 'Backup not found.', 'swbackupit' ), 404 );
+		}
+		if ( ! BackgroundChecks::has_local_data( $id ) ) {
+			return $this->error( 'swbi_no_local_copy', __( 'The backup has no complete local copy. Download it from a storage target first.', 'swbackupit' ), 409 );
+		}
+		while ( ob_get_level() > 0 ) {
+			ob_end_clean();
+		}
+		if ( function_exists( 'set_time_limit' ) ) {
+			set_time_limit( 0 ); // phpcs:ignore Squiz.PHP.DiscouragedFunctions -- the archive is streamed, the duration depends on the size.
+		}
+		nocache_headers();
+		header( 'Content-Type: application/zip' );
+		header( 'Content-Disposition: attachment; filename="' . RecoveryPackage::file_name( $id ) . '"' );
+		header( 'X-Content-Type-Options: nosniff' );
+		do_action( 'swbi_backup_downloaded', $id, 'recovery-package' );
+		$output = fopen( 'php://output', 'wb' ); // phpcs:ignore WordPress.WP.AlternativeFunctions
+		try {
+			( new RecoveryPackage() )->write( $output, $id );
+		} catch ( SwbiException $exception ) {
+			// Headers are out already; the truncated ZIP is unusable and the error is logged.
+			( new PluginLogger() )->error( 'Recovery package failed.', array( 'exception' => $exception::class ) );
+		}
 		exit;
 	}
 

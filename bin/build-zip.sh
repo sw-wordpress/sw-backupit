@@ -21,7 +21,14 @@ fi
 
 echo ">> assembling plugin tree"
 mkdir -p "$STAGE/$NAME"
-rsync -a --exclude-from=- "$ROOT/" "$STAGE/$NAME/" <<'EXCLUDES'
+# Untracked, not ignored files (local notes, audit reports, experiments) are never shipped.
+UNTRACKED="$STAGE/untracked.txt"
+if git -C "$ROOT" rev-parse --is-inside-work-tree >/dev/null 2>&1; then
+  git -C "$ROOT" ls-files --others --exclude-standard | sed 's|^|/|' > "$UNTRACKED"
+else
+  : > "$UNTRACKED"
+fi
+rsync -a --exclude-from="$UNTRACKED" --exclude-from=- "$ROOT/" "$STAGE/$NAME/" <<'EXCLUDES'
 .git
 .gitignore
 .editorconfig
@@ -57,5 +64,7 @@ echo ">> building the standalone restore distribution"
 
 mkdir -p "$OUT"
 VERSION="$(grep -m1 "Version:" "$ROOT/swbackupit.php" | awk '{print $NF}')"
+# zip -r would update an existing archive and keep files that no longer exist: always start from scratch.
+rm -f "$OUT/$NAME-$VERSION.zip"
 (cd "$STAGE" && zip -qr "$OUT/$NAME-$VERSION.zip" "$NAME")
 echo ">> $OUT/$NAME-$VERSION.zip"

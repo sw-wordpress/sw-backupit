@@ -194,6 +194,29 @@ final class DatabaseRoundtripTest extends TestCase
         self::assertSame(['Grüße 😀 ł', 'Grüße'], $target->query('SELECT u, l FROM wp_text')->fetch(PDO::FETCH_NUM));
     }
 
+    public function testSelectiveImportRestoresOnlyTheSelectedTables(): void
+    {
+        $source = ConnectionFactory::create($this->createDatabase());
+        $this->seed($source);
+        $dir = $this->makeTempDir() . '/database';
+        $result = (new DatabaseExporter($source))->export($dir, (new TableSelector())->select($source, 'wp_', [], [], false), false, 50, 20000, [], ResourceBudget::unlimited(), static function (): void {
+        });
+        $target = ConnectionFactory::create($this->createDatabase());
+        $target->exec('CREATE TABLE wp_term_rel (keep INT)');
+        $target->exec('INSERT INTO wp_term_rel VALUES (42)');
+        $importer = new SqlImporter($target, new \Psr\Log\NullLogger(), ['wp_posts', 'wp_nopk']);
+        foreach ($result->cursor['parts'] as $part) {
+            $importer->importPart($dir . '/' . $part['name']);
+        }
+        $importer->finalize();
+        $tables = $target->query('SHOW TABLES')->fetchAll(PDO::FETCH_COLUMN);
+        sort($tables);
+        self::assertSame(['wp_nopk', 'wp_posts', 'wp_term_rel'], $tables, 'no views, unselected tables untouched');
+        self::assertSame('42', (string) $target->query('SELECT keep FROM wp_term_rel')->fetchColumn());
+        self::assertSame($this->dump($source)['wp_posts'], md5(serialize($target->query('SELECT * FROM wp_posts ORDER BY ID')->fetchAll(PDO::FETCH_NUM))) . ':251');
+        self::assertSame([], $target->query('SHOW TRIGGERS')->fetchAll(), 'triggers are database objects and skipped');
+    }
+
     public function testOnlyRealGeneratedColumnsAreSkipped(): void
     {
         self::assertTrue(DatabaseExporter::isGeneratedColumn('VIRTUAL GENERATED'));

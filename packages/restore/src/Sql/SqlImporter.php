@@ -41,9 +41,13 @@ final class SqlImporter
     private ?array $deferred = null;
     private bool $progressTable = false;
 
+    /**
+     * @param list<string>|null $tables Selective import: only statements of these tables (plus session settings) are executed.
+     */
     public function __construct(
         private readonly PDO $pdo,
         private readonly LoggerInterface $logger = new NullLogger(),
+        private readonly ?array $tables = null,
     ) {
     }
 
@@ -129,7 +133,7 @@ final class SqlImporter
     private function execute(string $part, string $statement, int $count, int $applied, bool &$resumed, ?callable $onProgress): int
     {
         $count++;
-        if ($count <= $applied) {
+        if ($count <= $applied || !$this->isSelected($statement)) {
             return $count;
         }
         $tolerateExisting = $resumed;
@@ -183,6 +187,23 @@ final class SqlImporter
             }
             throw new DatabaseException('Database import failed.', ['db_error' => $code, 'statement' => mb_substr($statement, 0, 80)], false, $exception);
         }
+    }
+
+    /**
+     * Selective import: table statements (structure, data) of the selected tables and session settings. Everything else
+     * (views, triggers, routines, events) belongs to the whole database and is skipped.
+     */
+    private function isSelected(string $statement): bool
+    {
+        if ($this->tables === null || preg_match('/^\s*SET\s/i', $statement) === 1) {
+            return true;
+        }
+        $pattern = '/^\s*(?:DROP\s+TABLE\s+IF\s+EXISTS|CREATE\s+TABLE(?:\s+IF\s+NOT\s+EXISTS)?|INSERT\s+INTO|REPLACE\s+INTO|ALTER\s+TABLE|LOCK\s+TABLES)\s+`((?:[^`]|``)+)`/i';
+        if (preg_match($pattern, $statement, $match) !== 1) {
+            return false;
+        }
+
+        return in_array(str_replace('``', '`', $match[1]), $this->tables, true);
     }
 
     private function isDeferrable(string $statement, int $code): bool

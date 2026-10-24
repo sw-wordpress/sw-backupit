@@ -165,6 +165,14 @@ const verifyOk = computed(
         >
           <q-menu auto-close>
             <q-list style="min-width: 200px">
+              <q-item clickable tag="a" :href="api.backups.packageUrl(backup.id)" rel="noopener">
+                <q-item-section avatar><q-icon name="r_inventory_2" /></q-item-section>
+                <q-item-section>
+                  <q-item-label>{{ t('backups.package') }}</q-item-label>
+                  <q-item-label caption>{{ t('backups.packageHint') }}</q-item-label>
+                </q-item-section>
+              </q-item>
+              <q-separator />
               <q-item-label header>{{ t('backups.downloadVolume') }}</q-item-label>
               <q-item
                 v-for="v in volumes"

@@ -10,11 +10,19 @@ Open and future work. Everything else is listed in `DONE.md`. See `docs/implemen
 - [ ] **Selective restore of single sites of a multisite network** (full network backup/restore works).
 - [ ] **Content de-duplication of renamed files** in incremental backups (renamed files are stored again).
 - [ ] **Native-speaker review** of the machine-assisted translations (de, fr, pl, it); uncertain strings were noted in the translators' reports (e.g. technical terms kept in English).
-- [ ] **Layout from UX Pilot** (design `HzEY5mWiEiBwFKM1yxRL`, page `gAE2YO7pkKAJmGsHDfgW`, "SWBackupIt - Profil erstellen") could not be fetched: no UX Pilot MCP server is connected in this environment. Connect it (https://uxpilot.ai/a/account?tab=mcpApiAccess) or provide an export/screenshots, then apply it to `apps/admin/src/features/profiles/ProfileSheet.vue`.
 - [ ] **Docblocks for all adapter methods** (documented WPCS relaxation in `phpcs-wordpress.xml.dist`; typed signatures carry the contract).
 - [ ] SSE for live progress (REST polling is implemented; SSE was optional).
 - [ ] Database part download count in the backup resource (`database_part_count`) so the UI can offer all parts.
 - [ ] Upload parallelism setting (`max_parallel_uploads` is stored but uploads are sequential).
+- [ ] **Restore success/failure e-mails for real restores** – restores run in the standalone application without WordPress, so there is no
+  hook point; only test restores send mails.
+- [ ] **Per-schedule notification settings** (notifications are configured per profile; a per-schedule override needs a schema change).
+- [ ] **Selective database restore in the web wizard** – available in the restore CLI (`--tables`) and the engine; the wizard restores all tables.
+- [ ] **Web server matrix test** that staging and restore-state directories are not served (Apache/nginx/IIS, WordPress in a subdirectory);
+  directories inside the web root are refused by default and flagged by the health check, the nginx rule is in the user guide.
+- [ ] **max_allowed_packet pre-check** before a restore (a too large row currently stops the import with an explicit message; resumable).
+- [ ] Tables without primary key are exported in physical order with LIMIT/OFFSET (unstable under concurrent writes); MyISAM tables can
+  repeat a single statement after a crash during import.
 
 ## Ideas
 - [ ] Per-site backups on multisite; WebDAV/FTP adapters as optional Composer packages; restore test scheduling UI polish.

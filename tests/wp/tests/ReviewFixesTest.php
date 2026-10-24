@@ -16,6 +16,7 @@ use SWBackupIt\WordPress\Rest\BackupsController;
 use SWBackupIt\WordPress\Runner\BackgroundChecks;
 use SWBackupIt\WordPress\Runner\JobWatchdog;
 use SWBackupIt\WordPress\Runner\PreUpdateBackup;
+use SWBackupIt\WordPress\Runner\RecoveryPackage;
 use SWBackupIt\WordPress\Runner\RestoreTestService;
 use SWBackupIt\WordPress\Services;
 use SWBackupIt\WordPress\Support\Capabilities;
@@ -632,5 +633,48 @@ class ReviewFixesTest extends WP_UnitTestCase {
 		$this->assertStringContainsString( 'succeeded', $subjects[1] );
 		$this->assertStringContainsString( 'failed', $subjects[2] );
 		$this->assertNotEmpty( $profile );
+	}
+
+	// Recovery package (PLAN §9.2 single ZIP export, §22 disaster recovery).
+
+	public function test_recovery_package_contains_backup_chain_and_restore_application(): void {
+		[ $profile, $full ] = $this->backup();
+		$this->request( 'PUT', '/profiles/' . $profile['id'], array( 'type' => 'incremental' ) );
+		$job = $this->request( 'POST', '/profiles/' . $profile['id'] . '/run' )->get_data();
+		for ( $i = 0; $i < 300 && ! in_array( $job['status'], array( 'completed', 'failed' ), true ); $i++ ) {
+			$job = $this->request( 'POST', '/jobs/' . $job['id'] . '/tick' )->get_data();
+		}
+		$this->assertSame( 'completed', $job['status'] );
+		$user = get_current_user_id();
+		wp_set_current_user( self::factory()->user->create( array( 'role' => 'editor' ) ) );
+		$this->assertContains( $this->request( 'GET', '/backups/' . $job['backup_id'] . '/package' )->get_status(), array( 401, 403 ), 'needs the download capability' );
+		wp_set_current_user( $user );
+
+		$file   = sys_get_temp_dir() . '/swbi-package-' . bin2hex( random_bytes( 4 ) ) . '.zip';
+		$output = fopen( $file, 'wb' );
+		$count  = ( new RecoveryPackage() )->write( $output, $job['backup_id'] );
+		fclose( $output );
+		$zip = new ZipArchive();
+		$this->assertTrue( $zip->open( $file ) );
+		$names = array();
+		for ( $i = 0; $i < $zip->numFiles; $i++ ) {
+			$names[] = (string) $zip->getNameIndex( $i );
+		}
+		$this->assertSame( $count, $zip->numFiles );
+		$this->assertContains( 'README.txt', $names );
+		$this->assertContains( 'backups/' . $job['backup_id'] . '/manifest.json', $names );
+		$this->assertContains( 'backups/' . $full['backup_id'] . '/manifest.json', $names, 'the base backup of the chain is included' );
+		$this->assertContains( 'swbackupit-restore/bin/swbackupit-restore', $names );
+		$this->assertContains( 'swbackupit-restore/index.php', $names );
+
+		// The unpacked package verifies and lists files with the bundled standalone restore application alone.
+		$unpacked = sys_get_temp_dir() . '/swbi-package-x-' . bin2hex( random_bytes( 4 ) );
+		$zip->extractTo( $unpacked );
+		$zip->close();
+		$cli = escapeshellarg( PHP_BINARY ) . ' ' . escapeshellarg( $unpacked . '/swbackupit-restore/bin/swbackupit-restore' );
+		exec( $cli . ' verify ' . escapeshellarg( $unpacked . '/backups/' . $job['backup_id'] ) . ' --deep 2>&1', $lines, $code );
+		$this->assertSame( 0, $code, implode( "\n", $lines ) );
+		wp_delete_file( $file );
+		\SWBackupIt\Core\Support\AtomicFile::removeTree( $unpacked );
 	}
 }

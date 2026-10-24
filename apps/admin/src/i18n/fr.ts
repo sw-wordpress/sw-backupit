@@ -541,6 +541,8 @@ const fr: Schema = {
       consequence3: 'Il peut durer plusieurs minutes et sollicite le serveur pendant ce temps.',
       start: 'Démarrer le test',
     },
+    package: 'Paquet de récupération complet (ZIP)',
+    packageHint: 'Sauvegarde, sauvegardes de base nécessaires et application de restauration',
     downloadParts: 'Autres fichiers',
     part: { database: 'Dump de la base de données', manifest: 'Manifeste', index: 'Index' },
     subtitle: 'Parcourez, vérifiez, téléchargez et restaurez toutes les sauvegardes existantes.',

@@ -189,6 +189,9 @@ Weekly/monthly schedules additionally use `weekday` (0 = Sunday … 6) and `mont
 
 ## Backups
 * `GET /backups/{id}/download?part=volume|manifest|index|database&volume=N&_wpnonce=<rest nonce>` streams one file (`volume` is the 1-based number for `volume` and `database`).
+* `GET /backups/{id}/package?_wpnonce=<rest nonce>` (`swbi_download`) streams the complete recovery package as one ZIP
+  (`swbackupit-recovery-<id>.zip`): `backups/<id>/` plus every base backup of its chain, `swbackupit-restore/` (standalone restore
+  application) and `README.txt`. Encrypted backups stay encrypted. `409 swbi_no_local_copy` when a local copy is missing.
 * `POST /backups/{id}/compare` body `{ "mode": "metadata|sha256" }` → `{ only_in_backup, only_local, modified, identical, incomparable, samples: { <category>: [path…] } }` (synchronous; use the CLI for very large sites).
 * `POST /backups/{id}/restore/prepare` → `{ restore_url, token, token_expires_at, target_path, warnings[] }`. **The token is shown once.** The restore itself runs in the standalone web wizard behind `restore_url` (or the restore CLI); `POST /backups/{id}/restore` always answers `501 swbi_use_wizard`.
 * `POST /backups/{id}/protect` body `{ "protected": true|false }` returns the Backup. `DELETE /backups/{id}?confirm=<id>` needs the exact id; protected backups answer `409`.

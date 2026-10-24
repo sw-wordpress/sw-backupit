@@ -96,7 +96,13 @@ final class RestorePreparer {
 		return $removed;
 	}
 
-	private function install_app( string $dir ): void {
+	/**
+	 * Installs the standalone restore application (bundled distribution or, in a development checkout, assembled from the
+	 * monorepo) into the directory.
+	 *
+	 * @param string $dir Target directory.
+	 */
+	public function install_app( string $dir ): void {
 		$bundled = SWBACKUPIT_DIR . 'restore-app';
 		if ( is_file( $bundled . '/index.php' ) ) {
 			$this->copy_tree( $bundled, $dir );
@@ -107,6 +113,7 @@ final class RestorePreparer {
 		$this->copy_tree( SWBACKUPIT_DIR . 'packages/restore/src', $dir . '/src/Restore' );
 		$this->copy_tree( SWBACKUPIT_DIR . 'packages/restore/public', $dir );
 		$this->copy_tree( SWBACKUPIT_DIR . 'packages/restore/lang', $dir . '/lang' );
+		$this->copy_tree( SWBACKUPIT_DIR . 'packages/restore/bin', $dir . '/bin' );
 		$this->copy_tree( SWBACKUPIT_DIR . 'vendor/psr/log/src', $dir . '/vendor/psr-log' );
 		file_put_contents( // phpcs:ignore WordPress.WP.AlternativeFunctions -- generated file inside a directory we just created.
 			$dir . '/vendor/autoload.php',

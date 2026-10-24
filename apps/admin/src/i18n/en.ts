@@ -509,6 +509,8 @@ const en: Schema = {
       consequence3: 'It may take several minutes and loads the server meanwhile.',
       start: 'Start test',
     },
+    package: 'Complete recovery package (ZIP)',
+    packageHint: 'Backup, required base backups and the restore application',
     downloadParts: 'Other files',
     part: { database: 'Database dump', manifest: 'Manifest', index: 'Index' },
     subtitle: 'Browse, verify, download and restore all existing backups.',

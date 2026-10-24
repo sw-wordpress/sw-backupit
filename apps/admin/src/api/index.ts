@@ -92,6 +92,7 @@ export function createApi(client: ApiClient) {
         client.post<CompareResult>(`backups/${id}/compare`, { mode }),
       downloadUrl: (id: string, part: DownloadPart, volume?: number) =>
         client.authenticatedUrl(`backups/${id}/download`, { part, volume }),
+      packageUrl: (id: string) => client.authenticatedUrl(`backups/${id}/package`),
       restorePrepare: (id: string) =>
         client.post<RestorePrepareResult>(`backups/${id}/restore/prepare`),
     },

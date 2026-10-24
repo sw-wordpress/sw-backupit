@@ -47,7 +47,7 @@ final class RestoreCli
     {
         $args = new ArgumentParser(
             $argv,
-            ['target', 'confirm-target', 'state-dir', 'db-host', 'db-name', 'db-user', 'db-password-file', 'confirm-database', 'overwrite', 'format', 'db-port', 'db-socket', 'key', 'key-file', 'new-prefix', 'mode', 'app-dir', 'backups', 'ttl', 'allow-target', 'storage', 'to'],
+            ['target', 'confirm-target', 'tables', 'state-dir', 'db-host', 'db-name', 'db-user', 'db-password-file', 'confirm-database', 'overwrite', 'format', 'db-port', 'db-socket', 'key', 'key-file', 'new-prefix', 'mode', 'app-dir', 'backups', 'ttl', 'allow-target', 'storage', 'to'],
             ['path', 'pattern', 'replace', 'allow-target'],
         );
         $command = $args->positional[0] ?? 'help';
@@ -176,6 +176,7 @@ final class RestoreCli
             replacements: $this->replacements($args),
             newTablePrefix: $args->string('new-prefix') !== '' ? $args->string('new-prefix') : null,
             migrationDryRun: $args->flag('migration-dry-run'),
+            databaseTables: $args->string('tables') === '' ? null : array_values(array_filter(array_map('trim', explode(',', $args->string('tables'))), static fn (string $t): bool => $t !== '')),
         );
         $engine = new RestoreEngine(new ConsoleLogger($this->stderr, $args->flag('verbose')));
         do {
@@ -333,6 +334,7 @@ Usage:
         [--db-host=localhost --db-name=NAME --db-user=USER --confirm-database=NAME]
         [--overwrite=always|never|if_different] [--path=...] [--pattern=...]
         [--no-files] [--no-database] [--keep-wp-config] [--skip-verify] [--dry-run] [--state-dir=DIR] [--format=json]
+        [--tables=wp_posts,wp_postmeta]   (selective database restore: only these tables, no views/triggers/routines)
         [--replace='https://old.example=>https://new.example/wp' ...] [--new-prefix=blog_] [--migration-dry-run]
         [--key=PASSPHRASE|base64:KEY | --key-file=FILE]      (encrypted backups; or env SWBI_KEY / SWBACKUPIT_KEY_<KEYID>)
 

@@ -13,6 +13,7 @@ wp swbackupit backup list [--format=json]
 wp swbackupit backup status <job-id|backup-id>
 wp swbackupit backup verify <backup-id> [--deep]
 wp swbackupit backup compare <backup-id> [--mode=metadata|sha256] [--format=json]
+wp swbackupit backup package <backup-id> [--output=<file.zip>]                    # complete recovery package: backup + chain + restore app
 wp swbackupit backup test-restore <backup-id>                                    # isolated test restore (temp dir + scratch database)
 wp swbackupit backup restore <backup-id> --confirm-target=<ABSPATH> [--no-database] \
         [--confirm-database=<db name>] [--overwrite=always|never|if_different] [--key=…]   # destructive, needs confirmations

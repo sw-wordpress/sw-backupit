@@ -536,6 +536,8 @@ const it: Schema = {
       consequence3: 'Può richiedere diversi minuti e nel frattempo carica il server.',
       start: 'Avvia test',
     },
+    package: 'Pacchetto di ripristino completo (ZIP)',
+    packageHint: 'Backup, backup di base necessari e applicazione di ripristino',
     downloadParts: 'Altri file',
     part: { database: 'Dump del database', manifest: 'Manifest', index: 'Indice' },
     subtitle: 'Sfogli, verifichi, scarichi e ripristini tutti i backup esistenti.',

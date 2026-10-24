@@ -90,6 +90,40 @@ final class MigrationTest extends TestCase
         self::assertStringContainsString('$table_prefix = \'blog_\';', (string) file_get_contents($target2 . '/wp-config.php'));
     }
 
+    public function testSelectiveDatabaseRestoreTouchesOnlySelectedTables(): void
+    {
+        $site = $this->makeTempDir('site');
+        $this->buildSiteFiles($site);
+        $config = $this->createDatabase();
+        $pdo = ConnectionFactory::create($config);
+        $this->seedSiteDatabase($pdo);
+        $this->seedMigrationTables($pdo);
+        $work = $this->makeTempDir('work');
+        $profile = BackupProfile::fromArray(['id' => 1, 'name' => 'm', 'type' => 'database', 'limits' => ['time_budget_seconds' => 5]]);
+        $runner = BackupRunnerFactory::createFileBased($work . '/jobs', new SourceInfo($site, $work . '/staging', 'https://alte-domain.de', 'https://alte-domain.de', '6.8', 'wp_', $config));
+        $job = (new JobFactory())->create($profile);
+        (new FileJobRepository($work . '/jobs'))->create($job);
+        self::assertSame(JobStatus::Completed, $runner->runToCompletion($job->id, 5.0));
+        $backup = $work . '/staging/' . $job->backupId;
+
+        $targetDb = $this->createDatabase();
+        $target = ConnectionFactory::create($targetDb);
+        $target->exec("CREATE TABLE wp_options (option_name VARCHAR(191), option_value TEXT)");
+        $target->exec("INSERT INTO wp_options VALUES ('siteurl', 'https://alte-domain.de/untouched')");
+        $dir = $this->makeTempDir('target');
+        $request = static fn (array $tables): RestoreRequest => new RestoreRequest($backup, $dir, (string) realpath($dir), sys_get_temp_dir() . '/swbi-sel-' . bin2hex(random_bytes(4)), restoreFiles: false, database: $targetDb, confirmedDatabase: $targetDb->name, updateWpConfig: false, replacements: ['https://alte-domain.de' => 'https://neu.de'], databaseTables: $tables);
+
+        $unknown = (new RestoreEngine())->run($request(['wp_nonexistent']), ResourceBudget::unlimited());
+        self::assertSame(RestoreOutcome::FAILED, $unknown->status);
+        self::assertStringContainsString('not part of the backup', implode(' ', $unknown->messages));
+
+        $outcome = (new RestoreEngine())->run($request(['wp_posts']), ResourceBudget::unlimited());
+        self::assertSame(RestoreOutcome::COMPLETED, $outcome->status, implode(';', $outcome->messages));
+        self::assertStringContainsString('https://neu.de/x', (string) $target->query("SELECT post_content FROM wp_posts WHERE post_title='Link'")->fetchColumn());
+        self::assertSame('https://alte-domain.de/untouched', (string) $target->query("SELECT option_value FROM wp_options WHERE option_name='siteurl'")->fetchColumn(), 'unselected tables are neither replaced nor migrated');
+        self::assertFalse($target->query("SHOW TABLES LIKE 'wp_usermeta'")->fetch());
+    }
+
     public function testResumableMigrationNeverAppliesReplacementTwice(): void
     {
         $pdo = ConnectionFactory::create($this->createDatabase());

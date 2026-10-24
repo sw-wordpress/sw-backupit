@@ -534,6 +534,8 @@ const de = {
       consequence3: 'Er kann mehrere Minuten dauern und belastet den Server währenddessen.',
       start: 'Test starten',
     },
+    package: 'Komplettes Recovery-Paket (ZIP)',
+    packageHint: 'Backup, benötigte Basis-Backups und die Restore-Anwendung',
     downloadParts: 'Weitere Dateien',
     part: { database: 'Datenbank-Dump', manifest: 'Manifest', index: 'Index' },
     subtitle:

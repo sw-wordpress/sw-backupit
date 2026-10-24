@@ -535,6 +535,8 @@ const pl: Schema = {
       consequence3: 'Może potrwać kilka minut i w tym czasie obciąża serwer.',
       start: 'Rozpocznij test',
     },
+    package: 'Kompletny pakiet odzyskiwania (ZIP)',
+    packageHint: 'Kopia zapasowa, wymagane kopie bazowe i aplikacja do przywracania',
     downloadParts: 'Pozostałe pliki',
     part: { database: 'Zrzut bazy danych', manifest: 'Manifest', index: 'Indeks' },
     subtitle: 'Przeglądaj, weryfikuj, pobieraj i przywracaj wszystkie istniejące kopie zapasowe.',

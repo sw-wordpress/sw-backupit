@@ -15,6 +15,7 @@ use SWBackupIt\Core\Exception\SwbiException;
 use SWBackupIt\Restore\Backup\BackupSet;
 use SWBackupIt\Restore\Backup\Verifier;
 use SWBackupIt\WordPress\Rest\JobPresenter;
+use SWBackupIt\WordPress\Runner\RecoveryPackage;
 use SWBackupIt\WordPress\Services;
 use SWBackupIt\WordPress\Support\Settings;
 
@@ -133,6 +134,43 @@ final class BackupCommand {
 			\WP_CLI::error( 'Verification failed.' );
 		}
 		\WP_CLI::success( 'Backup verified.' );
+	}
+
+	/**
+	 * Writes the complete recovery package of a backup (backup, base backups of its chain and the standalone restore
+	 * application) into one ZIP file.
+	 *
+	 * ## OPTIONS
+	 *
+	 * <id>
+	 * : Backup id.
+	 *
+	 * [--output=<file>]
+	 * : Target file. Default: swbackupit-recovery-<id>.zip in the current directory.
+	 *
+	 * @param array<int, string>   $args       Positional arguments.
+	 * @param array<string, mixed> $assoc_args Associative arguments.
+	 */
+	public function package( array $args, array $assoc_args ): void {
+		$id   = (string) ( $args[0] ?? '' );
+		$file = (string) ( $assoc_args['output'] ?? RecoveryPackage::file_name( $id ) );
+		if ( file_exists( $file ) ) {
+			\WP_CLI::error( 'The output file already exists.' );
+		}
+		$output = fopen( $file, 'xb' ); // phpcs:ignore WordPress.WP.AlternativeFunctions
+		if ( false === $output ) {
+			\WP_CLI::error( 'Cannot create the output file.' );
+		}
+		try {
+			$count = ( new RecoveryPackage() )->write( $output, $id );
+		} catch ( SwbiException $exception ) {
+			fclose( $output ); // phpcs:ignore WordPress.WP.AlternativeFunctions
+			wp_delete_file( $file );
+			\WP_CLI::error( $exception->getMessage() );
+		}
+		fclose( $output ); // phpcs:ignore WordPress.WP.AlternativeFunctions
+		do_action( 'swbi_backup_downloaded', $id, 'recovery-package' );
+		\WP_CLI::success( sprintf( 'Recovery package written: %s (%d files, %s).', $file, $count, size_format( (float) filesize( $file ) ) ) );
 	}
 
 	/**

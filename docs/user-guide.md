@@ -64,7 +64,8 @@ notifications are de-duplicated within the configured window.
 ## Backups
 The list shows all backups with size, files, status and replication state. *Verify* checks checksums, *Browse* the file index, *Compare* shows
 differences to the current installation (only in backup / only local / modified / identical / not comparable, metadata or SHA-256), *Download*
-single files (authorised, never public), *Protect* against deletion, *Test restore* runs an isolated restore (temp directory + scratch database)
+single files (authorised, never public) or the *complete recovery package* – one ZIP with the backup, every base backup it needs and the
+standalone restore application (also `wp swbackupit backup package <id>`); keep it together with the encryption key for disaster recovery, *Protect* against deletion, *Test restore* runs an isolated restore (temp directory + scratch database)
 and documents the result. Deleting needs confirmation. A regular background check verifies stored backups and warns about damaged ones.
 
 ## Restore (standalone)
@@ -79,9 +80,12 @@ php restore-app/bin/swbackupit-restore compare /path/to/backup --target=/var/www
 SWBI_DB_PASSWORD=… php restore-app/bin/swbackupit-restore restore /path/to/backup \
   --target=/var/www/site --confirm-target=/var/www/site \
   --db-host=localhost --db-name=site --db-user=site --confirm-database=site \
-  [--key=…] [--path=wp-content/uploads] [--overwrite=if_different] [--dry-run]
+  [--key=…] [--path=wp-content/uploads] [--overwrite=if_different] [--dry-run] [--tables=wp_posts,wp_postmeta]
 php restore-app/bin/swbackupit-restore fetch <backup-id> --storage=target.json --to=/path/to/backups --with-chain   # from a storage target
 ```
+
+`--tables` restores only the listed tables (selective database restore; they are dropped and recreated, other tables are left alone,
+views/triggers/routines are skipped; combine with `--no-files`). Files are selected with `--path`/`--pattern`.
 
 Restore verifies the backup first, never overwrites outside the confirmed target, never follows symlinks, refuses suspicious archives and never
 reports success if a phase failed. An interrupted restore continues when started again.

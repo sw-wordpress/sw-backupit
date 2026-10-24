@@ -22,6 +22,8 @@ final readonly class RestoreRequest
      * @param string $stateDirectory      Where resumable progress is stored (outside the target tree).
      * @param array<string, string> $replacements URL/path search => replace pairs applied serialization-safe after the import.
      * @param string|null $newTablePrefix Rename tables to this prefix after the import.
+     * @param list<string>|null $databaseTables Selective database restore: only these tables (names as in the backup) are
+     *                                          dropped, recreated and filled; views, triggers, routines and events are skipped.
      */
     public function __construct(
         public string $backupDirectory,
@@ -42,6 +44,7 @@ final readonly class RestoreRequest
         public array $replacements = [],
         public ?string $newTablePrefix = null,
         public bool $migrationDryRun = false,
+        public ?array $databaseTables = null,
     ) {
     }
 
@@ -56,7 +59,7 @@ final readonly class RestoreRequest
         return hash('sha256', (string) json_encode([
             realpath($this->backupDirectory) ?: $this->backupDirectory, realpath($this->targetPath) ?: $this->targetPath,
             $this->restoreFiles, $this->restoreDatabase, $database, $this->overwrite->value, $this->selection->toArray(),
-            $this->dryRun, $this->replacements, $this->newTablePrefix, $this->migrationDryRun,
+            $this->dryRun, $this->replacements, $this->newTablePrefix, $this->migrationDryRun, $this->databaseTables,
         ]));
     }
 }

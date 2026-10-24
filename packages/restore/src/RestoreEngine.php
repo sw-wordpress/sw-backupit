@@ -169,6 +169,15 @@ final class RestoreEngine
             if ($request->confirmedDatabase !== $request->database->name) {
                 throw new ConfigurationException('The target database name was not confirmed correctly.');
             }
+            if ($request->databaseTables !== null) {
+                $known = array_map(
+                    static fn (mixed $table): string => is_array($table) ? (string) ($table['name'] ?? '') : '',
+                    (array) ($set->manifest()->section('database')['tables'] ?? []),
+                );
+                if ($request->databaseTables === [] || array_diff($request->databaseTables, $known) !== []) {
+                    throw new ConfigurationException('The selected tables are not part of the backup.', ['tables' => implode(',', array_diff($request->databaseTables, $known))]);
+                }
+            }
         }
 
         return $target;
@@ -199,7 +208,7 @@ final class RestoreEngine
             throw new ConfigurationException('A database connection is required to restore the database.');
         }
         $pdo = ConnectionFactory::create($config);
-        $importer = new SqlImporter($pdo, $this->logger);
+        $importer = new SqlImporter($pdo, $this->logger, $request->databaseTables);
         $parts = $set->manifest()->databaseParts();
         $db = is_array($state['database'] ?? null) ? $state['database'] : ['part' => 0, 'statements' => 0];
         if ($db === ['part' => 0, 'statements' => 0]) {
@@ -251,7 +260,8 @@ final class RestoreEngine
                     static fn (mixed $table): string => is_array($table) ? (string) ($table['name'] ?? '') : '',
                     (array) ($set->manifest()->section('database')['tables'] ?? []),
                 )));
-                $count = (new TablePrefixMigrator($pdo))->migrate($oldPrefix, $request->newTablePrefix, $backupTables !== [] ? $backupTables : null);
+                $only = $request->databaseTables ?? ($backupTables !== [] ? $backupTables : null);
+                $count = (new TablePrefixMigrator($pdo))->migrate($oldPrefix, $request->newTablePrefix, $only);
                 $state['prefix_migrated'] = true;
                 $store->save($state);
                 $this->logger->info('Table prefix migrated.', ['tables' => $count]);
@@ -259,7 +269,12 @@ final class RestoreEngine
             $prefix = $request->newTablePrefix;
         }
         if ($request->replacements !== []) {
-            $result = (new DatabaseMigrator($pdo, $this->logger))->run($request->replacements, $prefix, [], $request->migrationDryRun, $budget);
+            // Selective restore: only the restored tables are migrated (under their possibly renamed prefix).
+            $tables = $request->databaseTables === null ? [] : array_map(
+                static fn (string $table): string => str_starts_with($table, $oldPrefix) ? $prefix . substr($table, strlen($oldPrefix)) : $table,
+                $request->databaseTables,
+            );
+            $result = (new DatabaseMigrator($pdo, $this->logger))->run($request->replacements, $prefix, $tables, $request->migrationDryRun, $budget);
             $state['migration'] = $result->toArray();
             $store->save($state);
 

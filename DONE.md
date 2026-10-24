@@ -33,3 +33,19 @@ See `docs/implementation-plan.md` and `docs/architecture.md`: NDJSON index (no p
 ## Languages and default scope (follow-up)
 - gettext pipeline: `languages/swbackupit.pot` (code + generated core message list), `.po/.mo` for de_DE, fr_FR, pl_PL, it_IT, `bin/i18n.sh pot|update|compile|check`, regional locale fallback, core/restore messages translated at presentation time, standalone wizard with its own translator and generated catalogs, SPA catalogs in en/de/fr/pl/it with Quasar language packs; guards: PHPUnit `I18nTest`, Vitest `i18n-parity.test.ts`; documented in `docs/translations.md`, enforced by `AGENTS.md`/`CONTRIBUTING.md`.
 - Default scope: "everything except cache" (profile seeded on activation, API/SPA creation defaults); second seeded profile "Content update (uploads, themes, plugins)" (incremental).
+
+## Opus re-review (correctness, security, missing features)
+- Realistic read-only test against the local dev site (1.1 GB, 62,870 files, 68 tables): backup 52 s / 32 MB peak memory, deep verify OK,
+  restore into a temp dir + private MariaDB byte-identical (files) and checksum-identical (tables); only files edited during the run differed.
+- Core/restore fixes: retention never deletes the newest backup of any type; torn chunked files flagged; failed restore entries retried;
+  restore state bound to the request; exactly-once SQL resume (transactional progress table), persisted deferred views, session settings on
+  resume; ENUM/SET/FLOAT/BIT/binary keys, BIT values, DEFAULT_GENERATED columns, utf8mb4 export connection, view db qualifier; migration
+  progress reset, idempotent prefix rename, wp-config warning; lease loss aborts a tick; single-use wizard token; restore notes (symlinks,
+  inconsistent files).
+- WordPress fixes: multisite capabilities, WP-CLI subcommand names (`list`, `run-due`), watchdog/cancel schedule status and mails, paused
+  jobs count as running, serialised job start and atomic schedule claim, system-cron mode, encrypted downloads, no false "corrupt" for
+  remote-only backups, pre-update backups for core updates, DST-safe schedules, web-root staging refused, settings booleans, uninstall
+  cleanup, verified migrations, logged listener errors, restore-test mails.
+- New: complete recovery package as one ZIP (REST `GET /backups/{id}/package`, `wp swbackupit backup package`, SPA download menu) and
+  selective database restore (`--tables`).
+
