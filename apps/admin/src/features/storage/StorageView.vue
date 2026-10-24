@@ -9,7 +9,7 @@ import PageHeader from '@/components/ui/PageHeader.vue';
 import PaginationBar from '@/components/ui/PaginationBar.vue';
 import StatusChip from '@/components/ui/StatusChip.vue';
 import SwbiCard from '@/components/ui/SwbiCard.vue';
-import { useAsyncData } from '@/composables/useAsyncData';
+import { toApiError, useAsyncData } from '@/composables/useAsyncData';
 import { useCapabilities } from '@/composables/useCapabilities';
 import { useFormat } from '@/composables/useFormat';
 import { useNotify } from '@/composables/useNotify';
@@ -38,6 +38,7 @@ const discoverTarget = ref<StorageTarget | null>(null);
 const toDelete = ref<StorageTarget | null>(null);
 const deleteOpen = ref(false);
 const deleting = ref(false);
+const deleteError = ref<string | null>(null);
 const testingId = ref<number | null>(null);
 const results = ref<
   Record<number, StorageTestResult | { ok: false; message: string; latency_ms: 0 }>
@@ -73,6 +74,7 @@ async function test(tg: StorageTarget): Promise<void> {
 }
 function askDelete(tg: StorageTarget): void {
   toDelete.value = tg;
+  deleteError.value = null;
   deleteOpen.value = true;
 }
 async function doDelete(): Promise<void> {
@@ -85,7 +87,9 @@ async function doDelete(): Promise<void> {
     lookups.invalidate();
     await list.load();
   } catch (e) {
-    notify.error(e);
+    const err = toApiError(e);
+    if (err.status === 409) deleteError.value = `${err.message} ${t('storage.inUse')}`;
+    else notify.error(e);
   } finally {
     deleting.value = false;
   }
@@ -296,6 +300,7 @@ function summary(tg: StorageTarget): string {
       ]"
       :confirm-label="t('common.delete')"
       :loading="deleting"
+      :error="deleteError"
       @confirm="doDelete"
     />
   </div>

@@ -82,7 +82,7 @@ const typeOptions = computed(() =>
   })),
 );
 const statusOptions = computed(() =>
-  (['complete', 'verified', 'incomplete', 'corrupt'] as const).map((v) => ({
+  (['complete', 'verified', 'corrupt'] as const).map((v) => ({
     label: t(`status.backup.${v}`),
     value: v,
   })),

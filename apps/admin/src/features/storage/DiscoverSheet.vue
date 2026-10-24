@@ -21,12 +21,14 @@ const api = useApi();
 const found = useAsyncData(() => api.storage.discover(props.target.id), { immediate: false });
 const selected = ref<string[]>([]);
 const importing = ref(false);
+const download = ref(false);
 const items = computed(() => found.data.value ?? []);
-const importable = computed(() => items.value.filter((b) => !b.already_imported));
+const importable = computed(() => items.value.filter((b) => !b.already_imported && b.error === null));
 
 watch(open, (isOpen) => {
   if (isOpen) {
     selected.value = [];
+    download.value = false;
     void found.load();
   }
 });
@@ -34,7 +36,7 @@ watch(open, (isOpen) => {
 async function runImport(): Promise<void> {
   importing.value = true;
   try {
-    const res = await api.storage.import(props.target.id, selected.value);
+    const res = await api.storage.import(props.target.id, selected.value, download.value);
     notify.success(t('storage.discover.imported', { n: res.imported }, res.imported));
     emit('imported');
     open.value = false;
@@ -73,12 +75,12 @@ async function runImport(): Promise<void> {
             v-for="b in items"
             :key="b.backup_id"
             class="swbi-ds__row"
-            :class="{ 'is-disabled': b.already_imported }"
+            :class="{ 'is-disabled': b.already_imported || b.error !== null }"
           >
             <q-checkbox
               v-model="selected"
               :val="b.backup_id"
-              :disable="b.already_imported"
+              :disable="b.already_imported || b.error !== null"
               :aria-label="b.backup_id"
             />
             <span class="swbi-ds__info">
@@ -88,11 +90,14 @@ async function runImport(): Promise<void> {
                 }}<template v-if="b.profile_name"> · {{ b.profile_name }}</template></span
               >
             </span>
-            <span v-if="b.already_imported" class="swbi-muted">{{
+            <span v-if="b.error !== null" class="swbi-ds__err">{{ b.error }}</span>
+            <span v-else-if="b.already_imported" class="swbi-muted">{{
               t('storage.discover.already')
             }}</span>
           </label>
         </fieldset>
+        <q-checkbox v-model="download" :label="t('storage.discover.download')" />
+        <p class="swbi-muted swbi-ds__hint">{{ t('storage.discover.downloadHint') }}</p>
         <div class="swbi-row">
           <q-btn
             unelevated
@@ -118,6 +123,14 @@ async function runImport(): Promise<void> {
 </template>
 
 <style scoped>
+.swbi-ds__err {
+  color: var(--swbi-danger-text);
+  font-size: 13px;
+}
+.swbi-ds__hint {
+  font-size: 13px;
+  margin: -8px 0 12px 36px;
+}
 .swbi-ds {
   padding-top: 16px;
 }

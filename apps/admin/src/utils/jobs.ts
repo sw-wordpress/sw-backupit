@@ -1,28 +1,23 @@
-import type { Job, JobStatus } from '@/types/api';
+import type { Job, JobStatus, JobStep } from '@/types/api';
 
-/** Pipeline order shown in the stepper. `preparing` is the API's name for "preflight". */
-export const PHASES = [
+/** Pipeline order shown in the stepper (ids as reported in `job.phase`). */
+export const PHASES: readonly JobStep[] = [
   'preflight',
-  'scanning',
-  'exporting',
-  'archiving',
-  'encrypting',
-  'verifying',
-  'uploading',
-  'finalizing',
-] as const;
-export type Phase = (typeof PHASES)[number];
+  'scan',
+  'export',
+  'archive',
+  'encrypt',
+  'verify_local',
+  'manifest',
+  'upload',
+  'verify_remote',
+  'finalize',
+  'retention',
+  'notify',
+];
 
-const PHASE_ALIASES: Record<string, Phase> = {
-  pending: 'preflight',
-  preparing: 'preflight',
-  preflight: 'preflight',
-  completed: 'finalizing',
-};
-
-export function normalisePhase(phase: string): Phase | null {
-  if ((PHASES as readonly string[]).includes(phase)) return phase as Phase;
-  return PHASE_ALIASES[phase] ?? null;
+export function phaseIndex(phase: string | null): number {
+  return phase === null ? -1 : (PHASES as readonly string[]).indexOf(phase);
 }
 
 export const TERMINAL_STATUSES: readonly JobStatus[] = ['completed', 'failed', 'cancelled'];
@@ -45,4 +40,11 @@ export function nextPollDelay(options: {
   if (options.errorCount > 0) return Math.min(30000, 2000 * 2 ** (options.errorCount - 1));
   if (options.paused) return 5000;
   return Math.min(5000, 1000 + options.unchangedCount * 500);
+}
+
+/** Human text of `job.error` whether the server sent a string or `{code, message}`. */
+export function jobErrorText(error: Job['error']): string | null {
+  if (error === null || error === undefined) return null;
+  if (typeof error === 'string') return error;
+  return error.message ?? error.code ?? null;
 }

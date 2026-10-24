@@ -22,6 +22,8 @@ final readonly class BackupRecord
         public bool $protected = false,
         public bool $reliable = true,
         public ?int $profileId = null,
+        /** @var list<string> Backups whose data this backup references (delta chain). */
+        public array $requires = [],
     ) {
     }
 }

@@ -34,6 +34,18 @@ final class Verifier
                 $report->addError('The file index is missing or does not match the manifest checksum.');
             }
         }
+        foreach ($manifest->requires() as $required) {
+            $ancestor = $this->ancestorOrNull($set, $required);
+            if ($ancestor === null) {
+                $report->addError('Required base backup is not available: ' . $required);
+                continue;
+            }
+            // The chain is only as good as its weakest member: verify each ancestor completely (not deep).
+            $inner = $this->verify($ancestor, false);
+            foreach ($inner->errors() as $error) {
+                $report->addError('Base backup ' . $required . ': ' . $error);
+            }
+        }
         $reader = new VolumeReader();
         $volumeEntries = 0;
         foreach ($manifest->volumes() as $volume) {
@@ -81,22 +93,31 @@ final class Verifier
                     continue;
                 }
                 $report->filesChecked++;
+                $foreign = isset($entry['b']);
+                $source = $foreign ? $this->ancestorOrNull($set, (string) $entry['b']) : $set;
+                if ($source === null) {
+                    $report->addError('Required base backup is not available: ' . $entry['b']);
+                    continue;
+                }
                 $chunks = isset($entry['c']) && is_array($entry['c']) ? $entry['c'] : [['v' => $entry['v'] ?? 0, 'a' => $entry['a'] ?? '', 's' => $entry['s'] ?? 0, 'h' => $entry['h'] ?? null]];
                 $total = hash_init('sha256');
                 foreach ($chunks as $chunk) {
-                    $references++;
                     $volume = (int) ($chunk['v'] ?? 0);
-                    if ($volume < 1 || $volume > $maxVolume) {
+                    if (!$foreign) {
+                        $references++;
+                    }
+                    if ($volume < 1 || $volume > ($foreign ? count($source->manifest()->volumes()) : $maxVolume)) {
                         $report->addError('Index entry references a missing volume: ' . $entry['p']);
                         continue 2;
                     }
                     if (!$deep) {
                         continue;
                     }
-                    if ($zip === null || $zipVolume !== $volume) {
+                    $zipKey = $source->manifest()->backupId() . ':' . $volume;
+                    if ($zip === null || $zipVolume !== $zipKey) {
                         $zip?->close();
-                        $zip = $this->openZip($set, $volume);
-                        $zipVolume = $volume;
+                        $zip = $this->openZip($source, $volume);
+                        $zipVolume = $zipKey;
                     }
                     $stream = $zip->getStream((string) $chunk['a']);
                     if ($stream === false) {
@@ -129,6 +150,15 @@ final class Verifier
         }
         if ($references !== $volumeEntries) {
             $report->addError(sprintf('Index (%d archive entries) and volumes (%d entries) are inconsistent.', $references, $volumeEntries));
+        }
+    }
+
+    private function ancestorOrNull(BackupSet $set, string $backupId): ?BackupSet
+    {
+        try {
+            return $set->ancestor($backupId);
+        } catch (\SWBackupIt\Core\Exception\SwbiException) {
+            return null;
         }
     }
 

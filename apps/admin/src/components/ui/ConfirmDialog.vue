@@ -17,6 +17,8 @@ const props = withDefaults(
     /** If set, the user must type exactly this text to enable the confirm button. */
     requireText?: string;
     checkboxLabel?: string;
+    /** Server error to show inside the dialog (e.g. 409 target in use). */
+    error?: string | null;
   }>(),
   {
     message: undefined,
@@ -26,6 +28,7 @@ const props = withDefaults(
     loading: false,
     requireText: undefined,
     checkboxLabel: undefined,
+    error: null,
   },
 );
 const emit = defineEmits<{ (e: 'confirm'): void }>();
@@ -80,6 +83,9 @@ watch(open, (value) => {
           :label="t('common.typeToConfirm', { text: requireText })"
         />
         <q-checkbox v-if="checkboxLabel !== undefined" v-model="checked" :label="checkboxLabel" />
+        <p v-if="error" class="swbi-cd__error" role="alert">
+          <q-icon name="r_error" size="18px" aria-hidden="true" /> {{ error }}
+        </p>
         <slot />
       </q-card-section>
       <q-card-actions align="right" class="swbi-cd__actions">
@@ -106,6 +112,16 @@ watch(open, (value) => {
 </template>
 
 <style scoped>
+.swbi-cd__error {
+  display: flex;
+  gap: 6px;
+  align-items: flex-start;
+  padding: 10px 12px;
+  border-radius: var(--swbi-radius-sm);
+  background: var(--swbi-danger-bg);
+  color: var(--swbi-danger-text);
+  font-size: 14px;
+}
 .swbi-cd {
   width: min(520px, calc(100vw - 24px));
   max-width: none;

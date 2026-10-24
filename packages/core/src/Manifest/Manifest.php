@@ -173,6 +173,18 @@ final class Manifest
         return is_array($files) ? (string) $files['index'] : 'files.ndjson';
     }
 
+    /**
+     * Ids of other backups whose volumes this backup's file index references (empty for full backups).
+     *
+     * @return list<string>
+     */
+    public function requires(): array
+    {
+        $chain = $this->data['chain'] ?? null;
+
+        return is_array($chain) ? array_values(array_filter((array) ($chain['requires'] ?? []), 'is_string')) : [];
+    }
+
     public function filesIndexSha256(): ?string
     {
         $files = $this->data['files'] ?? null;

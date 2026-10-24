@@ -5,6 +5,7 @@ import { useApi } from '@/api';
 import FormSection from '@/components/ui/FormSection.vue';
 import FormSheet from '@/components/ui/FormSheet.vue';
 import TagInput from '@/components/ui/TagInput.vue';
+import { useFormError } from '@/composables/useFormError';
 import { useNotify } from '@/composables/useNotify';
 import { useLookupsStore } from '@/stores/lookups';
 import type { BackupType, Profile, ProfileInput } from '@/types/api';
@@ -16,11 +17,19 @@ const emit = defineEmits<{ (e: 'saved', profile: Profile): void }>();
 
 const { t } = useI18n();
 const notify = useNotify();
+const formError = useFormError();
 const lookups = useLookupsStore();
 const form = ref<ProfileInput>(defaultProfileInput());
 const tab = ref('general');
 const saving = ref(false);
 const targetsLoading = ref(false);
+const keysLoading = ref(false);
+const keyIds = ref<string[]>([]);
+const keyOptions = computed(() => {
+  const ids = new Set(keyIds.value);
+  if (form.value.encryption.key_id) ids.add(form.value.encryption.key_id);
+  return [...ids].map((id) => ({ value: id, label: id }));
+});
 
 const TABS = ['general', 'content', 'compression', 'storage', 'limits', 'notifications'] as const;
 const TYPES: BackupType[] = ['full', 'files', 'database', 'incremental', 'differential'];
@@ -32,9 +41,20 @@ const nonNegative = (v: number): true | string =>
   (Number.isFinite(v) && v >= 0) || t('common.minValue', { n: 0 });
 
 watch(open, async (isOpen) => {
+  formError.clear();
   if (!isOpen) return;
   form.value = props.profile ? profileToInput(props.profile) : defaultProfileInput();
   tab.value = 'general';
+  keysLoading.value = true;
+  useApi()
+    .keys.list()
+    .then((res) => {
+      keyIds.value = res.items.map((k) => k.id);
+    })
+    .catch((e: unknown) => notify.error(e))
+    .finally(() => {
+      keysLoading.value = false;
+    });
   targetsLoading.value = true;
   try {
     await lookups.loadTargets(true);
@@ -50,6 +70,7 @@ const isAdvanced = computed(() => (ADVANCED_TYPES as readonly string[]).includes
 const title = computed(() => (props.profile ? t('profiles.edit') : t('profiles.create')));
 
 async function save(): Promise<void> {
+  formError.clear();
   saving.value = true;
   try {
     const api = useApi();
@@ -61,7 +82,7 @@ async function save(): Promise<void> {
     emit('saved', saved);
     open.value = false;
   } catch (e) {
-    notify.error(e);
+    formError.handle(e);
   } finally {
     saving.value = false;
   }
@@ -71,6 +92,7 @@ async function save(): Promise<void> {
 <template>
   <FormSheet
     v-model="open"
+    :error="formError.error.value"
     :title="title"
     :subtitle="profile?.name"
     :loading="saving"
@@ -191,6 +213,11 @@ async function save(): Promise<void> {
           />
           <TagInput v-model="form.db_tables_exclude" :label="t('profiles.tablesExclude')" />
           <q-toggle v-model="form.db_include_foreign_tables" :label="t('profiles.foreignTables')" />
+          <q-toggle v-model="form.db_consistent_snapshot" :label="t('profiles.consistentSnapshot')" />
+          <p class="swbi-note" role="note">
+            <q-icon name="r_info" size="18px" aria-hidden="true" />
+            {{ t('profiles.consistentSnapshotInfo') }}
+          </p>
         </FormSection>
       </div>
 
@@ -247,17 +274,26 @@ async function save(): Promise<void> {
           :description="t('profiles.sections.encryptionDesc')"
         >
           <q-toggle v-model="form.encryption.enabled" :label="t('profiles.encrypt')" />
-          <q-input
+          <q-select
             v-if="form.encryption.enabled"
             v-model="form.encryption.key_id"
             outlined
             dense
+            emit-value
+            map-options
+            :loading="keysLoading"
+            :options="keyOptions"
             :label="t('profiles.keyId')"
-            :hint="t('profiles.keyIdHint')"
-            autocomplete="off"
+            :hint="keyOptions.length === 0 && !keysLoading ? t('profiles.noKeys') : t('profiles.keyIdHint')"
             :rules="[(v: string) => v.trim() !== '' || t('common.required')]"
             lazy-rules="ondemand"
           />
+          <router-link
+            v-if="form.encryption.enabled && keyOptions.length === 0 && !keysLoading"
+            to="/settings"
+            @click="open = false"
+            >{{ t('profiles.createKey') }}</router-link
+          >
         </FormSection>
       </div>
 
@@ -338,6 +374,11 @@ async function save(): Promise<void> {
             :rules="[nonNegative]"
             lazy-rules="ondemand"
           />
+          <q-toggle
+            v-model="form.retention.delete_local_after_upload"
+            :label="t('profiles.deleteLocalAfterUpload')"
+          />
+          <p class="swbi-muted swbi-small">{{ t('profiles.deleteLocalAfterUploadHint') }}</p>
           <fieldset class="swbi-gfs">
             <legend>{{ t('profiles.gfs') }}</legend>
             <p class="swbi-muted swbi-small">{{ t('profiles.gfsHint') }}</p>

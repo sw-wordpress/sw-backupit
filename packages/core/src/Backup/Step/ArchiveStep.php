@@ -10,12 +10,14 @@ use SWBackupIt\Core\Archive\ReadResult;
 use SWBackupIt\Core\Archive\VolumeInfo;
 use SWBackupIt\Core\Archive\VolumeWriter;
 use SWBackupIt\Core\Backup\BackupContext;
+use SWBackupIt\Core\Backup\ParentIndex;
 use SWBackupIt\Core\Backup\BackupStepInterface;
 use SWBackupIt\Core\Backup\StepOutcome;
 use SWBackupIt\Core\Domain\BackupProfile;
 use SWBackupIt\Core\Domain\Step;
 use SWBackupIt\Core\Scanner\FileIndexReader;
 use SWBackupIt\Core\Scanner\FileIndexWriter;
+use SWBackupIt\Core\Support\PathOrder;
 
 /**
  * Turns the inventory into independent ZIP volumes and the final file index.
@@ -44,6 +46,7 @@ final class ArchiveStep implements BackupStepInterface
         $checkpoint = $job->checkpoint(Step::Archive) + [
             'volumes' => [], 'index_offset' => 0, 'final_offset' => 0, 'chunk' => null,
             'entries' => 0, 'files_done' => 0, 'bytes_done' => 0, 'finished' => false,
+            'parent_offset' => 0, 'requires' => [], 'unchanged' => 0,
         ];
         if ($checkpoint['finished'] === true) {
             return StepOutcome::Done;
@@ -55,6 +58,13 @@ final class ArchiveStep implements BackupStepInterface
         $progress = $job->progress;
         $progress->filesDone = (int) $checkpoint['entries'];
         $progress->bytesDone = (int) $checkpoint['bytes_done'];
+        $preflight = $job->checkpoint(Step::Preflight);
+        $parentInfo = is_array($preflight['parent'] ?? null) && in_array($preflight['effective_type'] ?? '', ['incremental', 'differential'], true) ? $preflight['parent'] : null;
+        $parentReader = $parentInfo === null ? null : ParentIndex::open(
+            $context->layout->stagingRoot() . '/' . $parentInfo['backup_id'],
+            $context->keys,
+            $context->layout->workDirectory() . '/parent',
+        );
         $compressedBefore = array_sum(array_map(static fn (array $volume): int => (int) $volume['size'], $checkpoint['volumes']));
 
         while (true) {
@@ -64,6 +74,9 @@ final class ArchiveStep implements BackupStepInterface
             $consumed = (int) $checkpoint['index_offset'];
             $chunk = $checkpoint['chunk'];
             $more = false;
+            $parentBefore = (int) $checkpoint['parent_offset'];
+            $parentGen = $parentReader?->read($parentBefore);
+            $parentPeek = $parentGen !== null && $parentGen->valid() ? $parentGen->current() : null;
 
             try {
                 foreach ($reader->read($consumed) as [$entry, $nextOffset]) {
@@ -90,6 +103,32 @@ final class ArchiveStep implements BackupStepInterface
                     $size = (int) $stat['size'];
                     $progress->currentItem = $path;
                     $archiveName = EntryName::for($path);
+
+                    if ($parentGen !== null && !(is_array($chunk) && $chunk['path'] === $path)) {
+                        // Merge-join with the base index (both are in canonical path order).
+                        while ($parentPeek !== null && PathOrder::compare((string) $parentPeek[0]['p'], $path) < 0) {
+                            $parentBefore = $parentPeek[1];
+                            $parentGen->next();
+                            $parentPeek = $parentGen->valid() ? $parentGen->current() : null;
+                        }
+                        if ($parentPeek !== null && $this->isUnchanged($parentPeek[0], $path, $size, (int) $stat['mtime'])) {
+                            $base = (string) ($parentPeek[0]['b'] ?? $parentInfo['backup_id']);
+                            $entry = array_intersect_key($entry, array_flip(['p', 't', 'mode'])) + ['s' => $size, 'm' => (int) $stat['mtime'], 'st' => 'ok'];
+                            foreach (['h', 'v', 'a', 'c'] as $key) {
+                                if (isset($parentPeek[0][$key])) {
+                                    $entry[$key] = $parentPeek[0][$key];
+                                }
+                            }
+                            $entry['b'] = $base;
+                            $checkpoint['requires'][$base] = true;
+                            $final->append($entry);
+                            $consumed = $nextOffset;
+                            $checkpoint['entries']++;
+                            $checkpoint['unchanged']++;
+                            $progress->filesDone = (int) $checkpoint['entries'];
+                            continue;
+                        }
+                    }
 
                     if ($size <= $maxVolume) {
                         if ($writer !== null && $writer->entryCount() > 0 && $writer->size() + $size > $maxVolume) {
@@ -152,6 +191,7 @@ final class ArchiveStep implements BackupStepInterface
                     $writer = null;
                 }
                 $checkpoint['index_offset'] = $consumed;
+                $checkpoint['parent_offset'] = $parentBefore;
                 $checkpoint['final_offset'] = $final->commit();
                 $checkpoint['chunk'] = $chunk;
                 $checkpoint['finished'] = !$more;
@@ -177,6 +217,21 @@ final class ArchiveStep implements BackupStepInterface
                 return StepOutcome::Yield;
             }
         }
+    }
+
+    /**
+     * A file is unchanged when the base backup holds its data with identical size and modification time.
+     *
+     * @param array<string, mixed> $parent
+     */
+    private function isUnchanged(array $parent, string $path, int $size, int $mtime): bool
+    {
+        return (string) $parent['p'] === $path
+            && $parent['t'] === 'f'
+            && ($parent['st'] ?? 'ok') === 'ok'
+            && (int) $parent['s'] === $size
+            && (int) $parent['m'] === $mtime
+            && (isset($parent['a']) || isset($parent['c']));
     }
 
     /**

@@ -10,7 +10,7 @@ import type { CompareMode, CompareResult } from '@/types/api';
 
 const open = defineModel<boolean>({ required: true });
 const props = defineProps<{ backupId: string }>();
-const { t } = useI18n();
+const { t, te } = useI18n();
 const fmt = useFormat();
 const notify = useNotify();
 
@@ -22,12 +22,13 @@ watch(open, (isOpen) => {
   if (isOpen) result.value = null;
 });
 
-const SAMPLE_KEYS = ['modified', 'only_in_backup', 'only_local'] as const;
 const samples = computed(() =>
-  SAMPLE_KEYS.map((key) => ({ key, items: result.value?.samples[key] ?? [] })).filter(
-    (s) => s.items.length > 0,
-  ),
+  Object.entries(result.value?.samples ?? {})
+    .map(([key, items]) => ({ key, items }))
+    .filter((s) => s.items.length > 0),
 );
+const sampleTitle = (key: string): string =>
+  te(`backups.compare.sample.${key}`) ? t(`backups.compare.sample.${key}`) : key;
 
 async function run(): Promise<void> {
   running.value = true;
@@ -105,7 +106,7 @@ async function run(): Promise<void> {
           />
         </div>
         <section v-for="s in samples" :key="s.key" class="swbi-cmp__sample">
-          <h3>{{ t(`backups.compare.sample.${s.key}`) }}</h3>
+          <h3>{{ sampleTitle(s.key) }}</h3>
           <ul>
             <li v-for="p in s.items" :key="p" class="swbi-mono swbi-truncate" :title="p">
               {{ p }}

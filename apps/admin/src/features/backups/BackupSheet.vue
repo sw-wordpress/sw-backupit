@@ -161,23 +161,45 @@ const verifyOk = computed(
           no-caps
           icon="r_download"
           :label="t('backups.download')"
-          :disable="volumes.length === 0"
         >
           <q-menu auto-close>
             <q-list style="min-width: 200px">
               <q-item-label header>{{ t('backups.downloadVolume') }}</q-item-label>
               <q-item
                 v-for="v in volumes"
-                :key="v"
+                :key="`v${v}`"
                 clickable
                 tag="a"
-                :href="api.backups.downloadUrl(backup.id, v)"
+                :href="api.backups.downloadUrl(backup.id, 'volume', v)"
                 rel="noopener"
               >
                 <q-item-section avatar><q-icon name="r_folder_zip" /></q-item-section>
                 <q-item-section>{{
                   t('backups.volumeN', { n: v, total: backup.volume_count })
                 }}</q-item-section>
+              </q-item>
+              <q-separator />
+              <q-item-label header>{{ t('backups.downloadParts') }}</q-item-label>
+              <q-item
+                v-if="backup.type !== 'files'"
+                clickable
+                tag="a"
+                :href="api.backups.downloadUrl(backup.id, 'database', 1)"
+                rel="noopener"
+              >
+                <q-item-section avatar><q-icon name="r_database" /></q-item-section>
+                <q-item-section>{{ t('backups.part.database') }}</q-item-section>
+              </q-item>
+              <q-item
+                v-for="part in ['manifest', 'index'] as const"
+                :key="part"
+                clickable
+                tag="a"
+                :href="api.backups.downloadUrl(backup.id, part)"
+                rel="noopener"
+              >
+                <q-item-section avatar><q-icon name="r_description" /></q-item-section>
+                <q-item-section>{{ t(`backups.part.${part}`) }}</q-item-section>
               </q-item>
             </q-list>
           </q-menu>

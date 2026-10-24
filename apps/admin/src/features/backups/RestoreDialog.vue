@@ -1,39 +1,40 @@
 <script setup lang="ts">
 import { computed, ref, watch } from 'vue';
 import { useI18n } from 'vue-i18n';
-import { useRouter } from 'vue-router';
 import { useApi } from '@/api';
 import SideSheet from '@/components/ui/SideSheet.vue';
 import { getConfig } from '@/config';
 import { useFormat } from '@/composables/useFormat';
 import { useNotify } from '@/composables/useNotify';
-import { useJobsStore } from '@/stores/jobs';
 import type { Backup, RestorePrepareResult } from '@/types/api';
 
+/**
+ * Restore never runs from this UI. "Prepare" asks the server for a one-time token and the
+ * URL of the standalone restore wizard; the token is kept in memory only while this dialog
+ * is open and is shown once.
+ */
 const open = defineModel<boolean>({ required: true });
 const props = defineProps<{ backup: Backup }>();
 const { t } = useI18n();
 const fmt = useFormat();
 const notify = useNotify();
-const router = useRouter();
-const jobs = useJobsStore();
 
 type Step = 'intro' | 'confirm' | 'ready';
 const step = ref<Step>('intro');
 const preparing = ref(false);
-const executing = ref(false);
 const prepared = ref<RestorePrepareResult | null>(null);
 const pathConfirmed = ref(false);
 const typedId = ref('');
+const copied = ref(false);
 const siteUrl = getConfig().siteUrl;
 
-watch(open, (isOpen) => {
-  if (isOpen) {
-    step.value = 'intro';
-    prepared.value = null;
-    pathConfirmed.value = false;
-    typedId.value = '';
-  }
+watch(open, () => {
+  step.value = 'intro';
+  pathConfirmed.value = false;
+  typedId.value = '';
+  copied.value = false;
+  // The token must not outlive the dialog.
+  prepared.value = null;
 });
 
 const differentSite = computed(
@@ -67,18 +68,13 @@ async function prepare(): Promise<void> {
   }
 }
 
-async function execute(): Promise<void> {
-  executing.value = true;
+async function copyToken(): Promise<void> {
+  if (!prepared.value) return;
   try {
-    const job = await useApi().backups.restore(props.backup.id);
-    notify.success(t('jobs.started'));
-    void jobs.refresh();
-    open.value = false;
-    await router.push({ name: 'job', params: { id: job.id } });
-  } catch (e) {
-    notify.error(e);
-  } finally {
-    executing.value = false;
+    await navigator.clipboard.writeText(prepared.value.token);
+    copied.value = true;
+  } catch {
+    notify.info(t('backups.restore.copyFailed'));
   }
 }
 </script>
@@ -115,6 +111,10 @@ async function execute(): Promise<void> {
 
       <template v-if="step === 'intro'">
         <p>{{ t('backups.restore.intro') }}</p>
+        <div class="swbi-rs__box swbi-rs__box--info" role="note">
+          <q-icon name="r_info" size="22px" aria-hidden="true" />
+          <span>{{ t('backups.restore.wizardOnly') }}</span>
+        </div>
         <div class="swbi-rs__box swbi-rs__box--danger" role="note">
           <q-icon name="r_warning" size="22px" aria-hidden="true" />
           <ul>
@@ -165,14 +165,16 @@ async function execute(): Promise<void> {
 
         <dl class="swbi-rs__target">
           <div>
+            <dt>{{ t('backups.restore.targetPath') }}</dt>
+            <dd class="swbi-mono">{{ prepared.target_path }}</dd>
+          </div>
+          <div>
             <dt>{{ t('backups.restore.targetSite') }}</dt>
             <dd class="swbi-mono">{{ siteUrl || '–' }}</dd>
           </div>
           <div>
             <dt>{{ t('backups.restore.source') }}</dt>
-            <dd class="swbi-mono">
-              {{ fmt.shortId(backup.id) }} · {{ fmt.dateTime(backup.created_at) }}
-            </dd>
+            <dd class="swbi-mono">{{ fmt.shortId(backup.id) }} · {{ fmt.dateTime(backup.created_at) }}</dd>
           </div>
         </dl>
 
@@ -190,8 +192,8 @@ async function execute(): Promise<void> {
             unelevated
             no-caps
             color="primary"
-            icon="r_arrow_forward"
-            :label="t('backups.restore.continue')"
+            icon="r_key"
+            :label="t('backups.restore.reveal')"
             :disable="!confirmed"
             @click="step = 'ready'"
           />
@@ -215,6 +217,24 @@ async function execute(): Promise<void> {
           </div>
         </section>
 
+        <div class="swbi-rs__box swbi-rs__box--warn" role="alert">
+          <q-icon name="r_visibility" size="22px" aria-hidden="true" />
+          <span>{{ t('backups.restore.tokenOnce') }}</span>
+        </div>
+
+        <div class="swbi-rs__token">
+          <span class="swbi-eyebrow">{{ t('backups.restore.token') }}</span>
+          <code class="swbi-rs__tokenvalue" data-testid="restore-token">{{ prepared.token }}</code>
+          <q-btn
+            outline
+            no-caps
+            dense
+            :icon="copied ? 'r_check' : 'r_content_copy'"
+            :label="copied ? t('backups.restore.copied') : t('backups.restore.copy')"
+            @click="copyToken"
+          />
+        </div>
+
         <div class="swbi-rs__option">
           <h3>{{ t('backups.restore.optionStandalone') }}</h3>
           <p class="swbi-muted">{{ t('backups.restore.optionStandaloneText') }}</p>
@@ -231,20 +251,9 @@ async function execute(): Promise<void> {
             :label="t('backups.restore.openRestore')"
           />
           <p v-else class="swbi-muted">{{ t('backups.restore.invalidUrl') }}</p>
+          <p class="swbi-muted swbi-mono">{{ prepared.target_path }}</p>
         </div>
-        <div class="swbi-rs__option">
-          <h3>{{ t('backups.restore.optionJob') }}</h3>
-          <p class="swbi-muted">{{ t('backups.restore.optionJobText') }}</p>
-          <q-btn
-            outline
-            no-caps
-            color="negative"
-            icon="r_restore"
-            :label="t('backups.restore.execute')"
-            :loading="executing"
-            @click="execute"
-          />
-        </div>
+        <q-btn flat no-caps :label="t('common.close')" @click="open = false" />
       </template>
     </div>
   </SideSheet>
@@ -289,6 +298,10 @@ async function execute(): Promise<void> {
   list-style: disc;
   padding-left: 18px;
 }
+.swbi-rs__box--info {
+  background: var(--swbi-info-bg);
+  color: var(--swbi-info-text);
+}
 .swbi-rs__box--danger {
   background: var(--swbi-danger-bg);
   color: var(--swbi-danger-text);
@@ -319,6 +332,24 @@ async function execute(): Promise<void> {
 }
 .swbi-rs__target dd {
   overflow-wrap: anywhere;
+}
+.swbi-rs__token {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  align-items: flex-start;
+  padding: 14px 16px;
+  border: 1px dashed var(--swbi-warning);
+  border-radius: var(--swbi-radius-sm);
+  background: var(--swbi-surface-2);
+}
+.swbi-rs__tokenvalue {
+  display: block;
+  max-width: 100%;
+  padding: 10px 12px;
+  font-size: 14px;
+  overflow-wrap: anywhere;
+  user-select: all;
 }
 .swbi-rs__option {
   display: flex;

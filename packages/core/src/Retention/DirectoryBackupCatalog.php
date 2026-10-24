@@ -46,6 +46,7 @@ final class DirectoryBackupCatalog implements BackupCatalogInterface
                     $size += $part['size'];
                 }
                 $parent = $manifest->section('parent');
+                $requires = array_values(array_filter((array) ($manifest->section('chain')['requires'] ?? []), 'is_string'));
                 $records[] = new BackupRecord(
                     $id,
                     $manifest->type(),
@@ -55,6 +56,7 @@ final class DirectoryBackupCatalog implements BackupCatalogInterface
                     is_file($dir . '/.protected'),
                     true,
                     $recordProfileId,
+                    $requires,
                 );
             } catch (\Throwable) {
                 // Incomplete or damaged: report as unreliable instead of hiding it (never auto deleted).

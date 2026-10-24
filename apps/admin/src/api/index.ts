@@ -7,6 +7,9 @@ import type {
   BackupFilters,
   CompareMode,
   CompareResult,
+  CreatedEncryptionKey,
+  DownloadPart,
+  EncryptionKey,
   DiscoveredBackup,
   HealthReport,
   Job,
@@ -60,6 +63,7 @@ export function createApi(client: ApiClient) {
       get: (id: string, signal?: AbortSignal) => client.get<Job>(`jobs/${id}`, undefined, signal),
       pause: (id: string) => client.post<Job>(`jobs/${id}/pause`),
       resume: (id: string) => client.post<Job>(`jobs/${id}/resume`),
+      retry: (id: string) => client.post<Job>(`jobs/${id}/retry`),
       cancel: (id: string) => client.post<Job>(`jobs/${id}/cancel`),
       tick: (id: string, signal?: AbortSignal) =>
         client.post<Job>(`jobs/${id}/tick`, {}, { signal }),
@@ -83,12 +87,10 @@ export function createApi(client: ApiClient) {
       ) => client.get<Paginated<ArchiveEntry>>(`backups/${id}/files`, q as Query, signal),
       compare: (id: string, mode: CompareMode) =>
         client.post<CompareResult>(`backups/${id}/compare`, { mode }),
-      downloadUrl: (id: string, volume: number) =>
-        client.authenticatedUrl(`backups/${id}/download`, { volume }),
+      downloadUrl: (id: string, part: DownloadPart, volume?: number) =>
+        client.authenticatedUrl(`backups/${id}/download`, { part, volume }),
       restorePrepare: (id: string) =>
         client.post<RestorePrepareResult>(`backups/${id}/restore/prepare`),
-      restore: (id: string) =>
-        client.post<Job>(`backups/${id}/restore`, { confirm: id, target_path_confirmed: true }),
     },
     storage: {
       list: (q: PageQuery = {}) =>
@@ -105,11 +107,20 @@ export function createApi(client: ApiClient) {
         );
         return Array.isArray(res) ? res : res.items;
       },
-      /** Request/response shape assumed: `{ backup_ids: string[] }` -> `{ imported: number }`. */
-      import: (id: number, backupIds: string[]) =>
+      import: (id: number, backupIds: string[], download: boolean) =>
         client.post<{ imported: number }>(`storage-targets/${id}/import`, {
           backup_ids: backupIds,
+          download,
         }),
+    },
+    keys: {
+      list: () => client.get<{ items: EncryptionKey[] }>('encryption-keys'),
+      create: (id: string, passphrase?: string) =>
+        client.post<CreatedEncryptionKey>('encryption-keys', {
+          id,
+          ...(passphrase ? { passphrase } : {}),
+        }),
+      remove: (id: string) => client.delete<void>(`encryption-keys/${encodeURIComponent(id)}`),
     },
     settings: {
       get: () => client.get<Settings>('settings'),

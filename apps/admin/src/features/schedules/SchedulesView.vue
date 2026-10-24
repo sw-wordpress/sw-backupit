@@ -63,8 +63,16 @@ function openEdit(s: Schedule): void {
 }
 function describe(s: Schedule): string {
   if (s.frequency === 'cron') return s.cron_expression;
-  if (s.frequency === 'hourly') return t('schedules.frequency.hourly');
-  return t(`schedules.every.${s.frequency}`, { time: s.time_of_day });
+  if (s.frequency === 'hourly') {
+    return t('schedules.every.hourly', { minute: s.time_of_day.split(':')[1] ?? '00' });
+  }
+  if (s.frequency === 'weekly') {
+    return t('schedules.every.weekly', { day: t(`schedules.weekdays.${s.weekday}`), time: s.time_of_day });
+  }
+  if (s.frequency === 'monthly') {
+    return t('schedules.every.monthly', { day: s.monthday, time: s.time_of_day });
+  }
+  return t('schedules.every.daily', { time: s.time_of_day });
 }
 async function toggle(s: Schedule, enabled: boolean): Promise<void> {
   togglingId.value = s.id;

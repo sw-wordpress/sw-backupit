@@ -131,20 +131,22 @@ final class RetentionPlanner
         while ($changed) {
             $changed = false;
             foreach (array_keys($plan->keep) as $id) {
-                $parentId = $byId[$id]->parentId ?? null;
-                if ($parentId === null) {
-                    continue;
+                $dependencies = $byId[$id]->requires;
+                if (($byId[$id]->parentId ?? null) !== null) {
+                    $dependencies[] = (string) $byId[$id]->parentId;
                 }
-                if (!isset($byId[$parentId])) {
-                    $warning = "Backup {$id} depends on missing backup {$parentId}.";
-                    if (!in_array($warning, $plan->warnings, true)) {
-                        $plan->warnings[] = $warning;
+                foreach (array_unique($dependencies) as $parentId) {
+                    if (!isset($byId[$parentId])) {
+                        $warning = "Backup {$id} depends on missing backup {$parentId}.";
+                        if (!in_array($warning, $plan->warnings, true)) {
+                            $plan->warnings[] = $warning;
+                        }
+                        continue;
                     }
-                    continue;
-                }
-                if (!in_array("required by {$id}", $plan->keep[$parentId] ?? [], true)) {
-                    $plan->keep[$parentId][] = "required by {$id}";
-                    $changed = true;
+                    if (!in_array("required by {$id}", $plan->keep[$parentId] ?? [], true)) {
+                        $plan->keep[$parentId][] = "required by {$id}";
+                        $changed = true;
+                    }
                 }
             }
         }

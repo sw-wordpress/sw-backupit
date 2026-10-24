@@ -22,11 +22,27 @@ export type Severity = 'debug' | 'info' | 'notice' | 'warning' | 'error';
 export type Frequency = 'hourly' | 'daily' | 'weekly' | 'monthly' | 'cron';
 export type StorageType = 'local' | 'sftp' | 's3';
 export type Health = 'ok' | 'warning' | 'error';
-export type BackupStatus = 'complete' | 'incomplete' | 'verified' | 'corrupt';
+export type BackupStatus = 'complete' | 'verified' | 'corrupt';
 export type SuccessPolicy = 'all' | 'any' | 'local_only';
 export type CompressionMethod = 'deflate' | 'store';
 export type TargetUploadStatus = 'pending' | 'uploading' | 'verified' | 'failed';
 export type CompareMode = 'metadata' | 'sha256';
+export type JobTrigger = 'manual' | 'schedule' | 'cli';
+export type DownloadPart = 'volume' | 'manifest' | 'index' | 'database';
+/** Step ids reported in `job.phase`. */
+export type JobStep =
+  | 'preflight'
+  | 'scan'
+  | 'export'
+  | 'archive'
+  | 'encrypt'
+  | 'verify_local'
+  | 'manifest'
+  | 'upload'
+  | 'verify_remote'
+  | 'finalize'
+  | 'retention'
+  | 'notify';
 
 /** Standard list envelope used by all collections. */
 export interface Paginated<T> {
@@ -77,6 +93,7 @@ export interface Retention {
   max_count: number;
   max_age_days: number;
   max_storage_mb: number;
+  delete_local_after_upload: boolean;
   gfs: RetentionGfs;
 }
 
@@ -93,6 +110,7 @@ export interface Profile {
   db_tables_include: string[];
   db_tables_exclude: string[];
   db_include_foreign_tables: boolean;
+  db_consistent_snapshot: boolean;
   compression: { method: CompressionMethod; level: number };
   encryption: { enabled: boolean; key_id: string };
   volume_size_mb: number;
@@ -123,6 +141,10 @@ export interface Schedule {
   cron_expression: string;
   timezone: string;
   time_of_day: string;
+  /** 0 = Sunday … 6; used by weekly schedules. */
+  weekday: number;
+  /** 1–31 (clamped to month length); used by monthly schedules. */
+  monthday: number;
   retry: { max_attempts: number; backoff_seconds: number };
   next_run_at: string | null;
   last_run_at: string | null;
@@ -165,13 +187,16 @@ export interface Job {
   /** Backup type; restore jobs may report another value (see README, contract gaps). */
   type: string;
   status: JobStatus;
-  /** Phase id; usually equals a JobStatus value, see PHASES in utils/jobs.ts. */
-  phase: string;
+  /** Current step id (see JobStep) or null before the first step. */
+  phase: string | null;
+  trigger: JobTrigger;
+  next_retry_at: string | null;
   started_at: string;
   updated_at: string;
   finished_at: string | null;
   progress: JobProgress;
-  error: string | null;
+  /** Plain message, or `{code, message}` (codes such as swbi_vetoed, swbi_integrity). */
+  error: string | { code?: string; message?: string } | null;
   warnings_count: number;
   retry_count: number;
   backup_id: string | null;
@@ -246,12 +271,16 @@ export interface CompareResult {
   modified: number;
   identical: number;
   incomparable: number;
-  samples: Partial<Record<'modified' | 'only_in_backup' | 'only_local', string[]>>;
+  /** Category (e.g. modified, only_in_backup, only_local) to a sample of paths. */
+  samples: Record<string, string[]>;
 }
 
 export interface RestorePrepareResult {
   restore_url: string;
+  /** Shown to the user exactly once; never stored by the UI. */
+  token: string;
   token_expires_at: string;
+  target_path: string;
   warnings: string[];
 }
 
@@ -286,14 +315,27 @@ export interface StorageTestResult {
   latency_ms: number;
 }
 
-/** ASSUMED shape (not specified in docs/rest-api.md). */
 export interface DiscoveredBackup {
   backup_id: string;
   created_at: string;
   size_bytes: number;
-  type?: BackupType;
-  profile_name?: string;
-  already_imported?: boolean;
+  type: BackupType | null;
+  profile_name: string | null;
+  already_imported: boolean;
+  /** Set when the remote entry could not be read. */
+  error: string | null;
+}
+
+export interface EncryptionKey {
+  id: string;
+  source: string;
+}
+
+export interface CreatedEncryptionKey {
+  id: string;
+  /** Returned once. */
+  secret: string;
+  warning: string;
 }
 
 export interface Settings {
@@ -308,7 +350,7 @@ export interface Settings {
   notifications: { recipients: string[]; dedupe_minutes: number };
   logging: { retention_days: number; max_events_per_job: number; level: Severity };
   cron: { mode: 'wp-cron' | 'system'; timezone: string };
-  retention_default: Omit<Retention, 'max_storage_mb'> & { max_storage_mb?: number };
+  retention_default: { max_count: number; max_age_days: number; gfs: RetentionGfs };
   pre_update_backup: {
     core: boolean;
     plugins: boolean;

@@ -78,7 +78,6 @@ const de = {
     backup: {
       complete: 'Vollständig',
       verified: 'Verifiziert',
-      incomplete: 'Unvollständig',
       corrupt: 'Beschädigt',
     },
     health: { ok: 'In Ordnung', warning: 'Warnung', error: 'Fehler' },

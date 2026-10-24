@@ -29,7 +29,7 @@ use ZipArchive;
 final class FileRestorer
 {
     private ?ZipArchive $zip = null;
-    private ?int $zipVolume = null;
+    private ?string $zipKey = null;
 
     public function __construct(
         private readonly BackupSet $set,
@@ -219,8 +219,9 @@ final class FileRestorer
         $written = 0;
         try {
             $chunks = isset($entry['c']) && is_array($entry['c']) ? $entry['c'] : [['v' => $entry['v'], 'a' => $entry['a'] ?? $entry['p'], 's' => $declared, 'h' => $entry['h'] ?? null]];
+            $source = isset($entry['b']) ? $this->ancestorSet((string) $entry['b'], $relative) : $this->set;
             foreach ($chunks as $chunk) {
-                $zip = $this->zipFor((int) $chunk['v']);
+                $zip = $this->zipFor($source, (int) $chunk['v']);
                 $name = (string) $chunk['a'];
                 $stat = $zip->statName($name);
                 if ($stat === false) {
@@ -293,14 +294,24 @@ final class FileRestorer
         }
     }
 
-    private function zipFor(int $volume): ZipArchive
+    private function ancestorSet(string $backupId, string $relative): BackupSet
     {
-        if ($this->zip !== null && $this->zipVolume === $volume) {
+        try {
+            return $this->set->ancestor($backupId);
+        } catch (\SWBackupIt\Core\Exception\SwbiException $exception) {
+            throw new IntegrityException($exception->getMessage(), ['path' => $relative, 'fatal' => true]);
+        }
+    }
+
+    private function zipFor(BackupSet $set, int $volume): ZipArchive
+    {
+        $key = $set->manifest()->backupId() . ':' . $volume;
+        if ($this->zip !== null && $this->zipKey === $key) {
             return $this->zip;
         }
         $this->closeZip();
-        $this->zip = (new VolumeReader())->open($this->set->volumePath($this->set->volumeFileName($volume)));
-        $this->zipVolume = $volume;
+        $this->zip = (new VolumeReader())->open($set->volumePath($set->volumeFileName($volume)));
+        $this->zipKey = $key;
 
         return $this->zip;
     }
@@ -309,6 +320,6 @@ final class FileRestorer
     {
         $this->zip?->close();
         $this->zip = null;
-        $this->zipVolume = null;
+        $this->zipKey = null;
     }
 }

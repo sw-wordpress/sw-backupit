@@ -4,6 +4,7 @@ import { useI18n } from 'vue-i18n';
 import { useApi } from '@/api';
 import FormSection from '@/components/ui/FormSection.vue';
 import FormSheet from '@/components/ui/FormSheet.vue';
+import { useFormError } from '@/composables/useFormError';
 import { useNotify } from '@/composables/useNotify';
 import { useLookupsStore } from '@/stores/lookups';
 import type { Frequency, Schedule, ScheduleInput } from '@/types/api';
@@ -18,6 +19,7 @@ const emit = defineEmits<{ (e: 'saved', schedule: Schedule): void }>();
 
 const { t } = useI18n();
 const notify = useNotify();
+const formError = useFormError();
 const lookups = useLookupsStore();
 const saving = ref(false);
 const form = ref<ScheduleInput>(blank());
@@ -34,11 +36,14 @@ function blank(): ScheduleInput {
     cron_expression: '',
     timezone: props.defaultTimezone,
     time_of_day: '02:30',
+    weekday: 1,
+    monthday: 1,
     retry: { max_attempts: 3, backoff_seconds: 600 },
   };
 }
 
 watch(open, async (isOpen) => {
+  formError.clear();
   if (!isOpen) return;
   try {
     await lookups.loadProfiles(true);
@@ -65,7 +70,12 @@ const profileOptions = computed(() =>
   lookups.profiles.map((p) => ({ value: p.id, label: p.name })),
 );
 const frequencies: Frequency[] = ['hourly', 'daily', 'weekly', 'monthly', 'cron'];
-const needsTime = computed(() => ['daily', 'weekly', 'monthly'].includes(form.value.frequency));
+const needsTime = computed(() => form.value.frequency !== 'cron');
+const weekdayOptions = computed(() =>
+  [0, 1, 2, 3, 4, 5, 6].map((d) => ({ value: d, label: t(`schedules.weekdays.${d}`) })),
+);
+const dayRule = (v: number): true | string =>
+  (Number.isInteger(v) && v >= 1 && v <= 31) || t('schedules.monthdayInvalid');
 const cronRule = (v: string): true | string =>
   /^\s*(\S+\s+){4}\S+\s*$/.test(v) || t('schedules.cronInvalid');
 const positive = (v: number): true | string =>
@@ -79,6 +89,7 @@ function filterTz(val: string, update: (fn: () => void) => void): void {
 }
 
 async function save(): Promise<void> {
+  formError.clear();
   saving.value = true;
   try {
     const api = useApi();
@@ -93,7 +104,7 @@ async function save(): Promise<void> {
     emit('saved', saved);
     open.value = false;
   } catch (e) {
-    notify.error(e);
+    formError.handle(e);
   } finally {
     saving.value = false;
   }
@@ -103,6 +114,7 @@ async function save(): Promise<void> {
 <template>
   <FormSheet
     v-model="open"
+    :error="formError.error.value"
     :title="schedule ? t('schedules.edit') : t('schedules.create')"
     :subtitle="schedule?.name"
     :loading="saving"
@@ -153,8 +165,32 @@ async function save(): Promise<void> {
           outlined
           dense
           type="time"
-          :label="t('schedules.timeOfDay')"
+          :label="form.frequency === 'hourly' ? t('schedules.hourlyMinute') : t('schedules.timeOfDay')"
+          :hint="form.frequency === 'hourly' ? t('schedules.hourlyMinuteHint') : undefined"
           :rules="[(v: string) => /^\d{2}:\d{2}$/.test(v) || t('common.required')]"
+          lazy-rules="ondemand"
+        />
+        <q-select
+          v-if="form.frequency === 'weekly'"
+          v-model="form.weekday"
+          outlined
+          dense
+          emit-value
+          map-options
+          :options="weekdayOptions"
+          :label="t('schedules.weekday')"
+        />
+        <q-input
+          v-if="form.frequency === 'monthly'"
+          v-model.number="form.monthday"
+          outlined
+          dense
+          type="number"
+          min="1"
+          max="31"
+          :label="t('schedules.monthday')"
+          :hint="t('schedules.monthdayHint')"
+          :rules="[dayRule]"
           lazy-rules="ondemand"
         />
         <template v-if="form.frequency === 'cron'">

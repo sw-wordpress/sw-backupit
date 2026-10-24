@@ -15,12 +15,14 @@ import { useNotify } from '@/composables/useNotify';
 import { useAppStore } from '@/stores/app';
 import { useJobsStore } from '@/stores/jobs';
 import type { Job } from '@/types/api';
-import { isActive, isTerminal, normalisePhase } from '@/utils/jobs';
+import { isActive, isTerminal, jobErrorText } from '@/utils/jobs';
+import { usePhaseLabel } from '@/composables/usePhaseLabel';
 import LogViewer from './LogViewer.vue';
 import PhaseStepper from './PhaseStepper.vue';
 
 const props = defineProps<{ id: string }>();
-const { t, te } = useI18n();
+const { t } = useI18n();
+const phaseText = usePhaseLabel();
 const fmt = useFormat();
 const api = useApi();
 const notify = useNotify();
@@ -36,7 +38,7 @@ const monitor = useJobMonitor(() => props.id, {
 });
 const job = monitor.job;
 
-const acting = ref<'pause' | 'resume' | 'cancel' | null>(null);
+const acting = ref<'pause' | 'resume' | 'cancel' | 'retry' | null>(null);
 const cancelOpen = ref(false);
 
 onMounted(() => monitor.start());
@@ -62,15 +64,11 @@ const tone = computed(() =>
         ? 'warning'
         : 'primary',
 );
-const phaseLabel = computed(() =>
-  job.value && te(`phases.${normalisePhase(job.value.phase) ?? job.value.phase}`)
-    ? t(`phases.${normalisePhase(job.value.phase) ?? job.value.phase}`)
-    : (job.value?.phase ?? ''),
-);
+const phaseLabel = computed(() => phaseText(job.value?.phase));
 
 // ---- throttled screen-reader announcements (never every poll) ----
 let lastAnnounce = 0;
-let lastPhase = '';
+let lastPhase: string | null = '';
 let lastBucket = -1;
 let lastStatus = '';
 function announceProgress(j: Job): void {
@@ -88,7 +86,7 @@ function announceProgress(j: Job): void {
     app.announce(
       t('jobs.announce.progress', {
         name: j.profile_name,
-        phase: te(`phases.${j.phase}`) ? t(`phases.${j.phase}`) : j.phase,
+        phase: phaseText(j.phase),
         percent: Math.round(j.progress.percent),
       }),
     );
@@ -100,7 +98,7 @@ function announceProgress(j: Job): void {
   if (isTerminal(j.status)) void jobsStore.refresh();
 }
 
-async function act(kind: 'pause' | 'resume'): Promise<void> {
+async function act(kind: 'pause' | 'resume' | 'retry'): Promise<void> {
   acting.value = kind;
   try {
     const next = await api.jobs[kind](props.id);
@@ -195,6 +193,16 @@ const showUpload = computed(() => {
           @click="act('resume')"
         />
         <q-btn
+          v-if="canRun && job.status === 'failed'"
+          unelevated
+          no-caps
+          color="primary"
+          icon="r_replay"
+          :label="t('jobs.retry')"
+          :loading="acting === 'retry'"
+          @click="act('retry')"
+        />
+        <q-btn
           v-if="canRun && (active || paused)"
           outline
           no-caps
@@ -243,6 +251,7 @@ const showUpload = computed(() => {
             <div class="swbi-row">
               <StatusChip domain="job" :status="job.status" />
               <span class="swbi-jd__phase">{{ phaseLabel }}</span>
+              <span class="swbi-muted">{{ t(`jobs.trigger.${job.trigger}`) }}</span>
               <span v-if="job.retry_count > 0" class="swbi-muted">{{
                 t('jobs.retries', { n: job.retry_count }, job.retry_count)
               }}</span>
@@ -272,11 +281,24 @@ const showUpload = computed(() => {
           <q-icon name="r_error" size="22px" aria-hidden="true" />
           <div>
             <strong>{{ t('jobs.failedWith') }}</strong>
-            <p>{{ job.error }}</p>
+            <p>{{ jobErrorText(job.error) }}</p>
+            <p
+              v-if="typeof job.error === 'object' && job.error.code"
+              class="swbi-mono"
+            >
+              {{ job.error.code }}
+            </p>
           </div>
         </div>
         <p v-if="job.status === 'retry_waiting'" class="swbi-muted swbi-jd__note">
-          <q-icon name="r_schedule" size="16px" aria-hidden="true" /> {{ t('jobs.retryWaiting') }}
+          <q-icon name="r_schedule" size="16px" aria-hidden="true" /> {{
+            job.next_retry_at
+              ? t('jobs.retryWaitingAt', {
+                  time: fmt.dateTime(job.next_retry_at),
+                  rel: fmt.relative(job.next_retry_at),
+                })
+              : t('jobs.retryWaiting')
+          }}
         </p>
       </SwbiCard>
 

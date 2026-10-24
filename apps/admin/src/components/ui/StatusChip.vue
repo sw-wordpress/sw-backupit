@@ -30,7 +30,6 @@ const MAP: Record<ChipDomain, Record<string, Meta>> = {
   backup: {
     complete: { kind: 'success', icon: 'r_check_circle' },
     verified: { kind: 'success', icon: 'r_verified' },
-    incomplete: { kind: 'warning', icon: 'r_warning' },
     corrupt: { kind: 'danger', icon: 'r_error' },
   },
   health: {

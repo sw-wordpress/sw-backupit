@@ -12,6 +12,7 @@ use SWBackupIt\Core\Exception\ManifestException;
 use SWBackupIt\Core\Manifest\Manifest;
 use SWBackupIt\Core\Scanner\FileIndexReader;
 use SWBackupIt\Core\Support\AtomicFile;
+use SWBackupIt\Core\Support\Uuid;
 
 /**
  * A backup directory opened for reading (restore, verification, browsing).
@@ -22,6 +23,8 @@ use SWBackupIt\Core\Support\AtomicFile;
  */
 final class BackupSet
 {
+    /** @var array<string, BackupSet> */
+    private array $ancestors = [];
     private ?string $decryptedIndex = null;
     private ?string $decryptedVolume = null;
     private ?string $decryptedPart = null;
@@ -141,9 +144,34 @@ final class BackupSet
         return VolumeInfo::nameFor($index);
     }
 
+    /**
+     * Opens another backup of the same chain (a sibling directory) whose volumes this backup's index references.
+     *
+     * @throws ManifestException When the ancestor is not available.
+     */
+    public function ancestor(string $backupId): self
+    {
+        if (!Uuid::isValid($backupId)) {
+            throw new ManifestException('The file index references an invalid backup id.');
+        }
+        if (!isset($this->ancestors[$backupId])) {
+            $directory = dirname($this->directory) . '/' . $backupId;
+            if (!is_dir($directory)) {
+                throw new ManifestException('Required base backup ' . $backupId . ' is not available next to this backup. Download or restore the whole chain.');
+            }
+            $this->ancestors[$backupId] = self::open($directory, $this->keys, $this->workDirectory . '/ancestor-' . $backupId);
+        }
+
+        return $this->ancestors[$backupId];
+    }
+
     /** Removes decrypted plaintext from the work directory. */
     public function close(): void
     {
+        foreach ($this->ancestors as $ancestor) {
+            $ancestor->close();
+        }
+        $this->ancestors = [];
         AtomicFile::removeTree($this->workDirectory);
         $this->decryptedIndex = $this->decryptedVolume = $this->decryptedPart = null;
     }

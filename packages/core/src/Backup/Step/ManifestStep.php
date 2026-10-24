@@ -23,6 +23,20 @@ final class ManifestStep implements BackupStepInterface
 {
     public const GENERATOR_VERSION = '0.1.0';
 
+    /**
+     * @return array{backup_id: string, manifest_sha256: string}|null
+     */
+    private function parent(\SWBackupIt\Core\Job\Job $job): ?array
+    {
+        $preflight = $job->checkpoint(Step::Preflight);
+        $parent = $preflight['parent'] ?? null;
+        if (!is_array($parent) || !in_array($preflight['effective_type'] ?? '', ['incremental', 'differential'], true)) {
+            return null;
+        }
+
+        return ['backup_id' => (string) $parent['backup_id'], 'manifest_sha256' => (string) $parent['manifest_sha256']];
+    }
+
     public function step(): Step
     {
         return Step::Manifest;
@@ -86,7 +100,7 @@ final class ManifestStep implements BackupStepInterface
             'job_id' => $job->id,
             'created_at' => ($job->startedAt ?? $job->createdAt)->format('Y-m-d\TH:i:s\Z'),
             'finished_at' => $context->clock->now()->format('Y-m-d\TH:i:s\Z'),
-            'type' => $profile->type->value,
+            'type' => (string) ($job->checkpoint(Step::Preflight)['effective_type'] ?? $profile->type->value),
             'status' => 'complete',
             'generator' => ['name' => 'swbackupit', 'version' => self::GENERATOR_VERSION, 'php' => PHP_VERSION],
             'source' => [
@@ -99,7 +113,8 @@ final class ManifestStep implements BackupStepInterface
                 'extra' => $context->source->extra,
             ],
             'profile' => $snapshot,
-            'parent' => null,
+            'parent' => $this->parent($job),
+            'chain' => ['requires' => array_values(array_map('strval', array_keys((array) ($job->checkpoint(Step::Archive)['requires'] ?? []))))],
             'files' => $files,
             'volumes' => Artifacts::volumes($job),
             'database' => $database,

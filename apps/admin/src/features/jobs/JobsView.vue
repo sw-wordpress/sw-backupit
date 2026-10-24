@@ -11,6 +11,7 @@ import SwbiCard from '@/components/ui/SwbiCard.vue';
 import { useAsyncData } from '@/composables/useAsyncData';
 import { useFormat } from '@/composables/useFormat';
 import { useJobsStore } from '@/stores/jobs';
+import { jobErrorText } from '@/utils/jobs';
 import type { JobFilter } from '@/types/api';
 import RunningJobCard from './RunningJobCard.vue';
 
@@ -140,8 +141,8 @@ const typeLabel = (type: string): string =>
                     :to="{ name: 'backups', params: { id: j.backup_id } }"
                     >{{ t('jobs.openBackup') }}</router-link
                   >
-                  <span v-else-if="j.error" class="swbi-jv__err" :title="j.error">{{
-                    j.error
+                  <span v-else-if="j.error" class="swbi-jv__err" :title="jobErrorText(j.error) ?? ''">{{
+                    jobErrorText(j.error)
                   }}</span>
                   <span v-else class="swbi-muted">–</span>
                 </td>

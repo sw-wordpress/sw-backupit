@@ -5,6 +5,7 @@ import { useApi } from '@/api';
 import FormSection from '@/components/ui/FormSection.vue';
 import FormSheet from '@/components/ui/FormSheet.vue';
 import SecretInput from '@/components/ui/SecretInput.vue';
+import { useFormError } from '@/composables/useFormError';
 import { useNotify } from '@/composables/useNotify';
 import type { Retention, StorageTarget, StorageTargetInput, StorageType } from '@/types/api';
 
@@ -14,6 +15,7 @@ const emit = defineEmits<{ (e: 'saved', target: StorageTarget): void }>();
 
 const { t } = useI18n();
 const notify = useNotify();
+const formError = useFormError();
 const saving = ref(false);
 
 const name = ref('');
@@ -30,21 +32,39 @@ function blankRetention(): Retention {
     max_count: 10,
     max_age_days: 0,
     max_storage_mb: 0,
+    delete_local_after_upload: false,
     gfs: { daily: 0, weekly: 0, monthly: 0, yearly: 0 },
   };
 }
 function defaultsFor(kind: StorageType): Record<string, string | number | boolean> {
   switch (kind) {
     case 'sftp':
-      return { host: '', port: 22, username: '', root: '' };
+      return {
+        host: '',
+        port: 22,
+        username: '',
+        root: '',
+        host_fingerprint: '',
+        trust_unknown_host: false,
+        allow_private_network: false,
+        timeout: 30,
+      };
     case 's3':
-      return { endpoint: '', region: '', bucket: '', prefix: '', path_style: false };
+      return {
+        endpoint: '',
+        region: '',
+        bucket: '',
+        prefix: '',
+        path_style: false,
+        allow_private_network: false,
+      };
     default:
       return { path: '' };
   }
 }
 
 watch(open, (isOpen) => {
+  formError.clear();
   if (isOpen) {
     const tg = props.target;
     name.value = tg?.name ?? '';
@@ -77,6 +97,7 @@ function setStr(key: string, value: string | number | null): void {
 }
 
 async function save(): Promise<void> {
+  formError.clear();
   const credentials: Record<string, string> = {};
   for (const [k, v] of Object.entries(secrets.value)) if (v !== '') credentials[k] = v;
   const input: StorageTargetInput = {
@@ -97,7 +118,7 @@ async function save(): Promise<void> {
     emit('saved', saved);
     open.value = false;
   } catch (e) {
-    notify.error(e);
+    formError.handle(e);
   } finally {
     saving.value = false;
     secrets.value = {};
@@ -108,6 +129,7 @@ async function save(): Promise<void> {
 <template>
   <FormSheet
     v-model="open"
+    :error="formError.error.value"
     :title="isEdit ? t('storage.edit') : t('storage.add')"
     :subtitle="target?.name"
     :loading="saving"
@@ -201,6 +223,50 @@ async function save(): Promise<void> {
             :hint="t('storage.fields.rootHint')"
             @update:model-value="setStr('root', $event)"
           />
+          <div class="swbi-two">
+            <q-input
+              :model-value="str('host_fingerprint')"
+              outlined
+              dense
+              class="swbi-mono"
+              :label="t('storage.fields.hostFingerprint')"
+              :hint="t('storage.fields.hostFingerprintHint')"
+              autocomplete="off"
+              @update:model-value="setStr('host_fingerprint', $event)"
+            />
+            <q-input
+              :model-value="Number(cfg.timeout ?? 30)"
+              outlined
+              dense
+              type="number"
+              min="1"
+              suffix="s"
+              :label="t('storage.fields.timeout')"
+              @update:model-value="setStr('timeout', Number($event))"
+            />
+          </div>
+          <div class="swbi-warnbox" role="note">
+            <q-icon name="r_gpp_maybe" size="20px" aria-hidden="true" />
+            <div>
+              <q-toggle
+                :model-value="cfg.trust_unknown_host === true"
+                :label="t('storage.fields.trustUnknown')"
+                @update:model-value="cfg = { ...cfg, trust_unknown_host: $event }"
+              />
+              <p>{{ t('storage.fields.trustUnknownWarning') }}</p>
+            </div>
+          </div>
+          <div class="swbi-warnbox" role="note">
+            <q-icon name="r_gpp_maybe" size="20px" aria-hidden="true" />
+            <div>
+              <q-toggle
+                :model-value="cfg.allow_private_network === true"
+                :label="t('storage.fields.allowPrivate')"
+                @update:model-value="cfg = { ...cfg, allow_private_network: $event }"
+              />
+              <p>{{ t('storage.fields.allowPrivateWarning') }}</p>
+            </div>
+          </div>
         </template>
         <template v-else>
           <q-input
@@ -241,6 +307,17 @@ async function save(): Promise<void> {
             :label="t('storage.fields.pathStyle')"
             @update:model-value="cfg = { ...cfg, path_style: $event }"
           />
+          <div class="swbi-warnbox" role="note">
+            <q-icon name="r_gpp_maybe" size="20px" aria-hidden="true" />
+            <div>
+              <q-toggle
+                :model-value="cfg.allow_private_network === true"
+                :label="t('storage.fields.allowPrivate')"
+                @update:model-value="cfg = { ...cfg, allow_private_network: $event }"
+              />
+              <p>{{ t('storage.fields.allowPrivateWarning') }}</p>
+            </div>
+          </div>
         </template>
       </FormSection>
 
@@ -262,6 +339,12 @@ async function save(): Promise<void> {
             :is-set="credentialsSet"
             multiline
             @update:model-value="setSecret('private_key', $event)"
+          />
+          <SecretInput
+            :model-value="secret('passphrase')"
+            :label="t('storage.fields.keyPassphrase')"
+            :is-set="credentialsSet"
+            @update:model-value="setSecret('passphrase', $event)"
           />
         </template>
         <template v-else>
@@ -316,6 +399,18 @@ async function save(): Promise<void> {
 </template>
 
 <style scoped>
+.swbi-warnbox {
+  display: flex;
+  gap: 12px;
+  padding: 12px 14px;
+  border-radius: var(--swbi-radius-sm);
+  background: var(--swbi-warning-bg);
+  color: var(--swbi-warning-text);
+  font-size: 13px;
+}
+.swbi-warnbox p {
+  margin-top: 2px;
+}
 .swbi-fieldset {
   border: 0;
   margin: 0;

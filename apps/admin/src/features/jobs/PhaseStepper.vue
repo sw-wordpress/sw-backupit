@@ -1,27 +1,30 @@
 <script setup lang="ts">
 import { computed } from 'vue';
 import { useI18n } from 'vue-i18n';
-import type { Job } from '@/types/api';
-import { normalisePhase, PHASES } from '@/utils/jobs';
+import type { Job, JobStep } from '@/types/api';
+import { phaseIndex, PHASES } from '@/utils/jobs';
 
 const props = defineProps<{ job: Job }>();
 const { t } = useI18n();
 
-const ICONS: Record<(typeof PHASES)[number], string> = {
+const ICONS: Record<JobStep, string> = {
   preflight: 'r_checklist',
-  scanning: 'r_manage_search',
-  exporting: 'r_database',
-  archiving: 'r_folder_zip',
-  encrypting: 'r_lock',
-  verifying: 'r_fact_check',
-  uploading: 'r_cloud_upload',
-  finalizing: 'r_flag',
+  scan: 'r_manage_search',
+  export: 'r_database',
+  archive: 'r_folder_zip',
+  encrypt: 'r_lock',
+  verify_local: 'r_fact_check',
+  manifest: 'r_list_alt',
+  upload: 'r_cloud_upload',
+  verify_remote: 'r_cloud_done',
+  finalize: 'r_flag',
+  retention: 'r_auto_delete',
+  notify: 'r_mail',
 };
 
 const currentIndex = computed(() => {
   if (props.job.status === 'completed') return PHASES.length;
-  const phase = normalisePhase(props.job.phase) ?? normalisePhase(props.job.status);
-  return phase ? PHASES.indexOf(phase) : -1;
+  return phaseIndex(props.job.phase);
 });
 
 type State = 'done' | 'current' | 'failed' | 'pending';
@@ -51,9 +54,7 @@ const steps = computed(() =>
       :class="`swbi-step--${step.state}`"
       :aria-current="step.state === 'current' ? 'step' : undefined"
     >
-      <span class="swbi-step__dot"
-        ><q-icon :name="step.icon" size="18px" aria-hidden="true"
-      /></span>
+      <span class="swbi-step__dot"><q-icon :name="step.icon" size="18px" aria-hidden="true" /></span>
       <span class="swbi-step__label">{{ t(`phases.${step.phase}`) }}</span>
       <span class="swbi-sr-only">{{ t(`jobs.stepState.${step.state}`) }}</span>
     </li>
@@ -63,9 +64,8 @@ const steps = computed(() =>
 <style scoped>
 .swbi-steps {
   display: grid;
-  grid-template-columns: repeat(8, minmax(0, 1fr));
-  gap: 4px;
-  counter-reset: step;
+  grid-template-columns: repeat(6, minmax(0, 1fr));
+  gap: 18px 4px;
 }
 .swbi-step {
   position: relative;
@@ -87,7 +87,7 @@ const steps = computed(() =>
   height: 2px;
   background: var(--swbi-border);
 }
-.swbi-step:first-child::before {
+.swbi-step:nth-child(6n + 1)::before {
   display: none;
 }
 .swbi-step--done::before,
@@ -130,8 +130,7 @@ const steps = computed(() =>
 }
 @media (max-width: 760px) {
   .swbi-steps {
-    grid-template-columns: repeat(4, minmax(0, 1fr));
-    row-gap: 14px;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
   }
   .swbi-step::before {
     display: none;

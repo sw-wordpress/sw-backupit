@@ -141,7 +141,7 @@ final class VerifyLocalStep implements BackupStepInterface
         $seen = 0;
         $maxVolume = count($volumes);
         foreach ((new FileIndexReader($context->layout->indexPath()))->read() as [$entry]) {
-            if ($entry['t'] !== 'f' || in_array($entry['st'] ?? 'ok', ['unreadable', 'vanished'], true)) {
+            if ($entry['t'] !== 'f' || isset($entry['b']) || in_array($entry['st'] ?? 'ok', ['unreadable', 'vanished'], true)) {
                 continue;
             }
             $references = isset($entry['c']) && is_array($entry['c']) ? $entry['c'] : [['v' => $entry['v'] ?? 0]];

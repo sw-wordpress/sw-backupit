@@ -3,15 +3,15 @@ import { computed } from 'vue';
 import { useI18n } from 'vue-i18n';
 import StatusChip from '@/components/ui/StatusChip.vue';
 import { useFormat } from '@/composables/useFormat';
+import { usePhaseLabel } from '@/composables/usePhaseLabel';
 import type { Job } from '@/types/api';
 
 const props = defineProps<{ job: Job }>();
-const { t, te } = useI18n();
+const { t } = useI18n();
+const phaseText = usePhaseLabel();
 const fmt = useFormat();
 const percent = computed(() => Math.min(100, Math.max(0, props.job.progress.percent)));
-const phaseLabel = computed(() =>
-  te(`phases.${props.job.phase}`) ? t(`phases.${props.job.phase}`) : props.job.phase,
-);
+const phaseLabel = computed(() => phaseText(props.job.phase));
 </script>
 
 <template>

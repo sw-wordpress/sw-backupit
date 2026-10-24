@@ -6,6 +6,7 @@ namespace SWBackupIt\Core\Backup\Step;
 
 use SWBackupIt\Core\Backup\BackupContext;
 use SWBackupIt\Core\Backup\BackupStepInterface;
+use SWBackupIt\Core\Backup\ParentSelector;
 use SWBackupIt\Core\Backup\StepOutcome;
 use SWBackupIt\Core\Domain\BackupProfile;
 use SWBackupIt\Core\Domain\Step;
@@ -73,6 +74,18 @@ final class PreflightStep implements BackupStepInterface
         if ($root !== false && $staging !== false && ($staging === $root || str_starts_with($staging, $root . '/'))) {
             $context->logger->warning('The staging directory is located inside the WordPress directory. Make sure the web server denies access to it, or move it outside the web root.');
         }
+
+        $parent = (new ParentSelector())->select($context);
+        $effective = $profile->type;
+        if ($profile->type->isDelta()) {
+            if ($parent === null) {
+                $effective = \SWBackupIt\Core\Domain\BackupType::Full;
+                $context->logger->notice('No usable base backup with a local file index was found; creating a full backup instead.');
+            } else {
+                $context->logger->info('Base backup selected.', ['parent' => $parent['backup_id']]);
+            }
+        }
+        $context->job->setCheckpoint(Step::Preflight, ['parent' => $parent, 'effective_type' => $effective->value]);
 
         // May veto (blocking listeners) before any state is changed.
         $context->events->dispatch(Events::BEFORE_BACKUP, $this->payload($context));
