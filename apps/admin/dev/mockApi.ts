@@ -231,7 +231,7 @@ let targets: StorageTarget[] = [
     id: 1,
     name: 'Local staging',
     type: 'local',
-    config: { path: '/var/backups/swbackupit' },
+    config: { path: '/var/backups/sw-backupit' },
     credentials_set: false,
     immutable: false,
     retention: null,
@@ -317,7 +317,7 @@ let keys: Array<{ id: string; source: string }> = [
 ];
 
 let settings: Settings = {
-  staging_dir: '/var/backups/swbackupit/staging',
+  staging_dir: '/var/backups/sw-backupit/staging',
   limits: { time_budget_seconds: 20, memory_mb: 128, batch_rows: 1000, max_parallel_uploads: 1 },
   encryption: { default_key_id: 'primary-2026' },
   notifications: { recipients: ['admin@example.com'], dedupe_minutes: 60 },
@@ -1110,7 +1110,7 @@ export function handle(req: MockRequest): MockResponse {
       return {
         status: 200,
         body: {
-          restore_url: 'http://127.0.0.1:5173/wp-content/plugins/swbackupit/restore/index.php',
+          restore_url: 'http://127.0.0.1:5173/wp-content/plugins/sw-backupit/restore/index.php',
           token: 'swbi-rt-' + uuid().replace(/-/g, '').slice(0, 24),
           token_expires_at: iso(Date.now() + 30 * MIN),
           target_path: '/var/www/html/wordpress_dev',

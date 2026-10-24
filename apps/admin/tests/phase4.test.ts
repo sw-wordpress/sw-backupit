@@ -34,7 +34,7 @@ function backup(over: Partial<Backup> = {}): Backup {
 
 beforeAll(() => {
   window.swbackupitConfig = {
-    restRoot: 'https://x.test/wp-json/swbackupit/v1/',
+    restRoot: 'https://x.test/wp-json/sw-backupit/v1/',
     nonce: 'n',
     locale: 'en_US',
     version: '1',
@@ -87,7 +87,7 @@ describe('Phase-4 API calls', () => {
     const fetchMock = vi.fn(async () => new Response('{}', { status: 200 }));
     const api = createApi(
       new ApiClient({
-        restRoot: 'https://x.test/wp-json/swbackupit/v1/',
+        restRoot: 'https://x.test/wp-json/sw-backupit/v1/',
         nonce: 'n',
         fetchImpl: fetchMock as unknown as typeof fetch,
       }),
@@ -101,7 +101,7 @@ describe('Phase-4 API calls', () => {
     const { api, fetchMock } = setup();
     await api.audit.list({ page: 2, action: 'backup_deleted', object_type: 'backup', user_id: 3 });
     expect(call(fetchMock)[0]).toBe(
-      'https://x.test/wp-json/swbackupit/v1/audit?page=2&action=backup_deleted&object_type=backup&user_id=3',
+      'https://x.test/wp-json/sw-backupit/v1/audit?page=2&action=backup_deleted&object_type=backup&user_id=3',
     );
   });
 
@@ -109,7 +109,7 @@ describe('Phase-4 API calls', () => {
     const { api, fetchMock } = setup();
     await api.backups.restoreTest('abc');
     const [url, init] = call(fetchMock);
-    expect(url).toBe('https://x.test/wp-json/swbackupit/v1/backups/abc/restore-test');
+    expect(url).toBe('https://x.test/wp-json/sw-backupit/v1/backups/abc/restore-test');
     expect(init.method).toBe('POST');
   });
 
@@ -122,7 +122,7 @@ describe('Phase-4 API calls', () => {
   it('builds part downloads', () => {
     const { api } = setup();
     expect(api.backups.downloadUrl('abc', 'manifest')).toBe(
-      'https://x.test/wp-json/swbackupit/v1/backups/abc/download?part=manifest&_wpnonce=n',
+      'https://x.test/wp-json/sw-backupit/v1/backups/abc/download?part=manifest&_wpnonce=n',
     );
     expect(api.backups.downloadUrl('abc', 'database', 2)).toContain('part=database&volume=2');
   });

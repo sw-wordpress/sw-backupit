@@ -6,7 +6,7 @@
  * database - recommended), then keys stored in the options table (encrypted with the credential secret). A backup must
  * never depend on a secret that exists only in the database it protects, so the UI makes users export new keys.
  *
- * @package SWBackupIt
+ * @package sw-backupit
  */
 
 declare(strict_types=1);

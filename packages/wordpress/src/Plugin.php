@@ -2,7 +2,7 @@
 /**
  * Plugin bootstrap: wires WordPress hooks. All business logic lives in services.
  *
- * @package SWBackupIt
+ * @package sw-backupit
  */
 
 declare(strict_types=1);
@@ -66,13 +66,13 @@ final class Plugin {
 				'storage'   => Cli\StorageCommand::class,
 				'retention' => Cli\RetentionCommand::class,
 			) as $name => $class ) {
-				\WP_CLI::add_command( 'swbackupit ' . $name, $class );
+				\WP_CLI::add_command( 'sw-backupit ' . $name, $class );
 			}
 		}
 	}
 
 	public function load_textdomain(): void {
-		load_plugin_textdomain( 'swbackupit', false, dirname( plugin_basename( SWBACKUPIT_FILE ) ) . '/languages' );
+		load_plugin_textdomain( 'sw-backupit', false, dirname( plugin_basename( SWBACKUPIT_FILE ) ) . '/languages' );
 	}
 
 	/**
@@ -82,7 +82,7 @@ final class Plugin {
 	 * @param string $domain Text domain.
 	 */
 	public function fallback_mofile( string $mofile, string $domain ): string {
-		if ( 'swbackupit' !== $domain || is_readable( $mofile ) ) {
+		if ( 'sw-backupit' !== $domain || is_readable( $mofile ) ) {
 			return $mofile;
 		}
 		$shipped  = array(
@@ -91,8 +91,8 @@ final class Plugin {
 			'pl' => 'pl_PL',
 			'it' => 'it_IT',
 		);
-		$language = substr( basename( $mofile, '.mo' ), strlen( 'swbackupit-' ), 2 );
-		$fallback = isset( $shipped[ $language ] ) ? dirname( $mofile ) . '/swbackupit-' . $shipped[ $language ] . '.mo' : '';
+		$language = substr( basename( $mofile, '.mo' ), strlen( 'sw-backupit-' ), 2 );
+		$fallback = isset( $shipped[ $language ] ) ? dirname( $mofile ) . '/sw-backupit-' . $shipped[ $language ] . '.mo' : '';
 		return '' !== $fallback && is_readable( $fallback ) ? $fallback : $mofile;
 	}
 
@@ -132,7 +132,7 @@ final class Plugin {
 
 	public function cron_watch(): void {
 		\SWBackupIt\WordPress\Support\Options::update( CronManager::TICK_OPTION, time(), false );
-		// In "system" cron mode the system cron (`wp swbackupit schedule run-due`) owns the schedules; starting them here
+		// In "system" cron mode the system cron (`wp sw-backupit schedule run-due`) owns the schedules; starting them here
 		// as well would race with it.
 		if ( 'system' !== (string) Settings::all()['cron']['mode'] ) {
 			Services::instance()->schedule_runner()->run_due();

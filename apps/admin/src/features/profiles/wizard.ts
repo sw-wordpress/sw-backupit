@@ -47,7 +47,7 @@ export function shellQuote(value: string): string {
 /** WP-CLI command equivalent to running this profile. The server assigns the real id on save. */
 export function cliCommand(name: string, id: number | null): string {
   const ref = id !== null ? String(id) : name.trim() !== '' ? name.trim() : '<name>';
-  return `wp swbackupit backup create --profile=${shellQuote(ref)}`;
+  return `wp sw-backupit backup create --profile=${shellQuote(ref)}`;
 }
 
 export const includesFiles = (type: BackupType): boolean => type !== 'database';

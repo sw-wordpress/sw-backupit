@@ -101,7 +101,7 @@ const de = {
     loadFailed: 'Daten konnten nicht geladen werden',
     noAccessTitle: 'Kein Zugriff',
     noAccessText:
-      'Dein Benutzerkonto darf SWBackupIt nicht ansehen. Bitte wende dich an einen Administrator.',
+      'Dein Benutzerkonto darf sw-backupit nicht ansehen. Bitte wende dich an einen Administrator.',
   },
   status: {
     job: {
@@ -810,7 +810,7 @@ const de = {
         'Sicherheitsrisiko: Adressen wie localhost, 127.0.0.1 oder 10.x.x.x sind sonst gesperrt (SSRF-Schutz). Aktiviere dies nur, wenn der Dienst bewusst intern erreichbar sein soll.',
       keyPassphrase: 'Passphrase des privaten Schlüssels',
       path: 'Verzeichnis',
-      pathHint: 'Absoluter Pfad, z. B. /var/backups/swbackupit',
+      pathHint: 'Absoluter Pfad, z. B. /var/backups/sw-backupit',
       host: 'Host',
       port: 'Port',
       username: 'Benutzername',

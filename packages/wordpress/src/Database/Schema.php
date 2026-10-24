@@ -2,7 +2,7 @@
 /**
  * Versioned database schema (PLAN.md §21).
  *
- * @package SWBackupIt
+ * @package sw-backupit
  */
 
 declare(strict_types=1);

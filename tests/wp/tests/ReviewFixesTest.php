@@ -101,7 +101,7 @@ class ReviewFixesTest extends WP_UnitTestCase {
 	 * @param array<string, mixed>|null $body
 	 */
 	private function request( string $method, string $route, ?array $body = null, array $params = array() ): WP_REST_Response {
-		$request = new WP_REST_Request( $method, '/swbackupit/v1' . $route );
+		$request = new WP_REST_Request( $method, '/sw-backupit/v1' . $route );
 		if ( null !== $body ) {
 			$request->set_header( 'content-type', 'application/json' );
 			$request->set_body( (string) wp_json_encode( $body ) );
@@ -277,7 +277,7 @@ class ReviewFixesTest extends WP_UnitTestCase {
 		$this->assertCount( 1, $stored, 'volumes are stored encrypted' );
 
 		$controller = new BackupsController();
-		$request    = new WP_REST_Request( 'GET', '/swbackupit/v1/backups/' . $job['backup_id'] . '/download' );
+		$request    = new WP_REST_Request( 'GET', '/sw-backupit/v1/backups/' . $job['backup_id'] . '/download' );
 		$request->set_param( 'id', $job['backup_id'] );
 		$request->set_param( 'volume', 1 );
 		$request->set_param( 'part', 'volume' );
@@ -603,7 +603,7 @@ class ReviewFixesTest extends WP_UnitTestCase {
 	}
 
 	public function test_deactivation_and_uninstall_clean_up(): void {
-		$wizard = untrailingslashit( ABSPATH ) . '/swbackupit-restore-' . bin2hex( random_bytes( 8 ) );
+		$wizard = untrailingslashit( ABSPATH ) . '/sw-backupit-restore-' . bin2hex( random_bytes( 8 ) );
 		mkdir( $wizard );
 		file_put_contents( $wizard . '/index.php', '<?php' );
 		Lifecycle::deactivate();
@@ -664,14 +664,14 @@ class ReviewFixesTest extends WP_UnitTestCase {
 		$this->assertContains( 'README.txt', $names );
 		$this->assertContains( 'backups/' . $job['backup_id'] . '/manifest.json', $names );
 		$this->assertContains( 'backups/' . $full['backup_id'] . '/manifest.json', $names, 'the base backup of the chain is included' );
-		$this->assertContains( 'swbackupit-restore/bin/swbackupit-restore', $names );
-		$this->assertContains( 'swbackupit-restore/index.php', $names );
+		$this->assertContains( 'sw-backupit-restore/bin/sw-backupit-restore', $names );
+		$this->assertContains( 'sw-backupit-restore/index.php', $names );
 
 		// The unpacked package verifies and lists files with the bundled standalone restore application alone.
 		$unpacked = sys_get_temp_dir() . '/swbi-package-x-' . bin2hex( random_bytes( 4 ) );
 		$zip->extractTo( $unpacked );
 		$zip->close();
-		$cli = escapeshellarg( PHP_BINARY ) . ' ' . escapeshellarg( $unpacked . '/swbackupit-restore/bin/swbackupit-restore' );
+		$cli = escapeshellarg( PHP_BINARY ) . ' ' . escapeshellarg( $unpacked . '/sw-backupit-restore/bin/sw-backupit-restore' );
 		exec( $cli . ' verify ' . escapeshellarg( $unpacked . '/backups/' . $job['backup_id'] ) . ' --deep 2>&1', $lines, $code );
 		$this->assertSame( 0, $code, implode( "\n", $lines ) );
 		wp_delete_file( $file );

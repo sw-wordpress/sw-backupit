@@ -102,7 +102,7 @@ final class ManifestStep implements BackupStepInterface
             'finished_at' => $context->clock->now()->format('Y-m-d\TH:i:s\Z'),
             'type' => (string) ($job->checkpoint(Step::Preflight)['effective_type'] ?? $profile->type->value),
             'status' => 'complete',
-            'generator' => ['name' => 'swbackupit', 'version' => self::GENERATOR_VERSION, 'php' => PHP_VERSION],
+            'generator' => ['name' => 'sw-backupit', 'version' => self::GENERATOR_VERSION, 'php' => PHP_VERSION],
             'source' => [
                 'site_url' => $context->source->siteUrl,
                 'home_url' => $context->source->homeUrl,

@@ -29,7 +29,7 @@ composer test:wp:ms  # same environment as multisite
 are never echoed as HTML).
 
 ## Build
-`bin/build-zip.sh` creates `dist/swbackupit-<version>.zip` (production Composer dependencies, compiled SPA, standalone restore in `restore-app/`).
+`bin/build-zip.sh` creates `dist/sw-backupit-<version>.zip` (production Composer dependencies, compiled SPA, standalone restore in `restore-app/`).
 `bin/build-restore.sh <dir>` builds only the standalone restore application.
 
 ## Conventions

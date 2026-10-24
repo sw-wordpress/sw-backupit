@@ -105,7 +105,7 @@ const fr: Schema = {
     loadFailed: 'Impossible de charger les données',
     noAccessTitle: 'Accès refusé',
     noAccessText:
-      "Votre compte utilisateur n'est pas autorisé à consulter SWBackupIt. Veuillez contacter un administrateur.",
+      "Votre compte utilisateur n'est pas autorisé à consulter sw-backupit. Veuillez contacter un administrateur.",
   },
   status: {
     job: {
@@ -818,7 +818,7 @@ const fr: Schema = {
         'Risque de sécurité : les adresses telles que localhost, 127.0.0.1 ou 10.x.x.x sont sinon bloquées (protection SSRF). À activer uniquement si le service est volontairement accessible en interne.',
       keyPassphrase: 'Phrase secrète de la clé privée',
       path: 'Répertoire',
-      pathHint: 'Chemin absolu, p. ex. /var/backups/swbackupit',
+      pathHint: 'Chemin absolu, p. ex. /var/backups/sw-backupit',
       host: 'Hôte',
       port: 'Port',
       username: "Nom d'utilisateur",

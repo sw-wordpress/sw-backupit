@@ -14,7 +14,7 @@ import { resolveUiLocale } from './config';
 import quasarLang from './i18n/quasarLang';
 import { createAppRouter } from './router';
 
-const MOUNT_ID = 'swbackupit-app';
+const MOUNT_ID = 'sw-backupit-app';
 
 function showFatal(el: HTMLElement, message: string): void {
   el.classList.add('swbi-root');
@@ -27,7 +27,7 @@ function showFatal(el: HTMLElement, message: string): void {
 function bootstrap(): void {
   const el = document.getElementById(MOUNT_ID);
   if (!el) {
-    console.error(`SWBackupIt: mount node #${MOUNT_ID} not found`);
+    console.error(`sw-backupit: mount node #${MOUNT_ID} not found`);
     return;
   }
   let config;
@@ -35,7 +35,7 @@ function bootstrap(): void {
     config = getConfig();
   } catch (error) {
     console.error(error);
-    showFatal(el, 'SWBackupIt: configuration missing (window.swbackupitConfig).');
+    showFatal(el, 'sw-backupit: configuration missing (window.swbackupitConfig).');
     return;
   }
 

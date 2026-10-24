@@ -2,7 +2,7 @@
 /**
  * Plugin settings with validation and defaults.
  *
- * @package SWBackupIt
+ * @package sw-backupit
  */
 
 declare(strict_types=1);
@@ -103,30 +103,30 @@ final class Settings {
 	private static function validate( array $settings ): ?string {
 		$limits = $settings['limits'];
 		if ( $limits['time_budget_seconds'] < 1 || $limits['time_budget_seconds'] > 3600 ) {
-			return __( 'The time budget must be between 1 and 3600 seconds.', 'swbackupit' );
+			return __( 'The time budget must be between 1 and 3600 seconds.', 'sw-backupit' );
 		}
 		if ( $limits['memory_mb'] < 16 || $limits['batch_rows'] < 1 || $limits['batch_rows'] > 100000 ) {
-			return __( 'Resource limits are out of range.', 'swbackupit' );
+			return __( 'Resource limits are out of range.', 'sw-backupit' );
 		}
 		if ( ! in_array( $settings['cron']['mode'], array( 'wp-cron', 'system' ), true ) ) {
-			return __( 'Unknown cron mode.', 'swbackupit' );
+			return __( 'Unknown cron mode.', 'sw-backupit' );
 		}
 		if ( ! \SWBackupIt\WordPress\Repository\ScheduleCalculator::is_valid_timezone( (string) $settings['cron']['timezone'] ) ) {
-			return __( 'Unknown timezone.', 'swbackupit' );
+			return __( 'Unknown timezone.', 'sw-backupit' );
 		}
 		if ( ! in_array( $settings['logging']['level'], array( 'debug', 'info', 'notice', 'warning', 'error' ), true ) ) {
-			return __( 'Unknown log level.', 'swbackupit' );
+			return __( 'Unknown log level.', 'sw-backupit' );
 		}
 		$dir = (string) $settings['staging_dir'];
 		if ( '' !== $dir && ( '/' !== $dir[0] || str_contains( $dir, '..' ) || str_contains( $dir, "\0" ) ) ) {
-			return __( 'The staging directory must be an absolute path without "..".', 'swbackupit' );
+			return __( 'The staging directory must be an absolute path without "..".', 'sw-backupit' );
 		}
 		if ( '' !== $dir && empty( $settings['allow_public_paths'] ) && self::is_inside_docroot( $dir ) ) {
-			return __( 'The staging directory is inside the web root, where backups could be downloaded by anyone. Choose a directory outside the web root.', 'swbackupit' );
+			return __( 'The staging directory is inside the web root, where backups could be downloaded by anyone. Choose a directory outside the web root.', 'sw-backupit' );
 		}
 		foreach ( (array) $settings['notifications']['recipients'] as $recipient ) {
 			if ( ! is_email( (string) $recipient ) ) {
-				return __( 'Invalid notification recipient.', 'swbackupit' );
+				return __( 'Invalid notification recipient.', 'sw-backupit' );
 			}
 		}
 		return null;
@@ -176,11 +176,11 @@ final class Settings {
 			return $stored;
 		}
 		$suffix  = substr( hash( 'sha256', wp_salt( 'auth' ) . ABSPATH ), 0, 12 );
-		$outside = dirname( untrailingslashit( ABSPATH ) ) . '/swbackupit-staging-' . $suffix;
+		$outside = dirname( untrailingslashit( ABSPATH ) ) . '/sw-backupit-staging-' . $suffix;
 		$parent  = dirname( $outside );
 		$dir     = is_dir( $parent ) && wp_is_writable( $parent ) && ! self::is_inside_docroot( $parent )
 			? $outside
-			: untrailingslashit( WP_CONTENT_DIR ) . '/swbackupit-staging-' . $suffix;
+			: untrailingslashit( WP_CONTENT_DIR ) . '/sw-backupit-staging-' . $suffix;
 		\SWBackupIt\WordPress\Support\Options::update( 'swbi_staging_dir', $dir, false );
 		return $dir;
 	}

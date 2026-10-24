@@ -2,7 +2,7 @@
 /**
  * Backups: catalog, details, verify, protect, browse, download, delete.
  *
- * @package SWBackupIt
+ * @package sw-backupit
  */
 
 declare(strict_types=1);
@@ -184,7 +184,7 @@ final class BackupsController extends BaseController {
 			'/backups/(?P<id>[0-9a-f-]{36})/restore',
 			array(
 				'methods'             => \WP_REST_Server::CREATABLE,
-				'callback'            => fn () => $this->error( 'swbi_use_wizard', __( 'A restore is never executed inside WordPress. Use "Prepare restore" and continue in the standalone restore application (or the restore CLI).', 'swbackupit' ), 501 ),
+				'callback'            => fn () => $this->error( 'swbi_use_wizard', __( 'A restore is never executed inside WordPress. Use "Prepare restore" and continue in the standalone restore application (or the restore CLI).', 'sw-backupit' ), 501 ),
 				'permission_callback' => $this->can( Capabilities::RESTORE ),
 				'args'                => $id,
 			)
@@ -197,11 +197,11 @@ final class BackupsController extends BaseController {
 	public function compare( \WP_REST_Request $request ) {
 		$id = (string) $request['id'];
 		if ( null === $this->services()->backups()->find_row( $id ) ) {
-			return $this->error( 'swbi_not_found', __( 'Backup not found.', 'swbackupit' ), 404 );
+			return $this->error( 'swbi_not_found', __( 'Backup not found.', 'sw-backupit' ), 404 );
 		}
 		$mode = (string) ( $this->body( $request )['mode'] ?? 'metadata' );
 		if ( ! in_array( $mode, array( 'metadata', 'sha256' ), true ) ) {
-			return $this->error( 'swbi_invalid_param', __( 'The mode must be metadata or sha256.', 'swbackupit' ), 400 );
+			return $this->error( 'swbi_invalid_param', __( 'The mode must be metadata or sha256.', 'sw-backupit' ), 400 );
 		}
 		$work = untrailingslashit( Settings::staging_dir() ) . '/tmp/compare-' . bin2hex( random_bytes( 4 ) );
 		try {
@@ -235,7 +235,7 @@ final class BackupsController extends BaseController {
 	public function restore_prepare( \WP_REST_Request $request ) {
 		$id = (string) $request['id'];
 		if ( null === $this->services()->backups()->find_row( $id ) ) {
-			return $this->error( 'swbi_not_found', __( 'Backup not found.', 'swbackupit' ), 404 );
+			return $this->error( 'swbi_not_found', __( 'Backup not found.', 'sw-backupit' ), 404 );
 		}
 		try {
 			return new \WP_REST_Response( ( new RestorePreparer() )->prepare( $id ) );
@@ -266,7 +266,7 @@ final class BackupsController extends BaseController {
 	public function get_backup( \WP_REST_Request $request ) {
 		$row = $this->services()->backups()->find_row( (string) $request['id'] );
 		if ( null === $row ) {
-			return $this->error( 'swbi_not_found', __( 'Backup not found.', 'swbackupit' ), 404 );
+			return $this->error( 'swbi_not_found', __( 'Backup not found.', 'sw-backupit' ), 404 );
 		}
 		$profiles = array();
 		foreach ( $this->services()->profiles()->all() as $profile ) {
@@ -279,13 +279,13 @@ final class BackupsController extends BaseController {
 		$id  = (string) $request['id'];
 		$row = $this->services()->backups()->find_row( $id );
 		if ( null === $row ) {
-			return $this->error( 'swbi_not_found', __( 'Backup not found.', 'swbackupit' ), 404 );
+			return $this->error( 'swbi_not_found', __( 'Backup not found.', 'sw-backupit' ), 404 );
 		}
 		if ( $id !== (string) $request['confirm'] ) {
-			return $this->error( 'swbi_confirmation_required', __( 'Deleting a backup requires confirming its id.', 'swbackupit' ), 400 );
+			return $this->error( 'swbi_confirmation_required', __( 'Deleting a backup requires confirming its id.', 'sw-backupit' ), 400 );
 		}
 		if ( (bool) $row['protected'] ) {
-			return $this->error( 'swbi_conflict', __( 'The backup is protected. Remove the protection first.', 'swbackupit' ), 409 );
+			return $this->error( 'swbi_conflict', __( 'The backup is protected. Remove the protection first.', 'sw-backupit' ), 409 );
 		}
 		( new BackupLayout( Settings::staging_dir(), $id ) )->removeAll();
 		$this->services()->backups()->delete( $id );
@@ -296,11 +296,11 @@ final class BackupsController extends BaseController {
 	public function verify( \WP_REST_Request $request ) {
 		$id = (string) $request['id'];
 		if ( null === $this->services()->backups()->find_row( $id ) ) {
-			return $this->error( 'swbi_not_found', __( 'Backup not found.', 'swbackupit' ), 404 );
+			return $this->error( 'swbi_not_found', __( 'Backup not found.', 'sw-backupit' ), 404 );
 		}
 		if ( ! BackgroundChecks::has_local_data( $id ) ) {
 			// Not a defect: the status stays as it is.
-			return $this->error( 'swbi_no_local_copy', __( 'There is no local copy of this backup to verify. Its copies on the storage targets are verified during upload; download the backup from a storage target to verify it here.', 'swbackupit' ), 409 );
+			return $this->error( 'swbi_no_local_copy', __( 'There is no local copy of this backup to verify. Its copies on the storage targets are verified during upload; download the backup from a storage target to verify it here.', 'sw-backupit' ), 409 );
 		}
 		try {
 			$set    = BackupSet::open( Settings::staging_dir() . '/' . $id );
@@ -322,7 +322,7 @@ final class BackupsController extends BaseController {
 	public function protect( \WP_REST_Request $request ) {
 		$id = (string) $request['id'];
 		if ( null === $this->services()->backups()->find_row( $id ) ) {
-			return $this->error( 'swbi_not_found', __( 'Backup not found.', 'swbackupit' ), 404 );
+			return $this->error( 'swbi_not_found', __( 'Backup not found.', 'sw-backupit' ), 404 );
 		}
 		$protect = rest_sanitize_boolean( $this->body( $request )['protected'] ?? true );
 		$this->services()->backups()->set_protected( $id, $protect );
@@ -333,7 +333,7 @@ final class BackupsController extends BaseController {
 	public function files( \WP_REST_Request $request ) {
 		$id = (string) $request['id'];
 		if ( null === $this->services()->backups()->find_row( $id ) ) {
-			return $this->error( 'swbi_not_found', __( 'Backup not found.', 'swbackupit' ), 404 );
+			return $this->error( 'swbi_not_found', __( 'Backup not found.', 'sw-backupit' ), 404 );
 		}
 		$work = untrailingslashit( Settings::staging_dir() ) . '/tmp/browse-' . bin2hex( random_bytes( 4 ) );
 		try {
@@ -391,7 +391,7 @@ final class BackupsController extends BaseController {
 		}
 		$handle = fopen( $path, 'rb' ); // phpcs:ignore WordPress.WP.AlternativeFunctions
 		if ( false === $handle ) {
-			return $this->error( 'swbi_error', __( 'Cannot read the file.', 'swbackupit' ), 500 );
+			return $this->error( 'swbi_error', __( 'Cannot read the file.', 'sw-backupit' ), 500 );
 		}
 		do_action( 'swbi_backup_downloaded', (string) $request['id'], basename( $path ) );
 		$this->stream( $handle, $path );
@@ -406,10 +406,10 @@ final class BackupsController extends BaseController {
 	public function package( \WP_REST_Request $request ) {
 		$id = (string) $request['id'];
 		if ( null === $this->services()->backups()->find_row( $id ) ) {
-			return $this->error( 'swbi_not_found', __( 'Backup not found.', 'swbackupit' ), 404 );
+			return $this->error( 'swbi_not_found', __( 'Backup not found.', 'sw-backupit' ), 404 );
 		}
 		if ( ! BackgroundChecks::has_local_data( $id ) ) {
-			return $this->error( 'swbi_no_local_copy', __( 'The backup has no complete local copy. Download it from a storage target first.', 'swbackupit' ), 409 );
+			return $this->error( 'swbi_no_local_copy', __( 'The backup has no complete local copy. Download it from a storage target first.', 'sw-backupit' ), 409 );
 		}
 		while ( ob_get_level() > 0 ) {
 			ob_end_clean();
@@ -440,7 +440,7 @@ final class BackupsController extends BaseController {
 	public function download_path( \WP_REST_Request $request ) {
 		$id = (string) $request['id'];
 		if ( null === $this->services()->backups()->find_row( $id ) ) {
-			return $this->error( 'swbi_not_found', __( 'Backup not found.', 'swbackupit' ), 404 );
+			return $this->error( 'swbi_not_found', __( 'Backup not found.', 'sw-backupit' ), 404 );
 		}
 		try {
 			$set      = BackupSet::open( Settings::staging_dir() . '/' . $id );
@@ -462,7 +462,7 @@ final class BackupsController extends BaseController {
 			return $this->error( 'swbi_backup_unavailable', $exception->getMessage(), 404 );
 		}
 		if ( '' === $path || ! is_file( $path ) ) {
-			return $this->error( 'swbi_not_found', __( 'The requested file does not exist.', 'swbackupit' ), 404 );
+			return $this->error( 'swbi_not_found', __( 'The requested file does not exist.', 'sw-backupit' ), 404 );
 		}
 		return $path;
 	}

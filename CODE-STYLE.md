@@ -1,7 +1,7 @@
-# SWBackupIt – CODE-STYLE.md
+# sw-backupit – CODE-STYLE.md
 
 **Status:** Verbindlich  
-**Geltungsbereich:** Gesamtes SWBackupIt-Monorepo  
+**Geltungsbereich:** Gesamtes sw-backupit-Monorepo
 **Zielgruppe:** Menschen, Codex CLI und andere Coding-Agenten  
 **Projekt:** WordPress Backup, Restore & Disaster Recovery
 
@@ -55,8 +55,8 @@ Der Inhalt dieses Abschnitts gilt für den WordPress-Adapter und alle WordPress-
 - Konstante Namen: `SWBI_*` oder `SWBACKUPIT_*` in `UPPER_SNAKE_CASE`.
 - WordPress-native Klassenkonvention: `Pascal_Words_With_Underscores`, falls globaler WP-Stil genutzt wird. **Projektentscheidung:** PSR-4-Klassen innerhalb des eigenen Namespaces dürfen `PascalCase` verwenden, um Autoloading und Core-Konsistenz zu gewährleisten; dies ist ein ausdrücklich dokumentierter WPCS-Stilausnahmefall, kein Sicherheits-Ausnahmefall.
 - WordPress-konforme PHP-Dateien möglichst `kebab-case.php`; für PSR-4-Klassen muss der Dateiname exakt zur Klasse und zum Autoloader passen (`BackupController.php`). Keine unübersichtlichen Doppel-Konventionen.
-- REST-Routen: lower-case, nachvollziehbare Ressourcennamen, konsistent mit API-Versionierung (`swbackupit/v1`).
-- Textdomain: **`swbackupit`** und konsistent in Plugin-Metadaten und Übersetzungsaufrufen.
+- REST-Routen: lower-case, nachvollziehbare Ressourcennamen, konsistent mit API-Versionierung (`sw-backupit/v1`).
+- Textdomain: **`sw-backupit`** und konsistent in Plugin-Metadaten und Übersetzungsaufrufen.
 
 ### 3.2 Formatierung
 
@@ -77,7 +77,7 @@ Der Inhalt dieses Abschnitts gilt für den WordPress-Adapter und alle WordPress-
 /**
  * WordPress backup integration.
  *
- * @package SWBackupIt
+ * @package sw-backupit
  */
 
 declare(strict_types=1);
@@ -87,7 +87,7 @@ namespace SWBackupIt\WordPress\Api;
 final class Backup_Controller {
 	public function register_routes(): void {
 		register_rest_route(
-			'swbackupit/v1',
+			'sw-backupit/v1',
 			'/backups',
 			array(
 				'methods'             => 'GET',
@@ -152,7 +152,7 @@ Hinweis: Das Beispiel zeigt Format und explizite Berechtigungsprüfung. Die endg
 
 ### 4.4 REST API
 
-- Namespace versionieren: `swbackupit/v1`.
+- Namespace versionieren: `sw-backupit/v1`.
 - `register_rest_route()` auf `rest_api_init`.
 - Jede Route hat einen expliziten `permission_callback`.
 - Parameter mit `args`, Typen, Default, `validate_callback` und `sanitize_callback` beschreiben, sofern geeignet.
@@ -183,7 +183,7 @@ Hinweis: Das Beispiel zeigt Format und explizite Berechtigungsprüfung. Die endg
 
 ## 5. Internationalisierung und Accessibility
 
-- Alle benutzerseitigen Strings übersetzbar; Textdomain `swbackupit`.
+- Alle benutzerseitigen Strings übersetzbar; Textdomain `sw-backupit`.
 - Für PHP: `__()`, `_e()`, `esc_html__()`, `esc_html_e()`, `esc_attr__()` nach Ausgabekontext.
 - Dynamische Inhalte über `sprintf()`/Platzhalter einfügen und mit Übersetzerkommentaren bei unklaren Variablen dokumentieren.
 - Keine Variablen als erstes Argument von Übersetzungsfunktionen; keine Satzfragmente dynamisch zusammensetzen.
@@ -236,7 +236,7 @@ Hinweis: Das Beispiel zeigt Format und explizite Berechtigungsprüfung. Die endg
 
 ## 7. Backup-, Restore- und Datenintegritätsregeln
 
-Diese Regeln sind für SWBackupIt **verbindlich** und wichtiger als kosmetischer Stil.
+Diese Regeln sind für sw-backupit **verbindlich** und wichtiger als kosmetischer Stil.
 
 1. Kein Erfolg ohne vollständiges Manifest, geschlossene Volumes und erfüllte konfigurierbare Verifikations-/Replikationsrichtlinie.
 2. Manifestformat versionieren; Schemaänderungen mit expliziter Migrations-/Kompatibilitätsstrategie.

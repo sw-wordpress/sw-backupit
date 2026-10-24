@@ -1,6 +1,6 @@
 {
-    "name": "swbackupit/swbackupit",
-    "description": "SWBackupIt - WordPress backup, restore and disaster recovery (monorepo).",
+    "name": "sw-backupit/sw-backupit",
+    "description": "sw-backupit - WordPress backup, restore and disaster recovery (monorepo).",
     "type": "wordpress-plugin",
     "license": "GPL-2.0-or-later",
     "require": {
@@ -44,6 +44,18 @@
             "SWBackupIt\\Tests\\Unit\\": "tests/Unit/",
             "SWBackupIt\\Tests\\Integration\\": "tests/Integration/",
             "SWBackupIt\\Tests\\E2e\\": "tests/E2e/"
+        }
+    },
+    "extra": {
+        "mozart": {
+            "dep_namespace": "SWBackupIt\\Dependencies\\",
+            "dep_directory": "/vendor-prefixed/",
+            "classmap_directory": "/vendor-prefixed/",
+            "classmap_prefix": "SWBackupIt_",
+            "constant_prefix": "SWBACKUPIT_",
+            "functions_prefix": "swbackupit_",
+            "generate_autoloader": true,
+            "delete_vendor_directories": true
         }
     },
     "config": {

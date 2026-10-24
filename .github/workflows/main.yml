@@ -1,0 +1,89 @@
+name: Build release zip
+
+on:
+  push:
+    tags:
+      - '[0-9]+.[0-9]+.[0-9]+*'
+      - 'v[0-9]+.[0-9]+.[0-9]+*'
+
+permissions:
+  contents: write
+
+env:
+  PLUGIN_SLUG: sw-backupit
+
+jobs:
+  build:
+    name: Build release zip
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Determine repository name and version
+        id: metadata
+        env:
+          REPO_NAME: ${{ github.event.repository.name }}
+        run: |
+          RAW="${GITHUB_REF_NAME}"
+          VERSION="${RAW#v}"
+          VERSION="${VERSION%-*}"
+
+          echo "repo=$REPO_NAME" >> "$GITHUB_OUTPUT"
+          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
+          echo "zip=${REPO_NAME}-${VERSION}.zip" >> "$GITHUB_OUTPUT"
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.2'
+          extensions: zip, pdo_mysql, mbstring, sodium
+          tools: composer:v2
+          coverage: none
+
+      - name: Validate Composer configuration
+        run: composer validate --strict
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+          cache-dependency-path: apps/admin/package-lock.json
+
+      - name: Bundle WordPress plugin
+        env:
+          REPO_NAME: ${{ steps.metadata.outputs.repo }}
+          VERSION: ${{ steps.metadata.outputs.version }}
+        run: |
+          # The local and CI builds share dependency isolation, restore bundling and smoke tests.
+          bash bin/build-zip.sh "$RUNNER_TEMP/dist"
+          PLUGIN_VERSION="$(grep -m1 'Version:' sw-backupit.php | awk '{print $NF}')"
+          cp "$RUNNER_TEMP/dist/$PLUGIN_SLUG-$PLUGIN_VERSION.zip" "$GITHUB_WORKSPACE/${REPO_NAME}-${VERSION}.zip"
+
+      - name: Verify ZIP contents
+        env:
+          ZIP_FILE: ${{ steps.metadata.outputs.zip }}
+        run: |
+          unzip -t "$ZIP_FILE"
+          unzip -Z1 "$ZIP_FILE" > "$RUNNER_TEMP/zip-contents.txt"
+          grep -Fx "$PLUGIN_SLUG/vendor-prefixed/autoload.php" "$RUNNER_TEMP/zip-contents.txt"
+          grep -Fx "$PLUGIN_SLUG/sw-backupit.php" "$RUNNER_TEMP/zip-contents.txt"
+          grep -Fx "$PLUGIN_SLUG/restore-app/vendor/autoload.php" "$RUNNER_TEMP/zip-contents.txt"
+          grep -Fx "$PLUGIN_SLUG/assets/admin/app.js" "$RUNNER_TEMP/zip-contents.txt"
+          if grep -Eq "^$PLUGIN_SLUG/(vendor|tests|apps|bin|node_modules|\.git|\.github)/" "$RUNNER_TEMP/zip-contents.txt"; then
+            echo "Unexpected development or unprefixed vendor files in ZIP" >&2
+            exit 1
+          fi
+
+          # Test the final archive, not only its staging input.
+          unzip -q "$ZIP_FILE" -d "$RUNNER_TEMP/unpacked"
+          php tests/bootstrap.php "$RUNNER_TEMP/unpacked/$PLUGIN_SLUG"
+          php "$RUNNER_TEMP/unpacked/$PLUGIN_SLUG/restore-app/bin/sw-backupit-restore" help
+
+      - name: Create release and attach ZIP
+        uses: softprops/action-gh-release@v2
+        with:
+          name: ${{ steps.metadata.outputs.version }}
+          files: ${{ steps.metadata.outputs.zip }}

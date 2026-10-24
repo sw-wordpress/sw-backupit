@@ -45,7 +45,7 @@ const transitionKey = computed(() => String(route.name ?? ''));
           ><q-icon name="r_shield" size="22px"
         /></span>
         <span class="swbi-rail__name">
-          <strong>SWBackupIt</strong>
+          <strong>sw-backupit</strong>
           <small v-if="config.version" class="swbi-num">v{{ config.version }}</small>
         </span>
       </div>

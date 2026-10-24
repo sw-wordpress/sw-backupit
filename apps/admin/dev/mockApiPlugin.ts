@@ -2,7 +2,7 @@ import type { IncomingMessage } from 'node:http';
 import type { Plugin } from 'vite';
 import { handle } from './mockApi';
 
-const PREFIX = '/wp-json/swbackupit/v1/';
+const PREFIX = '/wp-json/sw-backupit/v1/';
 
 function readBody(req: IncomingMessage): Promise<Record<string, unknown>> {
   return new Promise((resolve) => {

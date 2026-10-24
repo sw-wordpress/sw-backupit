@@ -3,7 +3,7 @@
  * Default backup scope: EVERYTHING is backed up (the whole WordPress directory and the complete database), only caches are
  * excluded, so a 100 % copy of the site is always available. Seeded once on activation when no profile exists.
  *
- * @package SWBackupIt
+ * @package sw-backupit
  */
 
 declare(strict_types=1);
@@ -43,8 +43,8 @@ final class DefaultProfiles {
 	 */
 	public static function full(): array {
 		return array(
-			'name'          => __( 'Full backup (everything, without cache)', 'swbackupit' ),
-			'description'   => __( 'Complete copy of the WordPress directory and the database. Only cache directories are excluded.', 'swbackupit' ),
+			'name'          => __( 'Full backup (everything, without cache)', 'sw-backupit' ),
+			'description'   => __( 'Complete copy of the WordPress directory and the database. Only cache directories are excluded.', 'sw-backupit' ),
 			'type'          => 'full',
 			'include_paths' => array(),
 			'exclude_paths' => self::CACHE_EXCLUDES,
@@ -57,8 +57,8 @@ final class DefaultProfiles {
 	 */
 	public static function content(): array {
 		return array(
-			'name'          => __( 'Content update (uploads, themes, plugins)', 'swbackupit' ),
-			'description'   => __( 'Incremental backup of uploads, themes and plugins (plus the database); only changed files are stored.', 'swbackupit' ),
+			'name'          => __( 'Content update (uploads, themes, plugins)', 'sw-backupit' ),
+			'description'   => __( 'Incremental backup of uploads, themes and plugins (plus the database); only changed files are stored.', 'sw-backupit' ),
 			'type'          => 'incremental',
 			'include_paths' => self::CONTENT_PATHS,
 			'exclude_paths' => self::CACHE_EXCLUDES,

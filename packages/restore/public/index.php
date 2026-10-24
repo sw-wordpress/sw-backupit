@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 /**
  * Entry point of the standalone web restore wizard.
- * The configuration (token hash, expiry, backups directory) is written by `swbackupit-restore web-init` or by the plugin.
+ * The configuration (token hash, expiry, backups directory) is written by `sw-backupit-restore web-init` or by the plugin.
  * Without a valid configuration the application does nothing.
  */
 

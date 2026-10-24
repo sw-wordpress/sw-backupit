@@ -167,8 +167,8 @@ class FlysystemRemoteStorage implements RemoteStorageInterface
         $start = microtime(true);
         $name = '.swbi-connection-test-' . bin2hex(random_bytes(4));
         try {
-            $this->filesystem->write($name, 'swbackupit');
-            $ok = $this->filesystem->read($name) === 'swbackupit';
+            $this->filesystem->write($name, 'sw-backupit');
+            $ok = $this->filesystem->read($name) === 'sw-backupit';
             $this->filesystem->delete($name);
         } catch (FilesystemException $exception) {
             return new ConnectionTestResult(false, 'The storage test failed: ' . $this->describe($exception));

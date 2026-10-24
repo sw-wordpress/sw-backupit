@@ -2,7 +2,7 @@
 /**
  * WP-CLI commands (docs/wp-cli.md).
  *
- * @package SWBackupIt
+ * @package sw-backupit
  */
 
 declare(strict_types=1);
@@ -146,7 +146,7 @@ final class BackupCommand {
 	 * : Backup id.
 	 *
 	 * [--output=<file>]
-	 * : Target file. Default: swbackupit-recovery-<id>.zip in the current directory.
+	 * : Target file. Default: sw-backupit-recovery-<id>.zip in the current directory.
 	 *
 	 * @param array<int, string>   $args       Positional arguments.
 	 * @param array<string, mixed> $assoc_args Associative arguments.

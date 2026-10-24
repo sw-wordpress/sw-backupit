@@ -2,7 +2,7 @@
 /**
  * Recovers jobs whose background execution got lost (lost WP-Cron event, crashed worker) and fails jobs that are stalled for good.
  *
- * @package SWBackupIt
+ * @package sw-backupit
  */
 
 declare(strict_types=1);

@@ -1,6 +1,6 @@
-# SWBackupIt admin frontend
+# sw-backupit admin frontend
 
-Vue 3 (Composition API, `<script setup lang="ts">`) + Quasar (via `@quasar/vite-plugin`, **no Quasar CLI**) + Vite + TypeScript `strict` + Pinia + vue-router (hash history) + vue-i18n. It runs inside the wp-admin page `admin.php?page=swbackupit`.
+Vue 3 (Composition API, `<script setup lang="ts">`) + Quasar (via `@quasar/vite-plugin`, **no Quasar CLI**) + Vite + TypeScript `strict` + Pinia + vue-router (hash history) + vue-i18n. It runs inside the wp-admin page `admin.php?page=sw-backupit`.
 
 REST contract: [`docs/rest-api.md`](../../docs/rest-api.md) including the authoritative section "Implementation notes". The TypeScript types in `src/types/api.ts` mirror it 1:1.
 
@@ -46,10 +46,10 @@ Dev URL switches (only the dev host page `index.html`): `?lang=en` (English), `?
 PHP prints, before the module script:
 
 ```html
-<div id="swbackupit-app"></div>
+<div id="sw-backupit-app"></div>
 <script>
     window.swbackupitConfig = {
-        restRoot: 'https://example.com/wp-json/swbackupit/v1/', // ends with "/"
+        restRoot: 'https://example.com/wp-json/sw-backupit/v1/', // ends with "/"
         nonce: '<wp_rest nonce>',
         locale: 'de_DE', // starts with "de" -> German, anything else -> English
         version: '1.0.0',
@@ -62,7 +62,7 @@ PHP prints, before the module script:
 <script type="module" src=".../assets/admin/app.js"></script>
 ```
 
-Plain-permalink roots such as `https://x/?rest_route=/swbackupit/v1/` work too. If the nonce is refreshed by WordPress (`X-WP-Nonce` response header) the client adopts it. Capabilities are UX only (hide/disable); the server stays authoritative. Without `swbi_view` the app shows a "no access" state.
+Plain-permalink roots such as `https://x/?rest_route=/sw-backupit/v1/` work too. If the nonce is refreshed by WordPress (`X-WP-Nonce` response header) the client adopts it. Capabilities are UX only (hide/disable); the server stays authoritative. Without `swbi_view` the app shows a "no access" state.
 
 ## Structure
 
@@ -97,7 +97,7 @@ All user-visible strings live in `src/i18n/{de,en}.ts`. `de.ts` defines the sche
 
 ## Style isolation inside wp-admin
 
-1. **Namespace.** Everything mounts into `#swbackupit-app`, which gets the classes `swbi-root` (and `swbi-fullbleed`). Our own CSS only uses `swbi-` classes, `.swbi-root` descendants or Vue scoped styles. Design tokens are CSS custom properties on `.swbi-root` and `.swbi-root.swbi-dark`.
+1. **Namespace.** Everything mounts into `#sw-backupit-app`, which gets the classes `swbi-root` (and `swbi-fullbleed`). Our own CSS only uses `swbi-` classes, `.swbi-root` descendants or Vue scoped styles. Design tokens are CSS custom properties on `.swbi-root` and `.swbi-root.swbi-dark`.
 2. **Quasar CSS is rewritten at build time** by `tools/postcssScope.ts` (a PostCSS plugin, active only for files from `node_modules/quasar` and `@quasar/extras`): `html/body/:root` become `.swbi-root`, `body.body--dark` becomes `.swbi-root.swbi-dark`, `body.body--light` becomes `.swbi-root:not(.swbi-dark)`, scroll-lock classes on `body` are neutralised, every other selector gets the `.swbi-root ` prefix. `@keyframes` are left untouched. `node scripts/check-css-scope.mjs` verifies the built `app.css` contains no unscoped selector.
 3. **Portals.** Quasar teleports dialogs, menus, tooltips and notifications to `<body>`. `app.use(Quasar, { config: { globalNodes: { class: 'swbi-root' } } })` gives each of these global nodes the `swbi-root` class, so the scoped rules and tokens apply. `useThemeSync()` additionally copies `swbi-dark` to those nodes (MutationObserver on `body > .swbi-root`). Z-indexes of portals are raised above the admin bar (99999).
 4. **Reset against wp-admin bleed.** `.swbi-root` resets headings, lists, links, tables, `code`, `label` etc. (wp-admin styles bare elements). Quasar selectors become `.swbi-root .q-…`, which out-specifies wp-admin's `input[type=text]` rules.
@@ -132,12 +132,12 @@ The dev host page (`index.html`) simulates hostile wp-admin globals (`h1`, `p`, 
 
 ## Profile editor (wizard)
 
-Create/edit profile is a full page (`/profiles/new`, `/profiles/:id/edit`, `features/profiles/ProfileEditorView.vue`) following the approved UX Pilot design "SWBackupIt - Profil erstellen": breadcrumb, amber unsaved badge, 6-step stepper (`<nav><ol>` of buttons with `aria-current="step"`, scrolls horizontally on narrow screens), form card with two-column sections (`steps/StepSection.vue`, stacks via container query), footer with Back / "Next: <step>" and a validation hint, and a sticky context column (live `profile.json` preview + equivalent WP-CLI command) when the container is at least 900 px wide, otherwise below the form.
+Create/edit profile is a full page (`/profiles/new`, `/profiles/:id/edit`, `features/profiles/ProfileEditorView.vue`) following the approved UX Pilot design "sw-backupit - Profil erstellen": breadcrumb, amber unsaved badge, 6-step stepper (`<nav><ol>` of buttons with `aria-current="step"`, scrolls horizontally on narrow screens), form card with two-column sections (`steps/StepSection.vue`, stacks via container query), footer with Back / "Next: <step>" and a validation hint, and a sticky context column (live `profile.json` preview + equivalent WP-CLI command) when the container is at least 900 px wide, otherwise below the form.
 
 - Steps: General (name, description, type cards, execution), Content, Compression & encryption, Storage target (+ success policy), Retention (+ notifications), Summary (read-only review with "Edit" links and all validation messages, final save).
 - Validation is pure and grouped by step (`wizard.ts: validateProfile`); "Next" is blocked while the current step has issues; unvalidated later steps are not reachable when creating; editing an existing profile makes all steps reachable.
 - Real data only. Type = `profile.type`; the incremental/differential note shows the real number of full backups (`GET /backups?type=full`). Resource priority = presets for `profile.limits` (Gentle 10 s/250 rows, Normal 20 s/1000, Maximum 40 s/2000; memory untouched, "custom" when edited). "Verify integrity" = `profile.checksums`. Encryption text names libsodium XChaCha20-Poly1305 and the key select reads `GET /encryption-keys`.
-- Deliberately not implemented (no backend support): maintenance-mode toggle, draft saving, estimated size/duration, restore-chain labels. The ID chip shows "assigned when saving" (or `#id` when editing); the CLI line quotes the profile name (`wp swbackupit backup create --profile='<name>'`), no fake slug.
+- Deliberately not implemented (no backend support): maintenance-mode toggle, draft saving, estimated size/duration, restore-chain labels. The ID chip shows "assigned when saving" (or `#id` when editing); the CLI line quotes the profile name (`wp sw-backupit backup create --profile='<name>'`), no fake slug.
 - Fonts: Inter and JetBrains Mono are bundled (`@fontsource-variable`), no external requests. Tests: `tests/profile-wizard.test.ts`.
 
 ## Behaviour notes

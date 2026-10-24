@@ -1,5 +1,5 @@
 /*
- * SWBackupIt admin styles. Everything is namespaced with `swbi-` / `.swbi-root` so nothing
+ * sw-backupit admin styles. Everything is namespaced with `swbi-` / `.swbi-root` so nothing
  * leaks into wp-admin. Quasar's own CSS is scoped to `.swbi-root` at build time
  * (tools/postcssScope.ts).
  */

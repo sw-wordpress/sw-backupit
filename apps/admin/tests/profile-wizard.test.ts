@@ -43,10 +43,10 @@ describe('CLI command', () => {
     expect(shellQuote('Komplette Website')).toBe("'Komplette Website'");
     expect(shellQuote("it's")).toBe("'it'\\''s'");
     expect(cliCommand('Komplette Website', null)).toBe(
-      "wp swbackupit backup create --profile='Komplette Website'",
+      "wp sw-backupit backup create --profile='Komplette Website'",
     );
-    expect(cliCommand('', null)).toBe("wp swbackupit backup create --profile='<name>'");
-    expect(cliCommand('x', 7)).toBe('wp swbackupit backup create --profile=7');
+    expect(cliCommand('', null)).toBe("wp sw-backupit backup create --profile='<name>'");
+    expect(cliCommand('x', 7)).toBe('wp sw-backupit backup create --profile=7');
   });
 });
 
@@ -123,7 +123,7 @@ describe('ProfileStepper', () => {
 describe('ProfileEditorView', () => {
   beforeAll(() => {
     window.swbackupitConfig = {
-      restRoot: 'https://x.test/wp-json/swbackupit/v1/',
+      restRoot: 'https://x.test/wp-json/sw-backupit/v1/',
       nonce: 'n',
       locale: 'en_US',
       version: '1',

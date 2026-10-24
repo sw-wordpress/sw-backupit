@@ -2,7 +2,7 @@
 /**
  * Computes the next run of a schedule in its own timezone (DST aware) and returns UTC.
  *
- * @package SWBackupIt
+ * @package sw-backupit
  */
 
 declare(strict_types=1);

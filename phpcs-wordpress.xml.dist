@@ -1,12 +1,12 @@
 <?xml version="1.0"?>
-<ruleset name="SWBackupIt WordPress adapter">
+<ruleset name="sw-backupit WordPress adapter">
     <description>WordPress Coding Standards for the WordPress adapter (CODE-STYLE.md section 3).</description>
     <arg name="extensions" value="php"/>
     <arg name="colors"/>
     <arg value="sp"/>
     <arg name="cache" value=".phpcs-wp.cache"/>
     <file>packages/wordpress/src</file>
-    <file>swbackupit.php</file>
+    <file>sw-backupit.php</file>
     <file>uninstall.php</file>
 
     <config name="minimum_wp_version" value="6.4"/>
@@ -40,7 +40,7 @@
     </rule>
     <rule ref="WordPress.WP.I18n">
         <properties>
-            <property name="text_domain" type="array"><element value="swbackupit"/></property>
+            <property name="text_domain" type="array"><element value="sw-backupit"/></property>
         </properties>
     </rule>
     <rule ref="WordPress.NamingConventions.PrefixAllGlobals">

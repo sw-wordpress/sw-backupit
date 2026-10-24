@@ -3,9 +3,9 @@
  * WP-Cron integration: background job execution and schedule watcher.
  *
  * WP-Cron depends on site traffic; the UI explains this and recommends a real system cron
- * (`wp swbackupit schedule run-due`). Nothing here requires a permanently running process.
+ * (`wp sw-backupit schedule run-due`). Nothing here requires a permanently running process.
  *
- * @package SWBackupIt
+ * @package sw-backupit
  */
 
 declare(strict_types=1);
@@ -27,7 +27,7 @@ final class CronManager {
 	public static function add_interval( array $schedules ): array {
 		$schedules[ self::INTERVAL ] = array(
 			'interval' => 60,
-			'display'  => __( 'Every minute (SWBackupIt)', 'swbackupit' ),
+			'display'  => __( 'Every minute (sw-backupit)', 'sw-backupit' ),
 		);
 		return $schedules;
 	}

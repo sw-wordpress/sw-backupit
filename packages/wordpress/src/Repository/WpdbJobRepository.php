@@ -2,7 +2,7 @@
 /**
  * Job persistence in the swbi_jobs table.
  *
- * @package SWBackupIt
+ * @package sw-backupit
  */
 
 declare(strict_types=1);

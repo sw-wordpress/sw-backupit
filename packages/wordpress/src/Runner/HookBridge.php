@@ -6,7 +6,7 @@
  * - Vetoable events (before_*) additionally apply the filter `swbi_allow_x`; returning false or a WP_Error
  *   aborts the operation cleanly before any state was changed.
  *
- * @package SWBackupIt
+ * @package sw-backupit
  */
 
 declare(strict_types=1);
@@ -61,7 +61,7 @@ final class HookBridge {
 				$event,
 				static function ( array $payload ) use ( $event ): void {
 					/**
-					 * Fires for every SWBackupIt core event.
+					 * Fires for every sw-backupit core event.
 					 *
 					 * @since 0.1.0
 					 *

@@ -2,7 +2,7 @@
 /**
  * Schedules: CRUD and manual run.
  *
- * @package SWBackupIt
+ * @package sw-backupit
  */
 
 declare(strict_types=1);
@@ -84,7 +84,7 @@ final class SchedulesController extends BaseController {
 	public function get_schedule( \WP_REST_Request $request ) {
 		$row = $this->services()->schedules()->find( (int) $request['id'] );
 		return null === $row
-			? $this->error( 'swbi_not_found', __( 'Schedule not found.', 'swbackupit' ), 404 )
+			? $this->error( 'swbi_not_found', __( 'Schedule not found.', 'sw-backupit' ), 404 )
 			: new \WP_REST_Response( $this->services()->schedules()->to_rest( $row ) );
 	}
 
@@ -103,7 +103,7 @@ final class SchedulesController extends BaseController {
 		$id      = (int) $request['id'];
 		$current = $this->services()->schedules()->find( $id );
 		if ( null === $current ) {
-			return $this->error( 'swbi_not_found', __( 'Schedule not found.', 'swbackupit' ), 404 );
+			return $this->error( 'swbi_not_found', __( 'Schedule not found.', 'sw-backupit' ), 404 );
 		}
 		$data = $this->validate( $this->body( $request ), $current );
 		if ( is_wp_error( $data ) ) {
@@ -121,18 +121,18 @@ final class SchedulesController extends BaseController {
 		}
 		return $deleted
 			? new \WP_REST_Response( array( 'deleted' => true ) )
-			: $this->error( 'swbi_not_found', __( 'Schedule not found.', 'swbackupit' ), 404 );
+			: $this->error( 'swbi_not_found', __( 'Schedule not found.', 'sw-backupit' ), 404 );
 	}
 
 	public function run( \WP_REST_Request $request ) {
 		$row = $this->services()->schedules()->find( (int) $request['id'] );
 		if ( null === $row ) {
-			return $this->error( 'swbi_not_found', __( 'Schedule not found.', 'swbackupit' ), 404 );
+			return $this->error( 'swbi_not_found', __( 'Schedule not found.', 'sw-backupit' ), 404 );
 		}
 		$job_id = $this->services()->schedule_runner()->start( $row, 'manual' );
 		if ( null === $job_id ) {
 			$fresh = (array) $this->services()->schedules()->find( (int) $row['id'] );
-			return $this->error( 'swbi_conflict', (string) ( $fresh['last_error'] ?? __( 'The schedule could not be started.', 'swbackupit' ) ), 409 );
+			return $this->error( 'swbi_conflict', (string) ( $fresh['last_error'] ?? __( 'The schedule could not be started.', 'sw-backupit' ) ), 409 );
 		}
 		return new \WP_REST_Response( JobPresenter::to_rest( $this->services()->jobs()->find( $job_id ) ), 201 );
 	}
@@ -178,31 +178,31 @@ final class SchedulesController extends BaseController {
 
 		$errors = array();
 		if ( '' === trim( (string) $merged['name'] ) ) {
-			$errors['name'] = __( 'Name is required.', 'swbackupit' );
+			$errors['name'] = __( 'Name is required.', 'sw-backupit' );
 		}
 		if ( null === $this->services()->profiles()->find( (int) $merged['profile_id'] ) ) {
-			$errors['profile_id'] = __( 'Profile does not exist.', 'swbackupit' );
+			$errors['profile_id'] = __( 'Profile does not exist.', 'sw-backupit' );
 		}
 		if ( ! in_array( $merged['frequency'], array( 'hourly', 'daily', 'weekly', 'monthly', 'cron' ), true ) ) {
-			$errors['frequency'] = __( 'Unknown frequency.', 'swbackupit' );
+			$errors['frequency'] = __( 'Unknown frequency.', 'sw-backupit' );
 		}
 		if ( 'cron' === $merged['frequency'] && ! ScheduleCalculator::is_valid_cron( (string) $merged['cron_expression'] ) ) {
-			$errors['cron_expression'] = __( 'Invalid cron expression.', 'swbackupit' );
+			$errors['cron_expression'] = __( 'Invalid cron expression.', 'sw-backupit' );
 		}
 		if ( ! ScheduleCalculator::is_valid_timezone( (string) $merged['timezone'] ) ) {
-			$errors['timezone'] = __( 'Unknown timezone.', 'swbackupit' );
+			$errors['timezone'] = __( 'Unknown timezone.', 'sw-backupit' );
 		}
 		if ( 1 !== preg_match( '/^([01]?\d|2[0-3]):[0-5]\d$/', (string) $merged['time_of_day'] ) ) {
-			$errors['time_of_day'] = __( 'Time must be HH:MM.', 'swbackupit' );
+			$errors['time_of_day'] = __( 'Time must be HH:MM.', 'sw-backupit' );
 		}
 		if ( $merged['weekday'] < 0 || $merged['weekday'] > 6 || $merged['monthday'] < 1 || $merged['monthday'] > 31 ) {
-			$errors['day'] = __( 'Weekday or day of month out of range.', 'swbackupit' );
+			$errors['day'] = __( 'Weekday or day of month out of range.', 'sw-backupit' );
 		}
 		if ( $merged['retry_max'] < 0 || $merged['retry_max'] > 10 || $merged['retry_backoff'] < 30 || $merged['retry_backoff'] > 86400 ) {
-			$errors['retry'] = __( 'Retry settings are out of range.', 'swbackupit' );
+			$errors['retry'] = __( 'Retry settings are out of range.', 'sw-backupit' );
 		}
 		if ( array() !== $errors ) {
-			return $this->error( 'swbi_invalid_param', __( 'The schedule is invalid.', 'swbackupit' ), 400, $errors );
+			return $this->error( 'swbi_invalid_param', __( 'The schedule is invalid.', 'sw-backupit' ), 400, $errors );
 		}
 
 		$data           = array(

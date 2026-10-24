@@ -23,6 +23,7 @@ Open and future work. Everything else is listed in `DONE.md`. See `docs/implemen
 - [ ] **max_allowed_packet pre-check** before a restore (a too large row currently stops the import with an explicit message; resumable).
 - [ ] Tables without primary key are exported in physical order with LIMIT/OFFSET (unstable under concurrent writes); MyISAM tables can
   repeat a single statement after a crash during import.
+- [ ] Staging Directory per default in wp-content/uploads/sw-backupit and with a Deny from all .htaccess and an index.html, which is empty
 
 ## Ideas
 - [ ] Per-site backups on multisite; WebDAV/FTP adapters as optional Composer packages; restore test scheduling UI polish.

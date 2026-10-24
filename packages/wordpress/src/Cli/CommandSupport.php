@@ -2,7 +2,7 @@
 /**
  * WP-CLI commands (docs/wp-cli.md).
  *
- * @package SWBackupIt
+ * @package sw-backupit
  */
 
 declare(strict_types=1);
@@ -31,7 +31,7 @@ trait CommandSupport {
 		while ( true ) {
 			$result = $service->tick( $job_id, 60.0 );
 			$status = $result->status;
-			\WP_CLI::debug( 'tick: ' . $status->value . ' ' . $result->note, 'swbackupit' );
+			\WP_CLI::debug( 'tick: ' . $status->value . ' ' . $result->note, 'sw-backupit' );
 			if ( $result->shouldContinue ) {
 				continue;
 			}
@@ -50,7 +50,7 @@ trait CommandSupport {
 				if ( ! $wait_for_retry ) {
 					return $job->status;
 				}
-				\WP_CLI::debug( 'job is held by another worker, waiting', 'swbackupit' );
+				\WP_CLI::debug( 'job is held by another worker, waiting', 'sw-backupit' );
 				sleep( 5 );
 				continue;
 			}

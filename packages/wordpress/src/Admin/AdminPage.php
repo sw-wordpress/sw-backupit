@@ -2,7 +2,7 @@
 /**
  * WordPress admin integration: menu page hosting the Vue/Quasar single page application.
  *
- * @package SWBackupIt
+ * @package sw-backupit
  */
 
 declare(strict_types=1);
@@ -13,8 +13,8 @@ use SWBackupIt\WordPress\Support\Capabilities;
 
 final class AdminPage {
 
-	public const SLUG    = 'swbackupit';
-	private const HANDLE = 'swbackupit-admin';
+	public const SLUG    = 'sw-backupit';
+	private const HANDLE = 'sw-backupit-admin';
 
 	private string $hook = '';
 
@@ -26,8 +26,8 @@ final class AdminPage {
 
 	public function add_menu(): void {
 		$this->hook = (string) add_menu_page(
-			__( 'SWBackupIt', 'swbackupit' ),
-			__( 'SWBackupIt', 'swbackupit' ),
+			__( 'sw-backupit', 'sw-backupit' ),
+			__( 'sw-backupit', 'sw-backupit' ),
 			Capabilities::VIEW,
 			self::SLUG,
 			array( $this, 'render' ),
@@ -38,13 +38,13 @@ final class AdminPage {
 
 	public function render(): void {
 		if ( ! current_user_can( Capabilities::VIEW ) ) {
-			wp_die( esc_html__( 'You do not have permission to access this page.', 'swbackupit' ), 403 );
+			wp_die( esc_html__( 'You do not have permission to access this page.', 'sw-backupit' ), 403 );
 		}
 		if ( ! is_readable( SWBACKUPIT_DIR . 'assets/admin/app.js' ) ) {
-			echo '<div class="wrap"><div class="notice notice-error"><p>' . esc_html__( 'The SWBackupIt admin interface has not been built. Install the release package or run "npm run build" in apps/admin.', 'swbackupit' ) . '</p></div></div>';
+			echo '<div class="wrap"><div class="notice notice-error"><p>' . esc_html__( 'The sw-backupit admin interface has not been built. Install the release package or run "npm run build" in apps/admin.', 'sw-backupit' ) . '</p></div></div>';
 			return;
 		}
-		echo '<div class="wrap swbi-wrap"><div id="swbackupit-app"></div><noscript>' . esc_html__( 'SWBackupIt requires JavaScript.', 'swbackupit' ) . '</noscript></div>';
+		echo '<div class="wrap swbi-wrap"><div id="sw-backupit-app"></div><noscript>' . esc_html__( 'sw-backupit requires JavaScript.', 'sw-backupit' ) . '</noscript></div>';
 	}
 
 	public function enqueue( string $hook ): void {
@@ -64,7 +64,7 @@ final class AdminPage {
 	 */
 	public function config(): array {
 		return array(
-			'restRoot'     => esc_url_raw( rest_url( 'swbackupit/v1/' ) ),
+			'restRoot'     => esc_url_raw( rest_url( 'sw-backupit/v1/' ) ),
 			'nonce'        => wp_create_nonce( 'wp_rest' ),
 			'locale'       => determine_locale(),
 			'version'      => SWBACKUPIT_VERSION,

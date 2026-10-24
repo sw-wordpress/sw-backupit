@@ -4,7 +4,7 @@
  *
  * Credentials are write-only: accepted in `credentials`, encrypted at rest, never returned (only `credentials_set`).
  *
- * @package SWBackupIt
+ * @package sw-backupit
  */
 
 declare(strict_types=1);
@@ -96,7 +96,7 @@ final class StorageTargetsController extends BaseController {
 	public function get_target( \WP_REST_Request $request ) {
 		$row = $this->services()->storage_targets()->find_row( (int) $request['id'] );
 		return null === $row
-			? $this->error( 'swbi_not_found', __( 'Storage target not found.', 'swbackupit' ), 404 )
+			? $this->error( 'swbi_not_found', __( 'Storage target not found.', 'sw-backupit' ), 404 )
 			: new \WP_REST_Response( $this->services()->storage_targets()->to_rest( $row ) );
 	}
 
@@ -122,7 +122,7 @@ final class StorageTargetsController extends BaseController {
 		$id = (int) $request['id'];
 		foreach ( $this->services()->profiles()->all() as $profile ) {
 			if ( in_array( $id, $profile->storageTargetIds, true ) ) {
-				return $this->error( 'swbi_conflict', __( 'The storage target is used by a profile.', 'swbackupit' ), 409 );
+				return $this->error( 'swbi_conflict', __( 'The storage target is used by a profile.', 'sw-backupit' ), 409 );
 			}
 		}
 		$deleted = $this->services()->storage_targets()->delete( $id );
@@ -131,14 +131,14 @@ final class StorageTargetsController extends BaseController {
 		}
 		return $deleted
 			? new \WP_REST_Response( array( 'deleted' => true ) )
-			: $this->error( 'swbi_not_found', __( 'Storage target not found.', 'swbackupit' ), 404 );
+			: $this->error( 'swbi_not_found', __( 'Storage target not found.', 'sw-backupit' ), 404 );
 	}
 
 	public function test( \WP_REST_Request $request ) {
 		$id     = (int) $request['id'];
 		$target = $this->services()->storage_targets()->find( $id );
 		if ( null === $target ) {
-			return $this->error( 'swbi_not_found', __( 'Storage target not found.', 'swbackupit' ), 404 );
+			return $this->error( 'swbi_not_found', __( 'Storage target not found.', 'sw-backupit' ), 404 );
 		}
 		try {
 			$storage = ( new StorageFactory() )->create( $target );
@@ -167,7 +167,7 @@ final class StorageTargetsController extends BaseController {
 	public function discover( \WP_REST_Request $request ) {
 		$target = $this->services()->storage_targets()->find( (int) $request['id'] );
 		if ( null === $target ) {
-			return $this->error( 'swbi_not_found', __( 'Storage target not found.', 'swbackupit' ), 404 );
+			return $this->error( 'swbi_not_found', __( 'Storage target not found.', 'sw-backupit' ), 404 );
 		}
 		try {
 			$found = ( new RemoteCatalog() )->discover( ( new StorageFactory() )->create( $target ), $this->temp_dir() );
@@ -207,7 +207,7 @@ final class StorageTargetsController extends BaseController {
 		$target_id = (int) $request['id'];
 		$target    = $this->services()->storage_targets()->find( $target_id );
 		if ( null === $target ) {
-			return $this->error( 'swbi_not_found', __( 'Storage target not found.', 'swbackupit' ), 404 );
+			return $this->error( 'swbi_not_found', __( 'Storage target not found.', 'sw-backupit' ), 404 );
 		}
 		$body     = $this->body( $request );
 		$ids      = is_array( $body['backup_ids'] ?? null ) ? array_filter( $body['backup_ids'], static fn ( $id ): bool => is_string( $id ) && \SWBackupIt\Core\Support\Uuid::isValid( $id ) ) : array();

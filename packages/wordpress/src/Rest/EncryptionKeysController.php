@@ -2,7 +2,7 @@
 /**
  * Encryption key management. The secret of a generated key is returned exactly once, at creation.
  *
- * @package SWBackupIt
+ * @package sw-backupit
  */
 
 declare(strict_types=1);
@@ -60,7 +60,7 @@ final class EncryptionKeysController extends BaseController {
 			StreamCipher::assertAvailable();
 			$provider = new WpKeyProvider();
 			if ( null !== $provider->find( $id ) ) {
-				return $this->error( 'swbi_conflict', __( 'A key with this id already exists.', 'swbackupit' ), 409 );
+				return $this->error( 'swbi_conflict', __( 'A key with this id already exists.', 'sw-backupit' ), 409 );
 			}
 			$key    = isset( $body['passphrase'] ) && is_string( $body['passphrase'] ) && '' !== $body['passphrase']
 				? EncryptionKey::fromPassphrase( $id, $body['passphrase'] )
@@ -74,7 +74,7 @@ final class EncryptionKeysController extends BaseController {
 			array(
 				'id'      => $id,
 				'secret'  => $export,
-				'warning' => __( 'Store this key safely now (password manager). It is shown only once; without it encrypted backups cannot be restored.', 'swbackupit' ),
+				'warning' => __( 'Store this key safely now (password manager). It is shown only once; without it encrypted backups cannot be restored.', 'sw-backupit' ),
 			),
 			201
 		);
@@ -83,7 +83,7 @@ final class EncryptionKeysController extends BaseController {
 	public function delete( \WP_REST_Request $request ) {
 		foreach ( $this->services()->profiles()->all() as $profile ) {
 			if ( $profile->encryption->enabled && $profile->encryption->keyId === (string) $request['id'] ) {
-				return $this->error( 'swbi_conflict', __( 'The key is used by a profile. Change the profile first.', 'swbackupit' ), 409 );
+				return $this->error( 'swbi_conflict', __( 'The key is used by a profile. Change the profile first.', 'sw-backupit' ), 409 );
 			}
 		}
 		( new WpKeyProvider() )->delete( (string) $request['id'] );

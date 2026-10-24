@@ -2,7 +2,7 @@
 /**
  * Lazy service container of the WordPress adapter (no global state beyond this one accessor).
  *
- * @package SWBackupIt
+ * @package sw-backupit
  */
 
 declare(strict_types=1);

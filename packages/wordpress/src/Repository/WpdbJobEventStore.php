@@ -2,7 +2,7 @@
 /**
  * Job log persistence (swbi_job_events) with bounded size per job.
  *
- * @package SWBackupIt
+ * @package sw-backupit
  */
 
 declare(strict_types=1);

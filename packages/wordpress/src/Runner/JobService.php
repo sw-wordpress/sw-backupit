@@ -2,7 +2,7 @@
 /**
  * Application service for jobs: start, tick, pause, resume, cancel, retry.
  *
- * @package SWBackupIt
+ * @package sw-backupit
  */
 
 declare(strict_types=1);
@@ -89,7 +89,7 @@ final class JobService {
 		// Lock names are server wide: scope it to this database and table prefix (max. 64 characters).
 		$lock = 'swbi_job_start_' . substr( md5( DB_NAME . '|' . $wpdb->base_prefix ), 0, 16 );
 		if ( '1' !== (string) $wpdb->get_var( $wpdb->prepare( 'SELECT GET_LOCK(%s, %d)', $lock, self::START_LOCK_TIMEOUT ) ) ) { // phpcs:ignore WordPress.DB.DirectDatabaseQuery
-			throw new SwbiException( __( 'Another backup is already running.', 'swbackupit' ), array( 'conflict' => true ) );
+			throw new SwbiException( __( 'Another backup is already running.', 'sw-backupit' ), array( 'conflict' => true ) );
 		}
 		try {
 			$callback();
@@ -105,7 +105,7 @@ final class JobService {
 	private function assert_nothing_in_progress( ?string $except = null ): void {
 		foreach ( $this->jobs->list( self::IN_PROGRESS, 2 ) as $other ) {
 			if ( $other->id !== $except ) {
-				throw new SwbiException( __( 'Another backup is already running.', 'swbackupit' ), array( 'conflict' => true ) );
+				throw new SwbiException( __( 'Another backup is already running.', 'sw-backupit' ), array( 'conflict' => true ) );
 			}
 		}
 	}
@@ -143,7 +143,7 @@ final class JobService {
 	public function pause( string $job_id ): void {
 		$job = $this->jobs->find( $job_id );
 		if ( $job->status->isTerminal() || JobStatus::Paused === $job->status ) {
-			throw new SwbiException( __( 'The job cannot be paused in its current state.', 'swbackupit' ) );
+			throw new SwbiException( __( 'The job cannot be paused in its current state.', 'sw-backupit' ) );
 		}
 		$this->jobs->requestPause( $job_id );
 		if ( ! $job->hasLeaseAt( \SWBackupIt\WordPress\Support\Time::now() ) ) {
@@ -154,7 +154,7 @@ final class JobService {
 	public function resume( string $job_id ): void {
 		$job = $this->jobs->find( $job_id );
 		if ( JobStatus::Paused !== $job->status ) {
-			throw new SwbiException( __( 'Only paused jobs can be resumed.', 'swbackupit' ) );
+			throw new SwbiException( __( 'Only paused jobs can be resumed.', 'sw-backupit' ) );
 		}
 		$this->with_start_lock(
 			function () use ( $job, $job_id ): void {
@@ -169,7 +169,7 @@ final class JobService {
 	public function cancel( string $job_id ): void {
 		$job = $this->jobs->find( $job_id );
 		if ( $job->status->isTerminal() ) {
-			throw new SwbiException( __( 'The job has already finished.', 'swbackupit' ) );
+			throw new SwbiException( __( 'The job has already finished.', 'sw-backupit' ) );
 		}
 		$this->jobs->requestCancel( $job_id );
 		if ( ! $job->hasLeaseAt( \SWBackupIt\WordPress\Support\Time::now() ) ) {
@@ -191,7 +191,7 @@ final class JobService {
 	public function retry( string $job_id ): void {
 		$job = $this->jobs->find( $job_id );
 		if ( JobStatus::Failed !== $job->status ) {
-			throw new SwbiException( __( 'Only failed jobs can be retried.', 'swbackupit' ) );
+			throw new SwbiException( __( 'Only failed jobs can be retried.', 'sw-backupit' ) );
 		}
 		$this->with_start_lock(
 			function () use ( $job, $job_id ): void {

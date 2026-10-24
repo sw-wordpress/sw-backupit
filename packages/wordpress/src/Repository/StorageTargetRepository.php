@@ -2,7 +2,7 @@
 /**
  * Storage targets with encrypted credentials; also resolves targets for the core storage manager.
  *
- * @package SWBackupIt
+ * @package sw-backupit
  */
 
 declare(strict_types=1);
@@ -81,7 +81,7 @@ final class StorageTargetRepository implements StorageResolverInterface {
 		if ( 'local' === $type && is_string( $config['path'] ?? null ) && '' !== $config['path']
 			&& empty( \SWBackupIt\WordPress\Support\Settings::all()['allow_public_paths'] )
 			&& \SWBackupIt\WordPress\Support\Settings::is_inside_docroot( $config['path'] ) ) {
-			throw new ConfigurationException( __( 'The directory is inside the web root, where backups could be downloaded by anyone. Choose a directory outside the web root.', 'swbackupit' ) );
+			throw new ConfigurationException( __( 'The directory is inside the web root, where backups could be downloaded by anyone. Choose a directory outside the web root.', 'sw-backupit' ) );
 		}
 
 		$credentials = null === $current ? array() : $this->decrypt_credentials( $current );

@@ -1,4 +1,4 @@
-# SWBackupIt – Implementation plan
+# sw-backupit – Implementation plan
 
 Status legend: [x] done, [~] partial, [ ] open. The authoritative task list is `TODO.md`; finished work is logged in `DONE.md`.
 

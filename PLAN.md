@@ -1,4 +1,4 @@
-# SWBackupIt – Projektauftrag für Codex CLI
+# sw-backupit – Projektauftrag für Codex CLI
 
 ## Mandatory Code Standards
 
@@ -15,7 +15,7 @@ Document justified exceptions explicitly.
 
 ## 1. Projektbeschreibung
 
-Entwickle ein professionelles WordPress-Backup- und Disaster-Recovery-Plugin mit dem Namen **SWBackupIt**.
+Entwickle ein professionelles WordPress-Backup- und Disaster-Recovery-Plugin mit dem Namen **sw-backupit**.
 
 Das Plugin soll funktional an das ehemalige BackupBuddy angelehnt sein, jedoch eine moderne, modulare und besonders robuste Architektur besitzen.
 
@@ -100,7 +100,7 @@ Die Oberfläche soll modern, responsiv, übersichtlich und deutsch-/englischspra
 
 Trenne die Anwendung logisch in drei Komponenten.
 
-## 3.1 swbackupit/core
+## 3.1 sw-backupit/core
 
 Frameworkunabhängige PHP-Bibliothek.
 
@@ -120,7 +120,7 @@ Enthält:
 
 Der Core darf keine WordPress-Funktionen benötigen.
 
-## 3.2 swbackupit/wordpress
+## 3.2 sw-backupit/wordpress
 
 WordPress-Plugin mit:
 
@@ -135,7 +135,7 @@ WordPress-Plugin mit:
 - E-Mail-Benachrichtigungen
 - WordPress Lifecycle Hooks
 
-## 3.3 swbackupit/restore
+## 3.3 sw-backupit/restore
 
 Eigenständige PHP-Anwendung zur Wiederherstellung.
 
@@ -881,19 +881,19 @@ Erstelle eine versionierte REST API.
 
 Beispielhafte Ressourcen:
 
-`/swbackupit/v1/profiles`
+`/sw-backupit/v1/profiles`
 
-`/swbackupit/v1/schedules`
+`/sw-backupit/v1/schedules`
 
-`/swbackupit/v1/jobs`
+`/sw-backupit/v1/jobs`
 
-`/swbackupit/v1/backups`
+`/sw-backupit/v1/backups`
 
-`/swbackupit/v1/storage-targets`
+`/sw-backupit/v1/storage-targets`
 
-`/swbackupit/v1/settings`
+`/sw-backupit/v1/settings`
 
-`/swbackupit/v1/health`
+`/sw-backupit/v1/health`
 
 Weitere Endpunkte:
 
@@ -925,21 +925,21 @@ Implementiere eine vollständige WP-CLI-Integration.
 Beispiel:
 
 ```bash
-wp swbackupit profile list
-wp swbackupit profile show full
-wp swbackupit backup create --profile=full
-wp swbackupit backup list
-wp swbackupit backup status <id>
-wp swbackupit backup verify <id>
-wp swbackupit backup compare <id>
-wp swbackupit backup restore <id>
-wp swbackupit job resume <id>
-wp swbackupit job cancel <id>
-wp swbackupit schedule list
-wp swbackupit schedule run <id>
-wp swbackupit storage list
-wp swbackupit storage test <id>
-wp swbackupit retention run --dry-run
+wp sw-backupit profile list
+wp sw-backupit profile show full
+wp sw-backupit backup create --profile=full
+wp sw-backupit backup list
+wp sw-backupit backup status <id>
+wp sw-backupit backup verify <id>
+wp sw-backupit backup compare <id>
+wp sw-backupit backup restore <id>
+wp sw-backupit job resume <id>
+wp sw-backupit job cancel <id>
+wp sw-backupit schedule list
+wp sw-backupit schedule run <id>
+wp sw-backupit storage list
+wp sw-backupit storage test <id>
+wp sw-backupit retention run --dry-run
 ```
 
 Kommandos müssen sinnvolle Exit-Codes und maschinenlesbare Ausgaben unterstützen.
@@ -977,7 +977,7 @@ Implementiere:
 
 Das externe Backup-Manifest bleibt unabhängig von diesen Tabellen.
 
-Ein Standalone-Restore muss auch dann möglich sein, wenn sämtliche SWBackupIt-Tabellen verloren gegangen sind.
+Ein Standalone-Restore muss auch dann möglich sein, wenn sämtliche sw-backupit-Tabellen verloren gegangen sind.
 
 ---
 

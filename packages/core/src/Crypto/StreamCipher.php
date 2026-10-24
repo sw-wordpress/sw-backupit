@@ -190,7 +190,7 @@ final class StreamCipher
     {
         $fixed = self::read($in, 8, true);
         if (strlen($fixed) < 8 || !str_starts_with($fixed, self::MAGIC)) {
-            throw new CryptoException('Not an SWBackupIt encrypted file.');
+            throw new CryptoException('Not an sw-backupit encrypted file.');
         }
         if (ord($fixed[4]) !== self::VERSION) {
             throw new CryptoException('Unsupported encryption format version.');

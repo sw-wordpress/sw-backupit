@@ -9,7 +9,7 @@
  *   while the update proceeds;
  * - a failed backup only aborts the update when the administrator explicitly enabled `block_on_failure`.
  *
- * @package SWBackupIt
+ * @package sw-backupit
  */
 
 declare(strict_types=1);
@@ -152,7 +152,7 @@ final class PreUpdateBackup {
 		} while ( $result->shouldContinue && microtime( true ) < $deadline );
 		$status = Services::instance()->jobs()->find( $job->id )->status;
 		if ( JobStatus::Failed === $status && ! empty( $settings['block_on_failure'] ) ) {
-			return new \WP_Error( 'swbi_pre_update_backup_failed', __( 'The update was stopped because the backup before the update failed.', 'swbackupit' ) );
+			return new \WP_Error( 'swbi_pre_update_backup_failed', __( 'The update was stopped because the backup before the update failed.', 'sw-backupit' ) );
 		}
 		if ( ! $status->isTerminal() ) {
 			Services::instance()->cron()->dispatch_job( $job->id ); // Continues in the background; the update proceeds.

@@ -2,7 +2,7 @@
 /**
  * WP-CLI storage commands.
  *
- * @package SWBackupIt
+ * @package sw-backupit
  */
 
 declare(strict_types=1);

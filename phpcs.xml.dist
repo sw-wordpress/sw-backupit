@@ -1,5 +1,5 @@
 <?xml version="1.0"?>
-<ruleset name="SWBackupIt">
+<ruleset name="sw-backupit">
     <description>Coding standards: PSR-12 for core/restore/tests, WordPress for the WP adapter (CODE-STYLE.md).</description>
     <arg name="extensions" value="php"/>
     <arg name="colors"/>

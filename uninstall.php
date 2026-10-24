@@ -2,7 +2,7 @@
 /**
  * Uninstall handler. Data is only removed when the user explicitly enabled "delete data on uninstall".
  *
- * @package SWBackupIt
+ * @package sw-backupit
  */
 
 defined( 'WP_UNINSTALL_PLUGIN' ) || exit;

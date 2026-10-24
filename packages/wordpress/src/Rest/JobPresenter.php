@@ -2,7 +2,7 @@
 /**
  * REST representation of jobs (docs/rest-api.md).
  *
- * @package SWBackupIt
+ * @package sw-backupit
  */
 
 declare(strict_types=1);

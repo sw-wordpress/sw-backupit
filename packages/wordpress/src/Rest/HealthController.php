@@ -2,7 +2,7 @@
 /**
  * Health overview for the dashboard.
  *
- * @package SWBackupIt
+ * @package sw-backupit
  */
 
 declare(strict_types=1);
@@ -50,24 +50,24 @@ final class HealthController extends BaseController {
 				'ext_' . $extension,
 				sprintf( 'PHP extension %s', $extension ),
 				$loaded ? 'ok' : $level,
-				$loaded ? __( 'Available', 'swbackupit' ) : ( 'sodium' === $extension ? __( 'Missing: encryption is unavailable.', 'swbackupit' ) : __( 'Missing: backups will fail.', 'swbackupit' ) )
+				$loaded ? __( 'Available', 'sw-backupit' ) : ( 'sodium' === $extension ? __( 'Missing: encryption is unavailable.', 'sw-backupit' ) : __( 'Missing: backups will fail.', 'sw-backupit' ) )
 			);
 		}
 		$staging  = Settings::staging_dir();
 		$writable = is_dir( $staging ) ? wp_is_writable( $staging ) : wp_is_writable( dirname( $staging ) );
-		$add( 'staging_writable', __( 'Staging directory', 'swbackupit' ), $writable ? 'ok' : 'error', $writable ? __( 'Writable', 'swbackupit' ) : __( 'Not writable', 'swbackupit' ) );
+		$add( 'staging_writable', __( 'Staging directory', 'sw-backupit' ), $writable ? 'ok' : 'error', $writable ? __( 'Writable', 'sw-backupit' ) : __( 'Not writable', 'sw-backupit' ) );
 		if ( Settings::is_inside_docroot( $staging ) ) {
 			// An error, not a warning: .htaccess/web.config only protect on Apache/IIS; nginx and others serve the files.
-			$add( 'staging_public', __( 'Staging location', 'swbackupit' ), 'error', __( 'The staging directory is inside the web root: unless the web server denies access to it, anyone who knows a file name can download backups including the database. Choose a directory outside the web root in the settings, or deny access in the web server configuration (see the user guide).', 'swbackupit' ) );
+			$add( 'staging_public', __( 'Staging location', 'sw-backupit' ), 'error', __( 'The staging directory is inside the web root: unless the web server denies access to it, anyone who knows a file name can download backups including the database. Choose a directory outside the web root in the settings, or deny access in the web server configuration (see the user guide).', 'sw-backupit' ) );
 		}
 		$free = is_dir( $staging ) ? @disk_free_space( $staging ) : false; // phpcs:ignore WordPress.PHP.NoSilencedErrors.Discouraged -- unsupported on some hosts, handled below.
 		if ( false !== $free ) {
-			$add( 'disk', __( 'Free disk space', 'swbackupit' ), $free < 536870912 ? 'warning' : 'ok', size_format( (float) $free ) );
+			$add( 'disk', __( 'Free disk space', 'sw-backupit' ), $free < 536870912 ? 'warning' : 'ok', size_format( (float) $free ) );
 		}
 
 		$wp_cron_disabled = CronManager::is_wp_cron_disabled();
 		$last_tick        = (int) \SWBackupIt\WordPress\Support\Options::get( CronManager::TICK_OPTION, 0 );
-		$cron_notice      = __( 'WP-Cron only runs when your site receives visitors. For reliable schedules use a real system cron job: * * * * * wp swbackupit schedule run-due', 'swbackupit' );
+		$cron_notice      = __( 'WP-Cron only runs when your site receives visitors. For reliable schedules use a real system cron job: * * * * * wp sw-backupit schedule run-due', 'sw-backupit' );
 
 		$backups = $this->services()->backups()->totals();
 		$last    = $this->services()->backups()->search( array(), 1, 1 )['items'];
@@ -76,7 +76,7 @@ final class HealthController extends BaseController {
 
 		$overdue = $this->overdue_schedules();
 		if ( array() !== $overdue ) {
-			$warnings[] = sprintf( /* translators: %s: schedule names */ __( 'Overdue schedules: %s', 'swbackupit' ), implode( ', ', $overdue ) );
+			$warnings[] = sprintf( /* translators: %s: schedule names */ __( 'Overdue schedules: %s', 'sw-backupit' ), implode( ', ', $overdue ) );
 		}
 		$status = 'ok';
 		foreach ( $checks as $check ) {

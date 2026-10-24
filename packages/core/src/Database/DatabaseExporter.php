@@ -133,7 +133,7 @@ final class DatabaseExporter
     {
         $index = (int) $cursor['part_index'] + 1;
         $writer = new SqlPartWriter($directory, $index);
-        $writer->write("-- SWBackupIt SQL export, part {$index}\n");
+        $writer->write("-- sw-backupit SQL export, part {$index}\n");
         $writer->write("SET NAMES utf8mb4;\nSET FOREIGN_KEY_CHECKS=0;\nSET UNIQUE_CHECKS=0;\n");
         $writer->write("SET SESSION sql_mode='NO_AUTO_VALUE_ON_ZERO';\nSET time_zone='+00:00';\n\n");
 

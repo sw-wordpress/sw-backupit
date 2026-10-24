@@ -5,7 +5,7 @@
  * Entries go to the PHP error log (prefixed, without secrets: callers only pass event names, exception classes and
  * sanitised messages) and are exposed through the `swbi_log` action so monitoring plugins can pick them up.
  *
- * @package SWBackupIt
+ * @package sw-backupit
  */
 
 declare(strict_types=1);
@@ -24,7 +24,7 @@ final class PluginLogger extends AbstractLogger {
 	public function log( $level, string|\Stringable $message, array $context = array() ): void {
 		$level   = is_string( $level ) ? $level : 'error';
 		$scalars = array_filter( $context, static fn ( $value ): bool => is_scalar( $value ) || null === $value );
-		error_log( '[SWBackupIt] ' . $level . ': ' . $message . ( array() !== $scalars ? ' ' . wp_json_encode( $scalars ) : '' ) ); // phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_error_log -- operational log for failures that have no job log.
+		error_log( '[sw-backupit] ' . $level . ': ' . $message . ( array() !== $scalars ? ' ' . wp_json_encode( $scalars ) : '' ) ); // phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_error_log -- operational log for failures that have no job log.
 
 		/**
 		 * Fires for every entry of the plugin logger (failing event listeners and other problems outside a job log).

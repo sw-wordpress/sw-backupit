@@ -2,7 +2,7 @@
 /**
  * Regular background checks: integrity verification of stored backups and scheduled test restores.
  *
- * @package SWBackupIt
+ * @package sw-backupit
  */
 
 declare(strict_types=1);
@@ -50,8 +50,8 @@ final class BackgroundChecks {
 			Services::instance()->notifier()->notify(
 				'backup_failed',
 				'corrupt-' . $id,
-				__( 'A stored backup failed its integrity check', 'swbackupit' ),
-				sprintf( /* translators: 1: backup id, 2: details */ __( 'Backup %1$s is damaged or incomplete: %2$s', 'swbackupit' ), $id, null !== $report ? implode( '; ', array_slice( $report->errors(), 0, 3 ) ) : ( $error ?? '' ) )
+				__( 'A stored backup failed its integrity check', 'sw-backupit' ),
+				sprintf( /* translators: 1: backup id, 2: details */ __( 'Backup %1$s is damaged or incomplete: %2$s', 'sw-backupit' ), $id, null !== $report ? implode( '; ', array_slice( $report->errors(), 0, 3 ) ) : ( $error ?? '' ) )
 			);
 		}
 		return $id;

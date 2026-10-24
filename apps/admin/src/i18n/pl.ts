@@ -105,7 +105,7 @@ const pl: Schema = {
     loadFailed: 'Nie udało się wczytać danych',
     noAccessTitle: 'Brak dostępu',
     noAccessText:
-      'Twoje konto użytkownika nie ma uprawnień do przeglądania SWBackupIt. Skontaktuj się z administratorem.',
+      'Twoje konto użytkownika nie ma uprawnień do przeglądania sw-backupit. Skontaktuj się z administratorem.',
   },
   status: {
     job: {
@@ -807,7 +807,7 @@ const pl: Schema = {
         'Ryzyko bezpieczeństwa: adresy takie jak localhost, 127.0.0.1 lub 10.x.x.x są w przeciwnym razie blokowane (ochrona przed SSRF). Włącz tylko, jeśli usługa jest celowo dostępna wewnętrznie.',
       keyPassphrase: 'Hasło klucza prywatnego',
       path: 'Katalog',
-      pathHint: 'Ścieżka bezwzględna, np. /var/backups/swbackupit',
+      pathHint: 'Ścieżka bezwzględna, np. /var/backups/sw-backupit',
       host: 'Host',
       port: 'Port',
       username: 'Nazwa użytkownika',

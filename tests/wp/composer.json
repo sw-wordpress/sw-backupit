@@ -1,5 +1,5 @@
 {
-    "name": "swbackupit/wp-tests",
+    "name": "sw-backupit/wp-tests",
     "description": "WordPress integration test environment (isolated from the main dev dependencies: WP test suite needs PHPUnit 9.6).",
     "type": "project",
     "require-dev": {
@@ -29,7 +29,7 @@
         }
     ],
     "require": {
-        "swbackupit/swbackupit": "*@dev"
+        "sw-backupit/sw-backupit": "*@dev"
     },
     "minimum-stability": "dev",
     "prefer-stable": true

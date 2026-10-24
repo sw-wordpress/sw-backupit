@@ -1,9 +1,9 @@
 <?php
 /**
- * Plugin options with defined multisite semantics: on a multisite network all SWBackupIt data (tables, settings, keys) is
+ * Plugin options with defined multisite semantics: on a multisite network all sw-backupit data (tables, settings, keys) is
  * network wide and lives on the main site, because a backup always covers the whole network (PLAN.md §22).
  *
- * @package SWBackupIt
+ * @package sw-backupit
  */
 
 declare(strict_types=1);

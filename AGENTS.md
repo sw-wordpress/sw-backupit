@@ -1,4 +1,4 @@
-# AGENTS.md – long-term rules for SWBackupIt
+# AGENTS.md – long-term rules for sw-backupit
 
 Read `PLAN.md` (product spec) and `CODE-STYLE.md` (binding style/security rules) before changing code.
 

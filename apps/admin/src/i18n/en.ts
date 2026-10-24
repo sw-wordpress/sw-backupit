@@ -104,7 +104,7 @@ const en: Schema = {
     loadFailed: 'Data could not be loaded',
     noAccessTitle: 'No access',
     noAccessText:
-      'Your user account is not allowed to view SWBackupIt. Please contact an administrator.',
+      'Your user account is not allowed to view sw-backupit. Please contact an administrator.',
   },
   status: {
     job: {
@@ -780,7 +780,7 @@ const en: Schema = {
         'Security risk: addresses such as localhost, 127.0.0.1 or 10.x.x.x are blocked otherwise (SSRF protection). Enable only if the service is deliberately reachable internally.',
       keyPassphrase: 'Private key passphrase',
       path: 'Directory',
-      pathHint: 'Absolute path, e.g. /var/backups/swbackupit',
+      pathHint: 'Absolute path, e.g. /var/backups/sw-backupit',
       host: 'Host',
       port: 'Port',
       username: 'Username',

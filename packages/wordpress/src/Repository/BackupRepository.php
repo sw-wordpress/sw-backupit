@@ -5,7 +5,7 @@
  * The catalog is a cache: the manifests next to the volumes are the source of truth and the catalog can
  * be rebuilt from them (disaster recovery).
  *
- * @package SWBackupIt
+ * @package sw-backupit
  */
 
 declare(strict_types=1);
@@ -225,7 +225,7 @@ final class BackupRepository {
 			$target_id   = (int) $location['target_id'];
 			$locations[] = array(
 				'target_id'   => $target_id,
-				'name'        => 0 === $target_id ? __( 'Local staging', 'swbackupit' ) : ( $target_names[ $target_id ] ?? '#' . $target_id ),
+				'name'        => 0 === $target_id ? __( 'Local staging', 'sw-backupit' ) : ( $target_names[ $target_id ] ?? '#' . $target_id ),
 				'status'      => (string) $location['status'],
 				'verified_at' => Time::to_iso( $location['verified_at'] ),
 			);

@@ -44,7 +44,7 @@ class PluginTest extends WP_UnitTestCase {
 	 * @param array<string, mixed>|null $body
 	 */
 	private function request( string $method, string $route, ?array $body = null, array $params = array() ): WP_REST_Response {
-		$request = new WP_REST_Request( $method, '/swbackupit/v1' . $route );
+		$request = new WP_REST_Request( $method, '/sw-backupit/v1' . $route );
 		if ( null !== $body ) {
 			$request->set_header( 'content-type', 'application/json' );
 			$request->set_body( (string) wp_json_encode( $body ) );

@@ -2,7 +2,7 @@
 /**
  * Backup profiles: CRUD, duplicate, run.
  *
- * @package SWBackupIt
+ * @package sw-backupit
  */
 
 declare(strict_types=1);
@@ -99,7 +99,7 @@ final class ProfilesController extends BaseController {
 	public function get_profile( \WP_REST_Request $request ) {
 		$profile = $this->services()->profiles()->find( (int) $request['id'] );
 		return null === $profile
-			? $this->error( 'swbi_not_found', __( 'Profile not found.', 'swbackupit' ), 404 )
+			? $this->error( 'swbi_not_found', __( 'Profile not found.', 'sw-backupit' ), 404 )
 			: new \WP_REST_Response( $this->services()->profiles()->to_rest( $profile ) );
 	}
 
@@ -123,18 +123,18 @@ final class ProfilesController extends BaseController {
 			do_action( 'swbi_profile_saved', (string) $profile->id );
 		}
 		return null === $profile
-			? $this->error( 'swbi_not_found', __( 'Profile not found.', 'swbackupit' ), 404 )
+			? $this->error( 'swbi_not_found', __( 'Profile not found.', 'sw-backupit' ), 404 )
 			: new \WP_REST_Response( $this->services()->profiles()->to_rest( $profile ) );
 	}
 
 	public function delete( \WP_REST_Request $request ) {
 		if ( ! rest_sanitize_boolean( $request['confirm'] ) ) {
-			return $this->error( 'swbi_confirmation_required', __( 'Deleting a profile requires confirmation.', 'swbackupit' ), 400 );
+			return $this->error( 'swbi_confirmation_required', __( 'Deleting a profile requires confirmation.', 'sw-backupit' ), 400 );
 		}
 		$id = (int) $request['id'];
 		foreach ( $this->services()->schedules()->all() as $schedule ) {
 			if ( (int) $schedule['profile_id'] === $id ) {
-				return $this->error( 'swbi_conflict', __( 'The profile is used by a schedule. Delete the schedule first.', 'swbackupit' ), 409 );
+				return $this->error( 'swbi_conflict', __( 'The profile is used by a schedule. Delete the schedule first.', 'sw-backupit' ), 409 );
 			}
 		}
 		if ( $this->services()->profiles()->delete( $id ) ) {
@@ -142,20 +142,20 @@ final class ProfilesController extends BaseController {
 		}
 		return null === $this->services()->profiles()->find( $id )
 			? new \WP_REST_Response( array( 'deleted' => true ) )
-			: $this->error( 'swbi_not_found', __( 'Profile not found.', 'swbackupit' ), 404 );
+			: $this->error( 'swbi_not_found', __( 'Profile not found.', 'sw-backupit' ), 404 );
 	}
 
 	public function duplicate( \WP_REST_Request $request ) {
 		$copy = $this->services()->profiles()->duplicate( (int) $request['id'] );
 		return null === $copy
-			? $this->error( 'swbi_not_found', __( 'Profile not found.', 'swbackupit' ), 404 )
+			? $this->error( 'swbi_not_found', __( 'Profile not found.', 'sw-backupit' ), 404 )
 			: new \WP_REST_Response( $this->services()->profiles()->to_rest( $copy ), 201 );
 	}
 
 	public function run( \WP_REST_Request $request ) {
 		$profile = $this->services()->profiles()->find( (int) $request['id'] );
 		if ( null === $profile ) {
-			return $this->error( 'swbi_not_found', __( 'Profile not found.', 'swbackupit' ), 404 );
+			return $this->error( 'swbi_not_found', __( 'Profile not found.', 'sw-backupit' ), 404 );
 		}
 		try {
 			$job = $this->services()->job_service()->start( $profile, 'manual' );

@@ -2,7 +2,7 @@
 
 ## Installation
 Upload the plugin ZIP (Plugins → Add New → Upload) and activate it. On multisite activate it network wide and use the **Network Admin**
-menu (all data and backups are network wide). Open **SWBackupIt**. The dashboard shows warnings (missing PHP extensions, staging directory
+menu (all data and backups are network wide). Open **sw-backupit**. The dashboard shows warnings (missing PHP extensions, staging directory
 location, WP-Cron reliability, overdue schedules, free disk space).
 
 Requirements: PHP 8.2+, WordPress 6.4+, extensions `zip`, `zlib`, `pdo_mysql` (and `sodium` for encryption). No Composer or Node.js on the server.
@@ -29,7 +29,7 @@ paused, resumed, cancelled and (when failed) retried; they continue from their c
 
 ## Schedules
 Hourly, daily, weekly, monthly or a cron expression, in a chosen timezone (DST-safe). WP-Cron needs site visitors; for exact timing use a system
-cron job (`wp swbackupit schedule run-due`, see `wp-cli.md`) and set the cron mode to *system*. Failed scheduled runs are retried with
+cron job (`wp sw-backupit schedule run-due`, see `wp-cli.md`) and set the cron mode to *system*. Failed scheduled runs are retried with
 backoff (manual runs of a schedule are not retried; renaming a schedule keeps a pending retry). Cancelled runs show the status *cancelled*.
 Overdue schedules are reported. On DST changes a fixed time runs once per day (the repeated hour in autumn does not run it twice); hourly
 schedules run every real hour.
@@ -47,7 +47,7 @@ success policy (*all targets*, *at least one*, *local only*). A failing target n
 ## Retention
 Per profile: keep the newest N, keep for N days, maximum storage, and grandfather-father-son (daily/weekly/monthly/yearly). A backup is kept if
 any rule keeps it. Protected backups, the newest full backup and every base backup needed by a kept backup are never deleted; backups with
-unreliable metadata are never deleted automatically. `wp swbackupit retention run --dry-run` shows what would be deleted.
+unreliable metadata are never deleted automatically. `wp sw-backupit retention run --dry-run` shows what would be deleted.
 
 ## Encryption
 Settings → *Encryption keys* creates a random 256-bit key (shown **once** – store it in a password manager) or a passphrase-based key. Select the
@@ -65,7 +65,7 @@ notifications are de-duplicated within the configured window.
 The list shows all backups with size, files, status and replication state. *Verify* checks checksums, *Browse* the file index, *Compare* shows
 differences to the current installation (only in backup / only local / modified / identical / not comparable, metadata or SHA-256), *Download*
 single files (authorised, never public) or the *complete recovery package* – one ZIP with the backup, every base backup it needs and the
-standalone restore application (also `wp swbackupit backup package <id>`); keep it together with the encryption key for disaster recovery, *Protect* against deletion, *Test restore* runs an isolated restore (temp directory + scratch database)
+standalone restore application (also `wp sw-backupit backup package <id>`); keep it together with the encryption key for disaster recovery, *Protect* against deletion, *Test restore* runs an isolated restore (temp directory + scratch database)
 and documents the result. Deleting needs confirmation. A regular background check verifies stored backups and warns about damaged ones.
 
 ## Restore (standalone)
@@ -75,13 +75,13 @@ target directory and database name by typing them again, review verification and
 success the wizard locks itself and removes its files. The command line works the same way and is independent of WordPress:
 
 ```bash
-php restore-app/bin/swbackupit-restore verify /path/to/backup --deep
-php restore-app/bin/swbackupit-restore compare /path/to/backup --target=/var/www/site --mode=sha256
-SWBI_DB_PASSWORD=… php restore-app/bin/swbackupit-restore restore /path/to/backup \
+php restore-app/bin/sw-backupit-restore verify /path/to/backup --deep
+php restore-app/bin/sw-backupit-restore compare /path/to/backup --target=/var/www/site --mode=sha256
+SWBI_DB_PASSWORD=… php restore-app/bin/sw-backupit-restore restore /path/to/backup \
   --target=/var/www/site --confirm-target=/var/www/site \
   --db-host=localhost --db-name=site --db-user=site --confirm-database=site \
   [--key=…] [--path=wp-content/uploads] [--overwrite=if_different] [--dry-run] [--tables=wp_posts,wp_postmeta]
-php restore-app/bin/swbackupit-restore fetch <backup-id> --storage=target.json --to=/path/to/backups --with-chain   # from a storage target
+php restore-app/bin/sw-backupit-restore fetch <backup-id> --storage=target.json --to=/path/to/backups --with-chain   # from a storage target
 ```
 
 `--tables` restores only the listed tables (selective database restore; they are dropped and recreated, other tables are left alone,
@@ -103,7 +103,7 @@ settings changed.
 
 ## Troubleshooting
 * *Backup stuck*: a crashed worker blocks the job until its lease expires (about a minute); a watchdog restarts lost jobs.
-* *Failed*: open the job log, fix the cause, press retry (`wp swbackupit job resume <id>`).
+* *Failed*: open the job log, fix the cause, press retry (`wp sw-backupit job resume <id>`).
 * *Schedules do not start*: check the cron notice on the dashboard; use a system cron.
 * *Staging location error*: set a directory outside the web root in Settings (directories inside the WordPress directory or the
   document root are refused unless `allow_public_paths` is set). If the staging directory has to stay inside the web root, the
@@ -112,7 +112,7 @@ settings changed.
 
   ```nginx
   # inside the server { } block of the site
-  location ~ /swbackupit-staging- { deny all; return 404; }
+  location ~ /sw-backupit-staging- { deny all; return 404; }
   location ~ /\.swbi-restore-state- { deny all; return 404; }
   ```
 * *Encrypted backup cannot be read*: provide the key (`--key`, `SWBI_KEY`, or `SWBACKUPIT_KEY_<ID>`).

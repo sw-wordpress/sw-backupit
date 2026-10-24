@@ -6,7 +6,7 @@
  * of the independent restore application is placed in a hard-to-guess directory, protected by a one-time token that
  * is shown once and stored only as a hash, with a short lifetime. The wizard locks and removes itself after use.
  *
- * @package SWBackupIt
+ * @package sw-backupit
  */
 
 declare(strict_types=1);
@@ -21,7 +21,7 @@ use SWBackupIt\WordPress\Support\Settings;
 
 final class RestorePreparer {
 
-	private const PREFIX = 'swbackupit-restore-';
+	private const PREFIX = 'sw-backupit-restore-';
 
 	/**
 	 * @return array{restore_url: string, token: string, token_expires_at: string, target_path: string, warnings: list<string>}
@@ -31,13 +31,13 @@ final class RestorePreparer {
 		$staging = Settings::staging_dir();
 		$set     = BackupSet::open( $staging . '/' . $backup_id );
 		if ( $set->isLocalCopyRemoved() ) {
-			throw new SwbiException( __( 'The local copy of this backup was removed. Download it from a storage target first.', 'swbackupit' ) );
+			throw new SwbiException( __( 'The local copy of this backup was removed. Download it from a storage target first.', 'sw-backupit' ) );
 		}
 		$this->cleanup_old();
 		$name = self::PREFIX . bin2hex( random_bytes( 8 ) );
 		$dir  = untrailingslashit( ABSPATH ) . '/' . $name;
 		if ( ! wp_mkdir_p( $dir ) || ! wp_is_writable( $dir ) ) {
-			throw new SwbiException( __( 'The restore application directory cannot be created in the WordPress directory.', 'swbackupit' ) );
+			throw new SwbiException( __( 'The restore application directory cannot be created in the WordPress directory.', 'sw-backupit' ) );
 		}
 		$this->install_app( $dir );
 		$state = dirname( untrailingslashit( ABSPATH ) ) . '/.swbi-restore-state-' . $name;
@@ -47,10 +47,10 @@ final class RestorePreparer {
 		$token    = WebSetup::initialize( $dir, $staging, $ttl, $state, array( untrailingslashit( ABSPATH ) ), untrailingslashit( ABSPATH ), strtolower( substr( determine_locale(), 0, 2 ) ) );
 		$warnings = array();
 		if ( ! is_ssl() ) {
-			$warnings[] = __( 'This site is not using HTTPS: the restore token and database password would travel unencrypted.', 'swbackupit' );
+			$warnings[] = __( 'This site is not using HTTPS: the restore token and database password would travel unencrypted.', 'sw-backupit' );
 		}
 		if ( $set->isEncrypted() ) {
-			$warnings[] = __( 'The backup is encrypted: have the key or passphrase ready.', 'swbackupit' );
+			$warnings[] = __( 'The backup is encrypted: have the key or passphrase ready.', 'sw-backupit' );
 		}
 		do_action( 'swbi_restore_prepared', $backup_id );
 		return array(
@@ -123,7 +123,7 @@ final class RestorePreparer {
 
 	private function copy_tree( string $from, string $to ): void {
 		if ( ! is_dir( $from ) ) {
-			throw new SwbiException( __( 'The restore application files are missing from this installation.', 'swbackupit' ) );
+			throw new SwbiException( __( 'The restore application files are missing from this installation.', 'sw-backupit' ) );
 		}
 		wp_mkdir_p( $to );
 		$iterator = new \RecursiveIteratorIterator( new \RecursiveDirectoryIterator( $from, \FilesystemIterator::SKIP_DOTS ), \RecursiveIteratorIterator::SELF_FIRST );

@@ -31,7 +31,7 @@ class DefaultsAndLanguagesTest extends WP_UnitTestCase {
 	 * @param array<string, mixed>|null $body
 	 */
 	private function request( string $method, string $route, ?array $body = null ): WP_REST_Response {
-		$request = new WP_REST_Request( $method, '/swbackupit/v1' . $route );
+		$request = new WP_REST_Request( $method, '/sw-backupit/v1' . $route );
 		if ( null !== $body ) {
 			$request->set_header( 'content-type', 'application/json' );
 			$request->set_body( (string) wp_json_encode( $body ) );
@@ -87,8 +87,8 @@ class DefaultsAndLanguagesTest extends WP_UnitTestCase {
 			'pl_PL' => null,
 			'it_IT' => null,
 		) as $locale => $expected ) {
-			unload_textdomain( 'swbackupit' );
-			$this->assertTrue( load_textdomain( 'swbackupit', $dir . '/swbackupit-' . $locale . '.mo', $locale ), $locale );
+			unload_textdomain( 'sw-backupit' );
+			$this->assertTrue( load_textdomain( 'sw-backupit', $dir . '/sw-backupit-' . $locale . '.mo', $locale ), $locale );
 			$name = DefaultProfiles::full()['name'];
 			$this->assertNotSame( 'Full backup (everything, without cache)', $name, $locale . ' is translated' );
 			if ( null !== $expected ) {
@@ -97,18 +97,18 @@ class DefaultsAndLanguagesTest extends WP_UnitTestCase {
 		}
 		// Regional variant falls back to the language we ship.
 		$plugin = \SWBackupIt\WordPress\Plugin::instance();
-		$this->assertSame( $dir . '/swbackupit-de_DE.mo', $plugin->fallback_mofile( $dir . '/swbackupit-de_CH.mo', 'swbackupit' ) );
-		$this->assertSame( $dir . '/swbackupit-fr_FR.mo', $plugin->fallback_mofile( $dir . '/swbackupit-fr_CA.mo', 'swbackupit' ) );
-		$this->assertSame( $dir . '/swbackupit-ja.mo', $plugin->fallback_mofile( $dir . '/swbackupit-ja.mo', 'swbackupit' ), 'unknown languages stay English' );
-		unload_textdomain( 'swbackupit' );
+		$this->assertSame( $dir . '/sw-backupit-de_DE.mo', $plugin->fallback_mofile( $dir . '/sw-backupit-de_CH.mo', 'sw-backupit' ) );
+		$this->assertSame( $dir . '/sw-backupit-fr_FR.mo', $plugin->fallback_mofile( $dir . '/sw-backupit-fr_CA.mo', 'sw-backupit' ) );
+		$this->assertSame( $dir . '/sw-backupit-ja.mo', $plugin->fallback_mofile( $dir . '/sw-backupit-ja.mo', 'sw-backupit' ), 'unknown languages stay English' );
+		unload_textdomain( 'sw-backupit' );
 	}
 
 	public function test_core_messages_are_translated_in_rest_errors(): void {
 		$dir = dirname( __DIR__, 3 ) . '/languages';
-		load_textdomain( 'swbackupit', $dir . '/swbackupit-de_DE.mo', 'de_DE' );
+		load_textdomain( 'sw-backupit', $dir . '/sw-backupit-de_DE.mo', 'de_DE' );
 		$translated = CoreMessages::translate( 'Archive volume checksum mismatch.' );
 		$this->assertNotSame( 'Archive volume checksum mismatch.', $translated );
 		$this->assertSame( 'Message that is not in the catalog', CoreMessages::translate( 'Message that is not in the catalog' ) );
-		unload_textdomain( 'swbackupit' );
+		unload_textdomain( 'sw-backupit' );
 	}
 }

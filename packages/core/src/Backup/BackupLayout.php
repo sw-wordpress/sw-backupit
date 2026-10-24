@@ -85,7 +85,7 @@ final class BackupLayout
         AtomicFile::ensureDirectory($this->stagingRoot());
         $marker = $this->stagingRoot() . '/' . FileScanner::STAGING_MARKER;
         if (!is_file($marker)) {
-            AtomicFile::write($marker, "SWBackupIt staging area. Excluded from backups. Never publish this directory.\n");
+            AtomicFile::write($marker, "sw-backupit staging area. Excluded from backups. Never publish this directory.\n");
         }
         if (!is_file($this->stagingRoot() . '/.htaccess')) {
             AtomicFile::write($this->stagingRoot() . '/.htaccess', "Require all denied\nDeny from all\n");

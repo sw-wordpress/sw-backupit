@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "3db19a74f6e37096cb369c6a808c6f33",
+    "content-hash": "1d314b8ffb362012ffa8302a6f07e832",
     "packages": [
         {
             "name": "aws/aws-crt-php",
@@ -1426,7 +1426,7 @@
             "time": "2024-09-11T13:17:53+00:00"
         },
         {
-            "name": "swbackupit/swbackupit",
+            "name": "sw-backupit/sw-backupit",
             "version": "dev-main",
             "dist": {
                 "type": "path",
@@ -1509,7 +1509,7 @@
             "license": [
                 "GPL-2.0-or-later"
             ],
-            "description": "SWBackupIt - WordPress backup, restore and disaster recovery (monorepo).",
+            "description": "sw-backupit - WordPress backup, restore and disaster recovery (monorepo).",
             "transport-options": {
                 "symlink": true,
                 "relative": true
@@ -3933,7 +3933,7 @@
     "aliases": [],
     "minimum-stability": "dev",
     "stability-flags": {
-        "swbackupit/swbackupit": 20
+        "sw-backupit/sw-backupit": 20
     },
     "prefer-stable": true,
     "prefer-lowest": false,

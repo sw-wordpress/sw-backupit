@@ -2,7 +2,7 @@
 /**
  * Complete recovery package of a backup as one ZIP (PLAN.md §9.2, §22).
  *
- * @package SWBackupIt
+ * @package sw-backupit
  */
 
 declare(strict_types=1);
@@ -29,7 +29,7 @@ final class RecoveryPackage {
 	 * @param string $backup_id Backup id.
 	 */
 	public static function file_name( string $backup_id ): string {
-		return 'swbackupit-recovery-' . $backup_id . '.zip';
+		return 'sw-backupit-recovery-' . $backup_id . '.zip';
 	}
 
 	/**
@@ -42,7 +42,7 @@ final class RecoveryPackage {
 	 */
 	public function write( $output, string $backup_id ): int {
 		if ( ! Uuid::isValid( $backup_id ) ) {
-			throw new ConfigurationException( __( 'Invalid backup id.', 'swbackupit' ) );
+			throw new ConfigurationException( __( 'Invalid backup id.', 'sw-backupit' ) );
 		}
 		$staging   = untrailingslashit( Settings::staging_dir() );
 		$set       = BackupSet::open( $staging . '/' . $backup_id );
@@ -55,7 +55,7 @@ final class RecoveryPackage {
 			$directory = $staging . '/' . $id;
 			if ( ! Uuid::isValid( $id ) || ! is_file( $directory . '/manifest.json' ) || ! BackgroundChecks::has_local_data( $id ) ) {
 				/* translators: %s: backup id */
-				throw new ConfigurationException( sprintf( __( 'The backup %s has no complete local copy. Download it from a storage target first.', 'swbackupit' ), $id ) );
+				throw new ConfigurationException( sprintf( __( 'The backup %s has no complete local copy. Download it from a storage target first.', 'sw-backupit' ), $id ) );
 			}
 			$directories[ 'backups/' . $id ] = $directory;
 		}
@@ -68,7 +68,7 @@ final class RecoveryPackage {
 			( new RestorePreparer() )->install_app( $scratch );
 			$app = $scratch;
 		}
-		$directories['swbackupit-restore'] = $app;
+		$directories['sw-backupit-restore'] = $app;
 		try {
 			return ( new RecoveryPackageWriter() )->write( $output, $directories, self::readme( $backup_id, $encrypted ) );
 		} finally {
@@ -87,21 +87,21 @@ final class RecoveryPackage {
 	public static function readme( string $backup_id, bool $encrypted ): string {
 		$lines = array(
 			/* translators: %s: backup id */
-			sprintf( __( 'SWBackupIt recovery package for backup %s', 'swbackupit' ), $backup_id ),
+			sprintf( __( 'sw-backupit recovery package for backup %s', 'sw-backupit' ), $backup_id ),
 			'',
-			__( 'Contents: backups/ holds the backup and every base backup it needs, swbackupit-restore/ the standalone restore application (needs PHP 8.2 with zip and PDO MySQL, no WordPress).', 'swbackupit' ),
+			__( 'Contents: backups/ holds the backup and every base backup it needs, sw-backupit-restore/ the standalone restore application (needs PHP 8.2 with zip and PDO MySQL, no WordPress).', 'sw-backupit' ),
 			'',
-			__( 'Restore on the command line:', 'swbackupit' ),
-			'  php swbackupit-restore/bin/swbackupit-restore verify backups/' . $backup_id . ' --deep',
-			'  php swbackupit-restore/bin/swbackupit-restore restore backups/' . $backup_id . ' --target=/var/www/site --confirm-target=/var/www/site \\',
+			__( 'Restore on the command line:', 'sw-backupit' ),
+			'  php sw-backupit-restore/bin/sw-backupit-restore verify backups/' . $backup_id . ' --deep',
+			'  php sw-backupit-restore/bin/sw-backupit-restore restore backups/' . $backup_id . ' --target=/var/www/site --confirm-target=/var/www/site \\',
 			'      --db-host=localhost --db-name=NAME --db-user=USER --confirm-database=NAME',
-			'  php swbackupit-restore/bin/swbackupit-restore help',
+			'  php sw-backupit-restore/bin/sw-backupit-restore help',
 			'',
-			__( 'Restore in the browser: copy swbackupit-restore/ into the web root of the new server (keep backups/ outside of it), run "php swbackupit-restore/bin/swbackupit-restore web-init --backups=/path/to/backups --app-dir=/path/to/swbackupit-restore" and open the shown address with the shown one-time token.', 'swbackupit' ),
+			__( 'Restore in the browser: copy sw-backupit-restore/ into the web root of the new server (keep backups/ outside of it), run "php sw-backupit-restore/bin/sw-backupit-restore web-init --backups=/path/to/backups --app-dir=/path/to/sw-backupit-restore" and open the shown address with the shown one-time token.', 'sw-backupit' ),
 		);
 		if ( $encrypted ) {
 			$lines[] = '';
-			$lines[] = __( 'The backup is encrypted. The key or passphrase is not part of this package: you need it for the restore.', 'swbackupit' );
+			$lines[] = __( 'The backup is encrypted. The key or passphrase is not part of this package: you need it for the restore.', 'sw-backupit' );
 		}
 		return implode( "\n", $lines ) . "\n";
 	}

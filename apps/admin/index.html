@@ -3,7 +3,7 @@
     <head>
         <meta charset="UTF-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-        <title>SWBackupIt – dev (simulated wp-admin)</title>
+        <title>sw-backupit – dev (simulated wp-admin)</title>
         <!--
       Development host page. Simulates the relevant wp-admin chrome and a few hostile global
       styles so style isolation can be verified. It is NOT part of the production build.
@@ -142,7 +142,7 @@
         <script>
             // Equivalent of what the PHP admin page prints before the module script.
             window.swbackupitConfig = {
-                restRoot: location.origin + '/wp-json/swbackupit/v1/',
+                restRoot: location.origin + '/wp-json/sw-backupit/v1/',
                 nonce: 'dev-nonce',
                 locale:
                     new URLSearchParams(location.search).get('lang') === 'en' ? 'en_US' : 'de_DE',
@@ -161,7 +161,7 @@
         <div id="adminmenuwrap"></div>
         <div id="wpcontent">
             <div id="wpbody-content">
-                <div id="swbackupit-app"></div>
+                <div id="sw-backupit-app"></div>
             </div>
             <div id="wpfooter">Thank you for creating with WordPress. (simulated footer)</div>
         </div>

@@ -11,7 +11,7 @@ function jsonResponse(body: unknown, init: ResponseInit = {}): Response {
 
 function makeClient(fetchImpl: typeof fetch): ApiClient {
   return new ApiClient({
-    restRoot: 'https://x.test/wp-json/swbackupit/v1/',
+    restRoot: 'https://x.test/wp-json/sw-backupit/v1/',
     nonce: 'abc',
     fetchImpl,
   });
@@ -24,7 +24,7 @@ describe('ApiClient', () => {
     const result = await client.post<{ id: number }>('profiles', { name: 'A' });
     expect(result).toEqual({ id: 1 });
     const [url, init] = fetchMock.mock.calls[0] as unknown as [string, RequestInit];
-    expect(url).toBe('https://x.test/wp-json/swbackupit/v1/profiles');
+    expect(url).toBe('https://x.test/wp-json/sw-backupit/v1/profiles');
     expect(init.method).toBe('POST');
     expect(init.credentials).toBe('same-origin');
     expect((init.headers as Record<string, string>)['X-WP-Nonce']).toBe('abc');
@@ -36,16 +36,16 @@ describe('ApiClient', () => {
     const client = makeClient(vi.fn() as unknown as typeof fetch);
     expect(
       client.url('/backups', { page: 2, search: '', type: undefined, status: 'verified' }),
-    ).toBe('https://x.test/wp-json/swbackupit/v1/backups?page=2&status=verified');
+    ).toBe('https://x.test/wp-json/sw-backupit/v1/backups?page=2&status=verified');
   });
 
   it('appends to a root that already has a query (plain permalinks)', () => {
     const client = new ApiClient({
-      restRoot: 'https://x.test/?rest_route=/swbackupit/v1/',
+      restRoot: 'https://x.test/?rest_route=/sw-backupit/v1/',
       nonce: 'n',
     });
     expect(client.url('jobs', { page: 1 })).toBe(
-      'https://x.test/?rest_route=/swbackupit/v1/jobs&page=1',
+      'https://x.test/?rest_route=/sw-backupit/v1/jobs&page=1',
     );
   });
 

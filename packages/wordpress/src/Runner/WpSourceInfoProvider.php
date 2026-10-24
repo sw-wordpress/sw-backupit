@@ -2,7 +2,7 @@
 /**
  * Describes the running WordPress installation to the framework independent core.
  *
- * @package SWBackupIt
+ * @package sw-backupit
  */
 
 declare(strict_types=1);

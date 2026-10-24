@@ -14,7 +14,7 @@ require_once $swbi_tests_dir . '/includes/functions.php';
 tests_add_filter(
 	'muplugins_loaded',
 	static function (): void {
-		require dirname( __DIR__, 2 ) . '/swbackupit.php';
+		require dirname( __DIR__, 2 ) . '/sw-backupit.php';
 	}
 );
 

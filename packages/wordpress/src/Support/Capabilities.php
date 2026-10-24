@@ -2,7 +2,7 @@
 /**
  * Fine-grained capabilities (REST contract: docs/rest-api.md).
  *
- * @package SWBackupIt
+ * @package sw-backupit
  */
 
 declare(strict_types=1);
@@ -54,7 +54,7 @@ final class Capabilities {
 	}
 
 	/**
-	 * On multisite all SWBackupIt data (backups, settings, keys, storage) is network wide, so the sensitive capabilities
+	 * On multisite all sw-backupit data (backups, settings, keys, storage) is network wide, so the sensitive capabilities
 	 * are reserved to super admins. Roles of individual sites (including a subsite administrator that got the caps by
 	 * accident) are never sufficient for them; view/run/profile capabilities can still be delegated per role.
 	 *

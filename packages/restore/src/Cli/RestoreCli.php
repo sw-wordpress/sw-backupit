@@ -162,7 +162,7 @@ final class RestoreCli
             $this->backupArgument($args),
             $target,
             $args->string('confirm-target'),
-            $args->string('state-dir', sys_get_temp_dir() . '/swbackupit-restore-' . substr(hash('sha256', $target), 0, 12)),
+            $args->string('state-dir', sys_get_temp_dir() . '/sw-backupit-restore-' . substr(hash('sha256', $target), 0, 12)),
             !$args->flag('no-files'),
             $restoreDatabase && $database !== null,
             $database,
@@ -321,16 +321,16 @@ final class RestoreCli
     private function help(): int
     {
         $this->out(<<<'TEXT'
-SWBackupIt standalone restore
+sw-backupit standalone restore
 
 Usage:
-  swbackupit-restore info    <backup-dir> [--format=json]
-  swbackupit-restore verify  <backup-dir> [--deep] [--format=json]
-  swbackupit-restore list    <backup-dir> [--path=wp-content/uploads] [--pattern='**/*.jpg']
-  swbackupit-restore fetch   <backup-id> --storage=target.json --to=/path/to/backups [--with-chain]   (download from a storage target)
-  swbackupit-restore web-init --backups=/path/to/backups [--app-dir=DIR] [--ttl=3600] [--allow-target=/var/www]   (prepares the web wizard)
-  swbackupit-restore compare <backup-dir> --target=/var/www/site [--mode=metadata|sha256] [--path=...] [--format=json]
-  swbackupit-restore restore <backup-dir> --target=/var/www/site --confirm-target=/var/www/site
+  sw-backupit-restore info    <backup-dir> [--format=json]
+  sw-backupit-restore verify  <backup-dir> [--deep] [--format=json]
+  sw-backupit-restore list    <backup-dir> [--path=wp-content/uploads] [--pattern='**/*.jpg']
+  sw-backupit-restore fetch   <backup-id> --storage=target.json --to=/path/to/backups [--with-chain]   (download from a storage target)
+  sw-backupit-restore web-init --backups=/path/to/backups [--app-dir=DIR] [--ttl=3600] [--allow-target=/var/www]   (prepares the web wizard)
+  sw-backupit-restore compare <backup-dir> --target=/var/www/site [--mode=metadata|sha256] [--path=...] [--format=json]
+  sw-backupit-restore restore <backup-dir> --target=/var/www/site --confirm-target=/var/www/site
         [--db-host=localhost --db-name=NAME --db-user=USER --confirm-database=NAME]
         [--overwrite=always|never|if_different] [--path=...] [--pattern=...]
         [--no-files] [--no-database] [--keep-wp-config] [--skip-verify] [--dry-run] [--state-dir=DIR] [--format=json]
@@ -349,7 +349,7 @@ TEXT);
 
     private function usage(string $message): int
     {
-        $this->err($message . "\nRun 'swbackupit-restore help' for usage.\n");
+        $this->err($message . "\nRun 'sw-backupit-restore help' for usage.\n");
 
         return 2;
     }

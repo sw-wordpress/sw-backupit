@@ -18,7 +18,7 @@ use SWBackupIt\Core\Support\Uuid;
  */
 final class Manifest
 {
-    public const FORMAT = 'swbackupit';
+    public const FORMAT = 'sw-backupit';
     public const FORMAT_VERSION = 1;
     public const FILE_NAME = 'manifest.json';
 
@@ -35,8 +35,9 @@ final class Manifest
      */
     public static function fromArray(array $data): self
     {
-        if (($data['format'] ?? null) !== self::FORMAT) {
-            throw new ManifestException('Not a SWBackupIt manifest.');
+        // The public slug changed; backups created before the rename remain readable.
+        if (!in_array($data['format'] ?? null, [self::FORMAT, 'swbackupit'], true)) {
+            throw new ManifestException('Not a sw-backupit manifest.');
         }
         $version = $data['format_version'] ?? null;
         if (!is_int($version) || $version < 1) {

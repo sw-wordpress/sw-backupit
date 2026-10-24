@@ -1,9 +1,9 @@
 {
-  "name": "swbackupit-admin",
+  "name": "sw-backupit-admin",
   "version": "0.1.0",
   "private": true,
   "type": "module",
-  "description": "SWBackupIt WordPress admin frontend (Vue 3 + Quasar, no Quasar CLI)",
+  "description": "sw-backupit WordPress admin frontend (Vue 3 + Quasar, no Quasar CLI)",
   "engines": {
     "node": ">=18.18"
   },

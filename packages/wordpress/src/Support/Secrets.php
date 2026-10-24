@@ -6,7 +6,7 @@
  * credentials against casual database dumps and SQL read access; an attacker who can read both the
  * options table and wp-config.php can still decrypt them. Backup *archive* encryption (separate keys) is a different feature.
  *
- * @package SWBackupIt
+ * @package sw-backupit
  */
 
 declare(strict_types=1);

@@ -5,7 +5,7 @@
 ```mermaid
 flowchart LR
   subgraph WP[WordPress plugin - packages/wordpress]
-    SPA[Vue/Quasar SPA<br/>apps/admin] -->|REST swbackupit/v1| REST[REST controllers]
+    SPA[Vue/Quasar SPA<br/>apps/admin] -->|REST sw-backupit/v1| REST[REST controllers]
     CLI[WP-CLI] --> SVC
     REST --> SVC[JobService / ScheduleRunner]
     CRON[WP-Cron / system cron] --> SVC
@@ -25,7 +25,7 @@ flowchart LR
   subgraph RESTORE[Standalone restore - packages/restore]
     RE[RestoreEngine] --> FR[FileRestorer] & DI[SqlImporter] & VER[Verifier] & MIG[DatabaseMigrator]
     RT[RestoreTester] --> RE
-    RCLI[swbackupit-restore CLI] --> RE
+    RCLI[sw-backupit-restore CLI] --> RE
     WEB[Web wizard<br/>token + CSRF + self-lock] --> RE
   end
   SVC --> RUN
@@ -49,7 +49,7 @@ Dependencies point inwards: wordpress → core ← restore.
 ## Directory structure
 
 ```
-swbackupit.php, uninstall.php      plugin bootstrap
+sw-backupit.php, uninstall.php      plugin bootstrap
 packages/core/src                  Archive, Backup(+Step), Crypto, Database, Domain, Event, Exception, Job, Log, Manifest, Retention, Retry, Scanner, Storage, Support
 packages/restore/src               Backup, Cli, Config, Files, Migration, Sql, Testing, Web, RestoreEngine
 packages/restore/public            web wizard entry point and assets (copied into restore-app/)
@@ -69,7 +69,7 @@ bin/                               build and test helper scripts (ZIP, restore a
 
 `profiles`, `schedules`, `jobs` (JSON entity + lease/flags columns), `job_events`, `backups` (catalog cache incl. chain info and last restore test),
 `backup_locations` (status per storage target), `storage_targets` (credentials encrypted), `audit` (append-only). The external manifest stays
-independent; the catalog can be rebuilt from storage (`discover/import`) or the staging directory (`wp swbackupit catalog rebuild`).
+independent; the catalog can be rebuilt from storage (`discover/import`) or the staging directory (`wp sw-backupit catalog rebuild`).
 Schema versions are applied by `Schema::migrate()` (v1 base tables, v2 audit). Multisite: all data and settings are network options/tables on the
 main site, one cron watcher per network, UI in the Network Admin, a backup always covers the whole network (selective restore of single sites is a future stage).
 

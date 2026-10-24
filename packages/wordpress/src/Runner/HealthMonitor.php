@@ -2,7 +2,7 @@
 /**
  * Background health monitoring: overdue schedules, low disk space and stale backups. Sends de-duplicated notifications.
  *
- * @package SWBackupIt
+ * @package sw-backupit
  */
 
 declare(strict_types=1);
@@ -28,8 +28,8 @@ final class HealthMonitor {
 				'event'   => 'backup_overdue',
 				'key'     => 'schedule-' . $schedule['id'],
 				/* translators: %s: schedule name */
-				'subject' => sprintf( __( 'Backup schedule "%s" is overdue', 'swbackupit' ), (string) $schedule['name'] ),
-				'message' => __( 'A scheduled backup did not start on time. WP-Cron depends on site traffic; consider a real system cron job.', 'swbackupit' ),
+				'subject' => sprintf( __( 'Backup schedule "%s" is overdue', 'sw-backupit' ), (string) $schedule['name'] ),
+				'message' => __( 'A scheduled backup did not start on time. WP-Cron depends on site traffic; consider a real system cron job.', 'sw-backupit' ),
 			);
 		}
 		$staging = Settings::staging_dir();
@@ -38,9 +38,9 @@ final class HealthMonitor {
 			$issues[] = array(
 				'event'   => 'storage_low',
 				'key'     => 'disk',
-				'subject' => __( 'Backup storage space is running low', 'swbackupit' ),
+				'subject' => __( 'Backup storage space is running low', 'sw-backupit' ),
 				/* translators: %s: free space */
-				'message' => sprintf( __( 'Only %s are free in the backup staging directory.', 'swbackupit' ), size_format( (float) $free ) ),
+				'message' => sprintf( __( 'Only %s are free in the backup staging directory.', 'sw-backupit' ), size_format( (float) $free ) ),
 			);
 		}
 		return $issues;

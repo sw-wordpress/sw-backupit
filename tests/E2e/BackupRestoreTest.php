@@ -42,7 +42,7 @@ final class BackupRestoreTest extends TestCase
         $pdo = ConnectionFactory::create($config);
         $this->seedSiteDatabase($pdo);
         $work = $this->makeTempDir('work');
-        $staging = $stagingInside ? $site . '/wp-content/swbackupit-staging' : $work . '/staging';
+        $staging = $stagingInside ? $site . '/wp-content/sw-backupit-staging' : $work . '/staging';
         $profile = BackupProfile::fromArray([
             'id' => 1, 'name' => 'Full', 'type' => $type->value,
             'volume_size_bytes' => 250000,
@@ -120,7 +120,7 @@ final class BackupRestoreTest extends TestCase
         self::assertSame(JobStatus::Completed, $status);
         $set = BackupSet::open($env['source']->stagingPath . '/' . $backupId);
         foreach ($set->indexReader()->read() as [$entry]) {
-            self::assertStringNotContainsString('swbackupit-staging', $entry['p']);
+            self::assertStringNotContainsString('sw-backupit-staging', $entry['p']);
         }
         self::assertFalse($set->manifest()->hasDatabase());
     }

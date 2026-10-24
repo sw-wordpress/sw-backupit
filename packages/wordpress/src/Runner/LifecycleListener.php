@@ -2,7 +2,7 @@
 /**
  * Reacts to finished/failed jobs: catalog registration and schedule bookkeeping.
  *
- * @package SWBackupIt
+ * @package sw-backupit
  */
 
 declare(strict_types=1);
@@ -49,16 +49,16 @@ final class LifecycleListener {
 			$this->notifier?->notify(
 				'backup_warnings',
 				(string) $job->profileId,
-				sprintf( /* translators: %s: profile name */ __( 'Backup "%s" completed with warnings', 'swbackupit' ), $profile ),
-				sprintf( /* translators: 1: profile name, 2: number of warnings */ __( 'The backup "%1$s" completed with %2$d warning(s). Check the job log.', 'swbackupit' ), $profile, $job->warningsCount ),
+				sprintf( /* translators: %s: profile name */ __( 'Backup "%s" completed with warnings', 'sw-backupit' ), $profile ),
+				sprintf( /* translators: 1: profile name, 2: number of warnings */ __( 'The backup "%1$s" completed with %2$d warning(s). Check the job log.', 'sw-backupit' ), $profile, $job->warningsCount ),
 				$notifications
 			);
 		} else {
 			$this->notifier?->notify(
 				'backup_success',
 				(string) $job->profileId,
-				sprintf( /* translators: %s: profile name */ __( 'Backup "%s" completed', 'swbackupit' ), $profile ),
-				sprintf( /* translators: %s: profile name */ __( 'The backup "%s" completed successfully.', 'swbackupit' ), $profile ),
+				sprintf( /* translators: %s: profile name */ __( 'Backup "%s" completed', 'sw-backupit' ), $profile ),
+				sprintf( /* translators: %s: profile name */ __( 'The backup "%s" completed successfully.', 'sw-backupit' ), $profile ),
 				$notifications
 			);
 		}
@@ -67,8 +67,8 @@ final class LifecycleListener {
 			$this->notifier?->notify(
 				'upload_failed',
 				$job->profileId . '|' . implode( ',', $failed_targets ),
-				sprintf( /* translators: %s: profile name */ __( 'Upload failed for backup "%s"', 'swbackupit' ), $profile ),
-				__( 'The backup was created, but at least one storage target does not hold a verified copy.', 'swbackupit' ),
+				sprintf( /* translators: %s: profile name */ __( 'Upload failed for backup "%s"', 'sw-backupit' ), $profile ),
+				__( 'The backup was created, but at least one storage target does not hold a verified copy.', 'sw-backupit' ),
 				$notifications
 			);
 		}
@@ -118,8 +118,8 @@ final class LifecycleListener {
 		$this->notifier?->notify(
 			'backup_failed',
 			$job->profileId . '|' . (string) ( $payload['code'] ?? '' ),
-			sprintf( /* translators: %s: profile name */ __( 'Backup "%s" failed', 'swbackupit' ), $job->profileName() ),
-			sprintf( /* translators: 1: profile name, 2: error message */ __( 'The backup "%1$s" failed: %2$s', 'swbackupit' ), $job->profileName(), (string) ( $payload['error'] ?? '' ) ),
+			sprintf( /* translators: %s: profile name */ __( 'Backup "%s" failed', 'sw-backupit' ), $job->profileName() ),
+			sprintf( /* translators: 1: profile name, 2: error message */ __( 'The backup "%1$s" failed: %2$s', 'sw-backupit' ), $job->profileName(), (string) ( $payload['error'] ?? '' ) ),
 			(array) ( $job->profileSnapshot['notifications'] ?? array() )
 		);
 		if ( null === $job->scheduleId ) {

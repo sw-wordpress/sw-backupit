@@ -2,7 +2,7 @@
 /**
  * Backup catalog for retention in WordPress: catalog table + staging directory + all storage locations.
  *
- * @package SWBackupIt
+ * @package sw-backupit
  */
 
 declare(strict_types=1);

@@ -2,7 +2,7 @@
 /**
  * Read-only access to the audit log.
  *
- * @package SWBackupIt
+ * @package sw-backupit
  */
 
 declare(strict_types=1);

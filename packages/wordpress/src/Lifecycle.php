@@ -2,7 +2,7 @@
 /**
  * Activation, deactivation and uninstall handling.
  *
- * @package SWBackupIt
+ * @package sw-backupit
  */
 
 declare(strict_types=1);

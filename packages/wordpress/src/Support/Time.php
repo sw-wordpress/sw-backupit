@@ -2,7 +2,7 @@
 /**
  * UTC datetime helpers (all timestamps are stored in UTC, CODE-STYLE §5).
  *
- * @package SWBackupIt
+ * @package sw-backupit
  */
 
 declare(strict_types=1);

@@ -28,7 +28,7 @@ final class StandaloneDistributionTest extends TestCase
 
         $target = $this->makeTempDir('target');
         $state = $this->makeTempDir('state');
-        $cli = escapeshellarg(PHP_BINARY) . ' -d display_errors=1 ' . escapeshellarg($dist . '/app/bin/swbackupit-restore');
+        $cli = escapeshellarg(PHP_BINARY) . ' -d display_errors=1 ' . escapeshellarg($dist . '/app/bin/sw-backupit-restore');
         exec($cli . ' verify ' . escapeshellarg($this->backupDir($job)) . ' --deep 2>&1', $output, $code);
         self::assertSame(0, $code, implode("\n", $output));
 

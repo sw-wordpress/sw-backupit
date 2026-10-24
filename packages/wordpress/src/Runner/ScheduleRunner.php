@@ -1,8 +1,8 @@
 <?php
 /**
- * Starts due schedules. Called by the WP-Cron watcher, by `wp swbackupit schedule run-due` (system cron) or manually.
+ * Starts due schedules. Called by the WP-Cron watcher, by `wp sw-backupit schedule run-due` (system cron) or manually.
  *
- * @package SWBackupIt
+ * @package sw-backupit
  */
 
 declare(strict_types=1);

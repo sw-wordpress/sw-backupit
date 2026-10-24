@@ -1,4 +1,5 @@
 /vendor/
+/vendor-prefixed/
 /node_modules/
 /apps/admin/node_modules/
 /apps/admin/screenshots/

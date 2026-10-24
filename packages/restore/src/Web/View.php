@@ -29,8 +29,8 @@ final class View
         $logout = $session === null ? '' : '<form method="post" action="?a=logout" class="logout"><input type="hidden" name="csrf" value="' . self::e($session['csrf'] ?? '') . '"><button class="link">' . self::e(self::t('Sign out')) . '</button></form>';
 
         return '<!doctype html><html lang="' . self::e(Translator::language()) . '"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="robots" content="noindex,nofollow">'
-            . '<title>' . self::e($title) . ' – SWBackupIt Restore</title><link rel="stylesheet" href="?a=asset&amp;f=css"></head>'
-            . '<body' . $csrf . $bodyAttributes . '><header><div class="brand"><span class="logo" aria-hidden="true"></span><strong>SWBackupIt</strong> Restore</div>' . $logout . '</header>'
+            . '<title>' . self::e($title) . ' – sw-backupit Restore</title><link rel="stylesheet" href="?a=asset&amp;f=css"></head>'
+            . '<body' . $csrf . $bodyAttributes . '><header><div class="brand"><span class="logo" aria-hidden="true"></span><strong>sw-backupit</strong> Restore</div>' . $logout . '</header>'
             . '<main><h1>' . self::e($title) . '</h1>' . $body . '</main><script src="?a=asset&amp;f=js" defer></script></body></html>';
     }
 

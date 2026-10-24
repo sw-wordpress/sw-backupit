@@ -1,5 +1,5 @@
 /**
- * Types mirroring docs/rest-api.md (`swbackupit/v1`). Keep in sync with the contract.
+ * Types mirroring docs/rest-api.md (`sw-backupit/v1`). Keep in sync with the contract.
  * Timestamps are ISO-8601 UTC strings, sizes are bytes.
  */
 

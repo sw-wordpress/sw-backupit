@@ -8,7 +8,7 @@ use RuntimeException;
 use Throwable;
 
 /**
- * Base class of all SWBackupIt errors.
+ * Base class of all sw-backupit errors.
  *
  * The message is always safe to show to users (no secrets, no stack traces).
  */

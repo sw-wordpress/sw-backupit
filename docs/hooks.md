@@ -23,7 +23,7 @@ Payloads are read-only arrays (`job_id`, `backup_id`, `step`, …). Additional W
 * `FailurePolicy::Blocking` listeners are only accepted for `before_*` events (registering one for another event throws).
   A blocking listener that throws (or a filter returning `false`/`WP_Error`) fails the job cleanly *before* state changes.
 * `FailurePolicy::Isolated` (default): exceptions are logged as warnings and swallowed. In WordPress they go to the plugin
-  logger: the PHP error log (prefix `[SWBackupIt]`) and the action `swbi_log( string $level, string $message, array $context )`
+  logger: the PHP error log (prefix `[sw-backupit]`) and the action `swbi_log( string $level, string $message, array $context )`
   (scalar context only, no secrets), so monitoring plugins can pick them up.
 * No hook can run shell commands from the web UI; there is no such configuration.
 

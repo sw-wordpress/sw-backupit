@@ -35,7 +35,7 @@ class StoragePhaseTest extends WP_UnitTestCase {
 	public function tear_down(): void {
 		\SWBackupIt\Core\Support\AtomicFile::removeTree( $this->staging );
 		\SWBackupIt\Core\Support\AtomicFile::removeTree( $this->remote );
-		foreach ( glob( untrailingslashit( ABSPATH ) . '/swbackupit-restore-*', GLOB_ONLYDIR ) ?: array() as $dir ) {
+		foreach ( glob( untrailingslashit( ABSPATH ) . '/sw-backupit-restore-*', GLOB_ONLYDIR ) ?: array() as $dir ) {
 			\SWBackupIt\Core\Support\AtomicFile::removeTree( $dir );
 		}
 		parent::tear_down();
@@ -45,7 +45,7 @@ class StoragePhaseTest extends WP_UnitTestCase {
 	 * @param array<string, mixed>|null $body
 	 */
 	private function request( string $method, string $route, ?array $body = null, array $params = array() ): WP_REST_Response {
-		$request = new WP_REST_Request( $method, '/swbackupit/v1' . $route );
+		$request = new WP_REST_Request( $method, '/sw-backupit/v1' . $route );
 		if ( null !== $body ) {
 			$request->set_header( 'content-type', 'application/json' );
 			$request->set_body( (string) wp_json_encode( $body ) );
@@ -135,7 +135,7 @@ class StoragePhaseTest extends WP_UnitTestCase {
 		$prepared = $this->request( 'POST', '/backups/' . $backup['id'] . '/restore/prepare' );
 		$this->assertSame( 200, $prepared->get_status(), wp_json_encode( $prepared->get_data() ) );
 		$data = $prepared->get_data();
-		$this->assertMatchesRegularExpression( '#/swbackupit-restore-[0-9a-f]{16}/$#', $data['restore_url'] );
+		$this->assertMatchesRegularExpression( '#/sw-backupit-restore-[0-9a-f]{16}/$#', $data['restore_url'] );
 		$dir = untrailingslashit( ABSPATH ) . '/' . basename( rtrim( $data['restore_url'], '/' ) );
 		$this->assertFileExists( $dir . '/index.php' );
 		$config = file_get_contents( $dir . '/config.php' );

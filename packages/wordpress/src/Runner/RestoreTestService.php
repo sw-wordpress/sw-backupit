@@ -2,7 +2,7 @@
 /**
  * Runs the automated, isolated test restore of a backup and documents the result.
  *
- * @package SWBackupIt
+ * @package sw-backupit
  */
 
 declare(strict_types=1);
@@ -23,7 +23,7 @@ final class RestoreTestService {
 	 */
 	public function run( string $backup_id ): array {
 		if ( null === Services::instance()->backups()->find_row( $backup_id ) ) {
-			throw new SwbiException( __( 'Backup not found.', 'swbackupit' ) );
+			throw new SwbiException( __( 'Backup not found.', 'sw-backupit' ) );
 		}
 		$work = untrailingslashit( Settings::staging_dir() ) . '/tmp';
 		wp_mkdir_p( $work );
@@ -47,16 +47,16 @@ final class RestoreTestService {
 			Services::instance()->notifier()->notify(
 				'restore_failed',
 				$backup_id,
-				__( 'Test restore of a backup failed', 'swbackupit' ),
-				sprintf( /* translators: %s: backup id */ __( 'The automated test restore of backup %s failed. The backup may not be restorable.', 'swbackupit' ), $backup_id ),
+				__( 'Test restore of a backup failed', 'sw-backupit' ),
+				sprintf( /* translators: %s: backup id */ __( 'The automated test restore of backup %s failed. The backup may not be restorable.', 'sw-backupit' ), $backup_id ),
 				$notifications
 			);
 		} elseif ( 'passed' === $status ) {
 			Services::instance()->notifier()->notify(
 				'restore_success',
 				$backup_id,
-				__( 'Test restore of a backup succeeded', 'swbackupit' ),
-				sprintf( /* translators: %s: backup id */ __( 'The automated test restore of backup %s succeeded.', 'swbackupit' ), $backup_id ),
+				__( 'Test restore of a backup succeeded', 'sw-backupit' ),
+				sprintf( /* translators: %s: backup id */ __( 'The automated test restore of backup %s succeeded.', 'sw-backupit' ), $backup_id ),
 				$notifications
 			);
 		}

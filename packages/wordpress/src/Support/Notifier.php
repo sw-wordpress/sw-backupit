@@ -5,7 +5,7 @@
  * The same event for the same subject is mailed at most once per dedupe window, so repeated retries cannot flood
  * the inbox. Mail bodies never contain credentials, only job/backup identifiers and sanitised messages.
  *
- * @package SWBackupIt
+ * @package sw-backupit
  */
 
 declare(strict_types=1);
@@ -49,8 +49,8 @@ final class Notifier {
 			sprintf( '[%s] %s', $site, $subject ),
 			$message . "\n\n" . sprintf(
 				/* translators: %s: admin URL */
-				__( 'Details: %s', 'swbackupit' ),
-				admin_url( 'admin.php?page=swbackupit' )
+				__( 'Details: %s', 'sw-backupit' ),
+				admin_url( 'admin.php?page=sw-backupit' )
 			)
 		);
 		if ( $sent ) {

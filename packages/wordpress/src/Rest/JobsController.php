@@ -2,7 +2,7 @@
 /**
  * Jobs: list, detail, pause/resume/cancel/retry, tick, logs.
  *
- * @package SWBackupIt
+ * @package sw-backupit
  */
 
 declare(strict_types=1);
@@ -141,7 +141,7 @@ final class JobsController extends BaseController {
 			}
 			return new \WP_REST_Response( JobPresenter::to_rest( $this->services()->jobs()->find( $id ) ) );
 		} catch ( JobNotFoundException ) {
-			return $this->error( 'swbi_not_found', __( 'Job not found.', 'swbackupit' ), 404 );
+			return $this->error( 'swbi_not_found', __( 'Job not found.', 'sw-backupit' ), 404 );
 		} catch ( \Throwable $throwable ) {
 			return $this->from_exception( $throwable );
 		}
@@ -152,7 +152,7 @@ final class JobsController extends BaseController {
 		try {
 			$this->services()->jobs()->find( $id );
 		} catch ( JobNotFoundException ) {
-			return $this->error( 'swbi_not_found', __( 'Job not found.', 'swbackupit' ), 404 );
+			return $this->error( 'swbi_not_found', __( 'Job not found.', 'sw-backupit' ), 404 );
 		}
 		$result = $this->services()->events()->read( $id, (int) $request['after'], (int) $request['limit'], (string) $request['severity'], '' === (string) $request['phase'] ? null : (string) $request['phase'] );
 		return new \WP_REST_Response( $result );

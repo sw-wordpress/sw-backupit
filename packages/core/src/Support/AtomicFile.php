@@ -109,7 +109,7 @@ final class AtomicFile
         }
     }
 
-    /** Removes a directory tree. Only used on directories created by SWBackupIt. */
+    /** Removes a directory tree. Only used on directories created by sw-backupit. */
     public static function removeTree(string $directory): void
     {
         if (!is_dir($directory) || is_link($directory)) {

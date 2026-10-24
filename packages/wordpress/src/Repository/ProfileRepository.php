@@ -2,7 +2,7 @@
 /**
  * Backup profile persistence and REST (de)serialisation.
  *
- * @package SWBackupIt
+ * @package sw-backupit
  */
 
 declare(strict_types=1);
@@ -112,7 +112,7 @@ final class ProfileRepository {
 		$data         = $source->toArray();
 		$data['name'] = sprintf(
 			/* translators: %s: profile name */
-			__( '%s (copy)', 'swbackupit' ),
+			__( '%s (copy)', 'sw-backupit' ),
 			$source->name
 		);
 		return $this->create( $data );

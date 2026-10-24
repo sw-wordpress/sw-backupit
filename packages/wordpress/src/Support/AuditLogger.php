@@ -5,7 +5,7 @@
  *
  * Entries never contain secrets: only identifiers and the names of changed settings.
  *
- * @package SWBackupIt
+ * @package sw-backupit
  */
 
 declare(strict_types=1);

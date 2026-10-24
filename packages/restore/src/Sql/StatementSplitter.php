@@ -7,7 +7,7 @@ namespace SWBackupIt\Restore\Sql;
 use Generator;
 
 /**
- * Incremental SQL statement splitter for dump files (mysqldump / SWBackupIt dialect).
+ * Incremental SQL statement splitter for dump files (mysqldump / sw-backupit dialect).
  *
  * Understands quoted strings (with backslash and doubled-quote escapes), backtick identifiers,
  * `-- `, `#` and block comments, and the `DELIMITER` client command used around triggers/routines.

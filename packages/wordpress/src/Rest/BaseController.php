@@ -5,7 +5,7 @@
  * Every route has an explicit permission_callback with a dedicated capability. Cookie-authenticated
  * requests are CSRF protected by WordPress' REST nonce check (X-WP-Nonce / _wpnonce).
  *
- * @package SWBackupIt
+ * @package sw-backupit
  */
 
 declare(strict_types=1);
@@ -16,7 +16,7 @@ use SWBackupIt\WordPress\Services;
 
 abstract class BaseController {
 
-	public const NAMESPACE = 'swbackupit/v1';
+	public const NAMESPACE = 'sw-backupit/v1';
 
 	abstract public function register_routes(): void;
 
@@ -101,12 +101,12 @@ abstract class BaseController {
 	 */
 	protected function from_exception( \Throwable $throwable ): \WP_Error {
 		if ( $throwable instanceof \SWBackupIt\Core\Exception\JobNotFoundException ) {
-			return $this->error( 'swbi_not_found', __( 'Job not found.', 'swbackupit' ), 404 );
+			return $this->error( 'swbi_not_found', __( 'Job not found.', 'sw-backupit' ), 404 );
 		}
 		if ( $throwable instanceof \SWBackupIt\Core\Exception\SwbiException ) {
 			$status = isset( $throwable->context()['conflict'] ) ? 409 : 400;
 			return $this->error( 409 === $status ? 'swbi_conflict' : 'swbi_error', $throwable->getMessage(), $status );
 		}
-		return $this->error( 'swbi_error', __( 'An unexpected error occurred.', 'swbackupit' ), 500 );
+		return $this->error( 'swbi_error', __( 'An unexpected error occurred.', 'sw-backupit' ), 500 );
 	}
 }

@@ -1,6 +1,6 @@
 # Backup format (version 1)
 
-A backup is a directory that is **self-contained**: it can be read without WordPress, without the SWBackupIt
+A backup is a directory that is **self-contained**: it can be read without WordPress, without the sw-backupit
 database tables and without the plugin (`restore` application only).
 
 ```
@@ -16,11 +16,11 @@ database tables and without the plugin (`restore` application only).
 
 ```json
 {
-  "format": "swbackupit", "format_version": 1,
+  "format": "sw-backupit", "format_version": 1,
   "backup_id": "uuid", "job_id": "uuid",
   "created_at": "2026-10-24T02:30:00Z", "finished_at": "...",
   "type": "full|files|database|incremental|differential",
-  "generator": {"name": "swbackupit", "version": "0.1.0", "php": "8.3.16"},
+  "generator": {"name": "sw-backupit", "version": "0.1.0", "php": "8.3.16"},
   "source": {"site_url": "...", "home_url": "...", "wp_version": "...", "table_prefix": "wp_", "root_path": "...", "multisite": false},
   "profile": { "...": "immutable snapshot of the profile (no secrets)" },
   "parent": null,
@@ -33,6 +33,8 @@ database tables and without the plugin (`restore` application only).
   "checksums": true, "volume_size_bytes": 268435456, "warnings_count": 0
 }
 ```
+
+The reader also accepts the legacy format label `swbackupit` for backups created before the plugin rename.
 
 Rules: readers must reject a `format_version` newer than they support, validate every name against its pattern
 (`backup-\d{3,}\.zip`, `db-\d{4,}\.sql\.gz`) and must never use manifest strings as filesystem paths. The index
@@ -111,7 +113,7 @@ backup carry `b` (the backup id that holds `v`/`a`/`c`); entries without `b` ref
   The database is always exported completely (true incremental database backups are not implemented).
 * Without a usable base (none yet, or its local index is gone) a full backup is created instead and recorded with `type: full`.
 * Retention treats `requires` and `parent` as dependencies and never deletes a backup that a kept backup needs; the restore verifies
-  that all required bases are present (next to the backup directory) and refuses to start otherwise. `swbackupit-restore fetch --with-chain`
+  that all required bases are present (next to the backup directory) and refuses to start otherwise. `sw-backupit-restore fetch --with-chain`
   downloads a backup and its whole chain from a storage target.
 
 ## Encryption (SWBE1)
