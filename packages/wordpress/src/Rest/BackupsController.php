@@ -14,6 +14,7 @@ use SWBackupIt\Core\Exception\SwbiException;
 use SWBackupIt\Restore\Backup\BackupSet;
 use SWBackupIt\Restore\Files\Comparator;
 use SWBackupIt\WordPress\Runner\RestorePreparer;
+use SWBackupIt\WordPress\Runner\RestoreTestService;
 use SWBackupIt\Restore\Backup\Verifier;
 use SWBackupIt\WordPress\Support\Capabilities;
 use SWBackupIt\WordPress\Support\Settings;
@@ -147,6 +148,16 @@ final class BackupsController extends BaseController {
 		);
 		register_rest_route(
 			self::NAMESPACE,
+			'/backups/(?P<id>[0-9a-f-]{36})/restore-test',
+			array(
+				'methods'             => \WP_REST_Server::CREATABLE,
+				'callback'            => array( $this, 'restore_test' ),
+				'permission_callback' => $this->can( Capabilities::RESTORE ),
+				'args'                => $id,
+			)
+		);
+		register_rest_route(
+			self::NAMESPACE,
 			'/backups/(?P<id>[0-9a-f-]{36})/restore/prepare',
 			array(
 				'methods'             => \WP_REST_Server::CREATABLE,
@@ -192,6 +203,17 @@ final class BackupsController extends BaseController {
 			return $this->error( 'swbi_compare_failed', $exception->getMessage(), 422 );
 		}
 		return new \WP_REST_Response( $result->toArray() );
+	}
+
+	/**
+	 * Automated test restore into an isolated temp directory and scratch database; nothing productive is touched.
+	 */
+	public function restore_test( \WP_REST_Request $request ) {
+		try {
+			return new \WP_REST_Response( ( new RestoreTestService() )->run( (string) $request['id'] ) );
+		} catch ( SwbiException $exception ) {
+			return $this->error( 'swbi_not_found', $exception->getMessage(), 404 );
+		}
 	}
 
 	/**

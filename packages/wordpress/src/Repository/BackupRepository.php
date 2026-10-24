@@ -149,6 +149,27 @@ final class BackupRepository {
 		$wpdb->update( $this->table(), array( 'protected' => $protected ? 1 : 0 ), array( 'id' => $id ) ); // phpcs:ignore WordPress.DB.DirectDatabaseQuery
 	}
 
+	/**
+	 * Stores the documented result of a test restore (PLAN.md §22: restore result documentation).
+	 *
+	 * @param array<string, mixed> $result Result of the RestoreTester.
+	 */
+	public function record_restore_test( string $id, array $result ): void {
+		global $wpdb;
+		$row  = $this->find_row( $id );
+		$meta = null !== $row && is_string( $row['meta'] ) ? json_decode( $row['meta'], true ) : array();
+		$meta = is_array( $meta ) ? $meta : array();
+		$meta['restore_test'] = $result;
+		$wpdb->update( // phpcs:ignore WordPress.DB.DirectDatabaseQuery
+			$this->table(),
+			array(
+				'restore_tested_at' => Time::to_db( Time::now() ),
+				'meta'              => (string) wp_json_encode( $meta ),
+			),
+			array( 'id' => $id )
+		);
+	}
+
 	public function mark_verified( string $id, string $status ): void {
 		global $wpdb;
 		$wpdb->update( // phpcs:ignore WordPress.DB.DirectDatabaseQuery

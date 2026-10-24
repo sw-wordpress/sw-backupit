@@ -66,6 +66,11 @@ final class WpBackupCatalog implements BackupCatalogInterface {
 			if ( null === $target ) {
 				continue;
 			}
+			$lock_days = (int) ( $target->config['lock_days'] ?? 0 );
+			$created   = Time::from_db( (string) ( $this->backups->find_row( $backupId )['created_at'] ?? '' ) );
+			if ( $lock_days > 0 && null !== $created && $created > Time::now()->modify( '-' . $lock_days . ' days' ) ) {
+				throw new SwbiException( sprintf( 'Storage target "%s" retains backups for %d days; the backup is kept.', $target->name, $lock_days ) );
+			}
 			if ( $target->immutable ) {
 				throw new SwbiException( sprintf( 'Storage target "%s" is immutable; the backup copy is retained.', $target->name ) );
 			}

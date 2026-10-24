@@ -87,7 +87,10 @@ final class AuditLogger {
 				'object_type' => substr( $object_type, 0, 30 ),
 				'object_id'   => substr( $object_id, 0, 64 ),
 				'context'     => array() === $context ? null : wp_json_encode( \SWBackupIt\Core\Log\Redactor::redact( $context ), JSON_UNESCAPED_SLASHES ),
-			)
+			),
+			// Explicit formats: wpdb::$field_types maps a column named "object_id" to %d (WordPress core tables), which would
+			// silently cast our string ids to numbers.
+			array( '%s', '%d', '%s', '%s', '%s', '%s', '%s', '%s' )
 		);
 	}
 

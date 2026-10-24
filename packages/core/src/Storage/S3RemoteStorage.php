@@ -27,6 +27,8 @@ final class S3RemoteStorage extends FlysystemRemoteStorage
         private readonly string $bucket,
         private readonly string $prefix,
         RetryPolicy $retry = new RetryPolicy(),
+        /** @var array{mode: string, days: int}|null S3 Object Lock applied to every uploaded object (bucket must have Object Lock enabled). */
+        private readonly ?array $objectLock = null,
     ) {
         parent::__construct($filesystem, $retry, 's3');
     }
@@ -51,7 +53,7 @@ final class S3RemoteStorage extends FlysystemRemoteStorage
                 'key' => $key,
                 'part_size' => self::PART_SIZE,
                 'concurrency' => 1, // bounded memory (parts are read sequentially); resumable at part granularity
-                'params' => ['Metadata' => ['sha256' => $hash]],
+                'params' => ['Metadata' => ['sha256' => $hash]] + $this->lockParameters(),
                 'before_upload' => static function (\Aws\CommandInterface $command) use ($onProgress): void {
                     if ($onProgress !== null) {
                         $body = $command['Body'] ?? null;
@@ -84,6 +86,21 @@ final class S3RemoteStorage extends FlysystemRemoteStorage
 
             return $hash;
         }, static fn (\Throwable $throwable): bool => false);
+    }
+
+    /**
+     * @return array<string, mixed>
+     */
+    private function lockParameters(): array
+    {
+        if ($this->objectLock === null) {
+            return [];
+        }
+
+        return [
+            'ObjectLockMode' => $this->objectLock['mode'],
+            'ObjectLockRetainUntilDate' => new \DateTimeImmutable('+' . $this->objectLock['days'] . ' days'),
+        ];
     }
 
     private function loadState(?string $path, string $hash, int $size): ?\Aws\Multipart\UploadState
@@ -147,6 +164,19 @@ final class S3RemoteStorage extends FlysystemRemoteStorage
         return (int) ($head['ContentLength'] ?? -1) === $size && isset($metadata['sha256']) && hash_equals($sha256, (string) $metadata['sha256']);
     }
 
+    /** Retention end of an object when Object Lock is active (null = not locked/unknown). */
+    public function retainUntil(string $remotePath): ?\DateTimeImmutable
+    {
+        try {
+            $head = $this->client->headObject(['Bucket' => $this->bucket, 'Key' => $this->key($remotePath)]);
+        } catch (AwsException) {
+            return null;
+        }
+        $until = $head['ObjectLockRetainUntilDate'] ?? null;
+
+        return $until instanceof \DateTimeInterface ? \DateTimeImmutable::createFromInterface($until) : null;
+    }
+
     public function usage(): ?int
     {
         $total = 0;
@@ -165,7 +195,7 @@ final class S3RemoteStorage extends FlysystemRemoteStorage
 
     public function capabilities(): array
     {
-        return ['multipart', 'usage', 'checksum_metadata'];
+        return $this->objectLock === null ? ['multipart', 'usage', 'checksum_metadata'] : ['multipart', 'usage', 'checksum_metadata', 'object_lock'];
     }
 
     private function key(string $remotePath): string

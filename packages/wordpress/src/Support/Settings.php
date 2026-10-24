@@ -51,10 +51,17 @@ final class Settings {
 				),
 			),
 			'pre_update_backup'        => array(
-				'core'       => false,
-				'plugins'    => false,
-				'themes'     => false,
-				'profile_id' => null,
+				'core'             => false,
+				'plugins'          => false,
+				'themes'           => false,
+				'profile_id'       => null,
+				'max_age_minutes'  => 60,
+				'wait_seconds'     => 20,
+				'block_on_failure' => false,
+			),
+			'restore_test'             => array(
+				'enabled'       => false,
+				'interval_days' => 7,
 			),
 			'delete_data_on_uninstall' => false,
 		);

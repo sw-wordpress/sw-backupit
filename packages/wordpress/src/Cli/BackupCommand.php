@@ -244,4 +244,27 @@ final class BackupCommand {
 		}
 		\WP_CLI::success( 'Restore completed.' );
 	}
+
+	/**
+	 * Runs an automated test restore in an isolated directory and scratch database and prints the result.
+	 *
+	 * ## OPTIONS
+	 *
+	 * <id>
+	 * : Backup id.
+	 *
+	 * @subcommand test-restore
+	 *
+	 * @param array<int, string>   $args       Positional arguments.
+	 * @param array<string, mixed> $assoc_args Associative arguments.
+	 */
+	public function test_restore( array $args, array $assoc_args ): void {
+		try {
+			$result = ( new \SWBackupIt\WordPress\Runner\RestoreTestService() )->run( (string) ( $args[0] ?? '' ) );
+		} catch ( SwbiException $exception ) {
+			\WP_CLI::error( $exception->getMessage() );
+		}
+		\WP_CLI::line( (string) wp_json_encode( $result, JSON_PRETTY_PRINT ) );
+		'failed' === $result['status'] ? \WP_CLI::error( 'The test restore failed.' ) : \WP_CLI::success( 'Test restore: ' . $result['status'] );
+	}
 }

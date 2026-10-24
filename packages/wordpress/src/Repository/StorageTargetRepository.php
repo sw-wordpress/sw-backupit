@@ -28,9 +28,9 @@ final class StorageTargetRepository implements StorageResolverInterface {
 	);
 
 	private const CONFIG_KEYS = array(
-		'local' => array( 'path' ),
-		'sftp'  => array( 'host', 'port', 'username', 'root', 'host_fingerprint', 'trust_unknown_host', 'allow_private_network', 'timeout' ),
-		's3'    => array( 'endpoint', 'region', 'bucket', 'prefix', 'path_style', 'allow_private_network' ),
+		'local' => array( 'path', 'lock_days' ),
+		'sftp'  => array( 'host', 'port', 'username', 'root', 'host_fingerprint', 'trust_unknown_host', 'allow_private_network', 'timeout', 'lock_days' ),
+		's3'    => array( 'endpoint', 'region', 'bucket', 'prefix', 'path_style', 'allow_private_network', 'object_lock', 'lock_days' ),
 	);
 
 	private function table(): string {

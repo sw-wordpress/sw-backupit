@@ -106,9 +106,18 @@ final class StorageFactory
         if ($endpoint !== '') {
             $options['endpoint'] = $endpoint;
         }
+        $lock = null;
+        if (is_array($config['object_lock'] ?? null)) {
+            $mode = strtoupper((string) ($config['object_lock']['mode'] ?? ''));
+            $days = (int) ($config['object_lock']['days'] ?? 0);
+            if (!in_array($mode, ['GOVERNANCE', 'COMPLIANCE'], true) || $days < 1 || $days > 3650) {
+                throw new ConfigurationException('Object lock needs mode GOVERNANCE or COMPLIANCE and 1-3650 retention days.');
+            }
+            $lock = ['mode' => $mode, 'days' => $days];
+        }
         $client = new S3Client($options);
         $filesystem = new Filesystem(new AwsS3V3Adapter($client, $bucket, $prefix));
 
-        return new S3RemoteStorage($filesystem, $client, $bucket, $prefix, $this->retry);
+        return new S3RemoteStorage($filesystem, $client, $bucket, $prefix, $this->retry, $lock);
     }
 }
