@@ -29,7 +29,7 @@ class FlysystemRemoteStorage implements RemoteStorageInterface
     ) {
     }
 
-    public function upload(string $localPath, string $remotePath, ?callable $onProgress = null): string
+    public function upload(string $localPath, string $remotePath, ?callable $onProgress = null, ?string $resumeStatePath = null): string
     {
         if (!is_file($localPath)) {
             throw new IntegrityException('The local file to upload does not exist.', ['file' => basename($localPath)]);

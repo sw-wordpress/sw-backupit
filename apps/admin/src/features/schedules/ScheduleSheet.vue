@@ -165,7 +165,9 @@ async function save(): Promise<void> {
           outlined
           dense
           type="time"
-          :label="form.frequency === 'hourly' ? t('schedules.hourlyMinute') : t('schedules.timeOfDay')"
+          :label="
+            form.frequency === 'hourly' ? t('schedules.hourlyMinute') : t('schedules.timeOfDay')
+          "
           :hint="form.frequency === 'hourly' ? t('schedules.hourlyMinuteHint') : undefined"
           :rules="[(v: string) => /^\d{2}:\d{2}$/.test(v) || t('common.required')]"
           lazy-rules="ondemand"
@@ -198,7 +200,7 @@ async function save(): Promise<void> {
             v-model="form.cron_expression"
             outlined
             dense
-            class="swbi-mono"
+            input-class="swbi-mono"
             :label="t('schedules.cronExpression')"
             placeholder="30 2 * * *"
             autocomplete="off"

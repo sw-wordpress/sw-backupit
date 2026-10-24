@@ -65,6 +65,13 @@ const VIEWS = [
                 .getByRole('button', { name: /Wiederherstellung vorbereiten|Prepare restore/ })
                 .click();
             await p.waitForTimeout(700);
+            const width = p.viewportSize().width;
+            await p.screenshot({ path: `screenshots/backup-restore-confirm-${width}.png` });
+            await p.getByRole('checkbox').check();
+            const source = (await p.locator('.swbi-rs__target dd').nth(2).textContent()) ?? '';
+            await p.locator('.swbi-rs input[type="text"]').fill(source.trim().slice(0, 8));
+            await p.getByRole('button', { name: /Token anzeigen|Show token/ }).click();
+            await p.waitForTimeout(500);
         },
     },
     {
@@ -101,6 +108,15 @@ const VIEWS = [
         },
     },
     { name: 'settings', hash: '/settings' },
+  {
+    name: 'keys-created',
+    hash: '/settings',
+    action: async (p) => {
+      await p.getByLabel(/^(Schlüssel-ID|Key ID)/).fill('staging-2026');
+      await p.getByRole('button', { name: /Schlüssel erstellen|Create key/ }).click();
+      await p.waitForTimeout(800);
+    },
+  },
 ];
 
 const MODES = [

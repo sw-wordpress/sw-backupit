@@ -228,6 +228,24 @@ final class JobEngineTest extends TestCase
         self::assertSame(1, $calls);
     }
 
+    public function testStepEventsAreEmittedAndNeverBreakTheBackup(): void
+    {
+        $runner = $this->setUpFilesBackup();
+        $seen = [];
+        $this->dispatcher->listen(Events::BEFORE_STEP, static function (array $payload) use (&$seen): void {
+            $seen[] = 'before:' . $payload['step'];
+        });
+        $this->dispatcher->listen(Events::AFTER_STEP, static function (array $payload) use (&$seen): void {
+            $seen[] = 'after:' . $payload['step'];
+            throw new \RuntimeException('observer bug');
+        });
+        $job = $this->newJob();
+        self::assertSame(JobStatus::Completed, $runner->runToCompletion($job->id, 5.0));
+        self::assertContains('before:preflight', $seen);
+        self::assertContains('after:finalize', $seen);
+        self::assertLessThan(array_search('before:scan', $seen, true), array_search('after:preflight', $seen, true));
+    }
+
     public function testBlockingPolicyIsRejectedForAfterEvents(): void
     {
         $dispatcher = new EventDispatcher();

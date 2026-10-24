@@ -67,7 +67,10 @@ function describe(s: Schedule): string {
     return t('schedules.every.hourly', { minute: s.time_of_day.split(':')[1] ?? '00' });
   }
   if (s.frequency === 'weekly') {
-    return t('schedules.every.weekly', { day: t(`schedules.weekdays.${s.weekday}`), time: s.time_of_day });
+    return t('schedules.every.weekly', {
+      day: t(`schedules.weekdays.${s.weekday}`),
+      time: s.time_of_day,
+    });
   }
   if (s.frequency === 'monthly') {
     return t('schedules.every.monthly', { day: s.monthday, time: s.time_of_day });

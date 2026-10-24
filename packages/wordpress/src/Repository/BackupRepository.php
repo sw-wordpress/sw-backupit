@@ -55,7 +55,12 @@ final class BackupRepository {
 			'site_url'        => (string) ( $source['site_url'] ?? '' ),
 			'wp_version'      => (string) ( $source['wp_version'] ?? '' ),
 			'manifest_sha256' => hash_file( 'sha256', rtrim( $backup_dir, '/' ) . '/manifest.json' ) ?: null,
-			'meta'            => (string) wp_json_encode( array( 'warnings' => $manifest->toArray()['warnings_count'] ?? 0 ) ),
+			'meta'            => (string) wp_json_encode(
+				array(
+					'warnings' => $manifest->toArray()['warnings_count'] ?? 0,
+					'requires' => $manifest->requires(),
+				)
+			),
 		);
 		$exists = $this->find_row( $manifest->backupId() );
 		if ( null === $exists ) {

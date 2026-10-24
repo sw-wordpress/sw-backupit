@@ -114,7 +114,7 @@ final class ManifestStep implements BackupStepInterface
             ],
             'profile' => $snapshot,
             'parent' => $this->parent($job),
-            'chain' => ['requires' => array_values(array_map('strval', array_keys((array) ($job->checkpoint(Step::Archive)['requires'] ?? []))))],
+            'chain' => ['requires' => array_map('strval', array_keys((array) ($job->checkpoint(Step::Archive)['requires'] ?? [])))],
             'files' => $files,
             'volumes' => Artifacts::volumes($job),
             'database' => $database,

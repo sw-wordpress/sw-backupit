@@ -8,8 +8,6 @@ use Aws\Exception\AwsException;
 use Aws\S3\MultipartUploader;
 use Aws\S3\S3Client;
 use League\Flysystem\FilesystemOperator;
-use SWBackupIt\Core\Archive\RangeStream;
-use SWBackupIt\Core\Archive\ReadResult;
 use SWBackupIt\Core\Exception\IntegrityException;
 use SWBackupIt\Core\Exception\SwbiException;
 use SWBackupIt\Core\Exception\TransientException;
@@ -33,7 +31,7 @@ final class S3RemoteStorage extends FlysystemRemoteStorage
         parent::__construct($filesystem, $retry, 's3');
     }
 
-    public function upload(string $localPath, string $remotePath, ?callable $onProgress = null): string
+    public function upload(string $localPath, string $remotePath, ?callable $onProgress = null, ?string $resumeStatePath = null): string
     {
         if (!is_file($localPath)) {
             throw new IntegrityException('The local file to upload does not exist.', ['file' => basename($localPath)]);
@@ -41,35 +39,97 @@ final class S3RemoteStorage extends FlysystemRemoteStorage
         $key = $this->key($remotePath);
         // Hash first (local read only): the metadata must be known before the object is created.
         $hash = hash_file('sha256', $localPath);
-        if ($hash === false) {
+        $size = filesize($localPath);
+        $mtime = filemtime($localPath);
+        if ($hash === false || $size === false) {
             throw new IntegrityException('Cannot hash the local file.');
         }
 
-        return $this->retry->run(function () use ($localPath, $key, $hash, $onProgress): string {
-            $result = new ReadResult();
-            $result->progress = $onProgress;
-            $stream = RangeStream::open($localPath, 0, null, $result);
-            try {
-                $uploader = new MultipartUploader($this->client, $stream, [
-                    'bucket' => $this->bucket,
-                    'key' => $key,
-                    'part_size' => self::PART_SIZE,
-                    'params' => ['Metadata' => ['sha256' => $hash]],
-                ]);
-                $uploader->upload();
-            } catch (\Throwable $throwable) {
-                throw $this->translate($throwable, 'upload');
-            } finally {
-                if (is_resource($stream)) {
-                    fclose($stream);
-                }
+        return $this->retry->run(function () use ($localPath, $key, $hash, $size, $mtime, $onProgress, $resumeStatePath): string {
+            $options = [
+                'bucket' => $this->bucket,
+                'key' => $key,
+                'part_size' => self::PART_SIZE,
+                'concurrency' => 1, // bounded memory (parts are read sequentially); resumable at part granularity
+                'params' => ['Metadata' => ['sha256' => $hash]],
+                'before_upload' => static function (\Aws\CommandInterface $command) use ($onProgress): void {
+                    if ($onProgress !== null) {
+                        $body = $command['Body'] ?? null;
+                        $onProgress($body instanceof \Psr\Http\Message\StreamInterface ? (int) $body->getSize() : 0);
+                    }
+                },
+            ];
+            $state = $this->loadState($resumeStatePath, $hash, $size);
+            if ($state !== null) {
+                $options['state'] = $state;
             }
-            if (!hash_equals($hash, $result->sha256())) {
+            $uploader = new MultipartUploader($this->client, $localPath, $options);
+            try {
+                $uploader->upload();
+            } catch (\Aws\Exception\MultipartUploadException $exception) {
+                $this->saveState($resumeStatePath, $exception->getState(), $hash, $size);
+                throw $this->translate($exception->getPrevious() ?? $exception, 'upload');
+            } catch (\Throwable $throwable) {
+                // Whatever interrupted the transfer (callback, network, process signal): keep the completed parts.
+                $this->saveState($resumeStatePath, $uploader->getState(), $hash, $size);
+                throw $this->translate($throwable, 'upload');
+            }
+            clearstatcache(true, $localPath);
+            if (filesize($localPath) !== $size || filemtime($localPath) !== $mtime) {
                 throw new IntegrityException('The local file changed while it was being uploaded.');
+            }
+            if ($resumeStatePath !== null) {
+                @unlink($resumeStatePath);
             }
 
             return $hash;
         }, static fn (\Throwable $throwable): bool => false);
+    }
+
+    private function loadState(?string $path, string $hash, int $size): ?\Aws\Multipart\UploadState
+    {
+        if ($path === null || !is_file($path)) {
+            return null;
+        }
+        $data = json_decode((string) file_get_contents($path), true);
+        if (
+            !is_array($data) || ($data['sha256'] ?? '') !== $hash || (int) ($data['size'] ?? -1) !== $size
+            || !is_array($data['id'] ?? null) || !is_array($data['parts'] ?? null) || !is_numeric($data['part_size'] ?? null)
+        ) {
+            @unlink($path);
+
+            return null;
+        }
+        // Plain JSON, no unserialize(): rebuild the SDK state from upload id, part size and completed parts.
+        $state = new \Aws\Multipart\UploadState(array_map('strval', $data['id']));
+        $state->setPartSize((int) $data['part_size']);
+        $state->setStatus(\Aws\Multipart\UploadState::INITIATED);
+        if (isset($data['upload_id']) && is_string($data['upload_id'])) {
+            $state->setUploadId('UploadId', $data['upload_id']);
+        }
+        foreach ($data['parts'] as $number => $part) {
+            if (is_array($part) && isset($part['PartNumber'], $part['ETag'])) {
+                $state->markPartAsUploaded((int) $number, ['PartNumber' => (int) $part['PartNumber'], 'ETag' => (string) $part['ETag']]);
+            }
+        }
+
+        return $state;
+    }
+
+    private function saveState(?string $path, \Aws\Multipart\UploadState $state, string $hash, int $size): void
+    {
+        if ($path === null) {
+            return;
+        }
+        $id = $state->getId();
+        file_put_contents($path, (string) json_encode([
+            'sha256' => $hash,
+            'size' => $size,
+            'id' => array_diff_key($id, ['UploadId' => true]),
+            'upload_id' => $id['UploadId'] ?? null,
+            'part_size' => $state->getPartSize(),
+            'parts' => $state->getUploadedParts(),
+        ]));
     }
 
     public function verify(string $remotePath, int $size, string $sha256): bool

@@ -282,16 +282,14 @@ const showUpload = computed(() => {
           <div>
             <strong>{{ t('jobs.failedWith') }}</strong>
             <p>{{ jobErrorText(job.error) }}</p>
-            <p
-              v-if="typeof job.error === 'object' && job.error.code"
-              class="swbi-mono"
-            >
+            <p v-if="typeof job.error === 'object' && job.error.code" class="swbi-mono">
               {{ job.error.code }}
             </p>
           </div>
         </div>
         <p v-if="job.status === 'retry_waiting'" class="swbi-muted swbi-jd__note">
-          <q-icon name="r_schedule" size="16px" aria-hidden="true" /> {{
+          <q-icon name="r_schedule" size="16px" aria-hidden="true" />
+          {{
             job.next_retry_at
               ? t('jobs.retryWaitingAt', {
                   time: fmt.dateTime(job.next_retry_at),

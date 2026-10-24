@@ -213,7 +213,10 @@ async function save(): Promise<void> {
           />
           <TagInput v-model="form.db_tables_exclude" :label="t('profiles.tablesExclude')" />
           <q-toggle v-model="form.db_include_foreign_tables" :label="t('profiles.foreignTables')" />
-          <q-toggle v-model="form.db_consistent_snapshot" :label="t('profiles.consistentSnapshot')" />
+          <q-toggle
+            v-model="form.db_consistent_snapshot"
+            :label="t('profiles.consistentSnapshot')"
+          />
           <p class="swbi-note" role="note">
             <q-icon name="r_info" size="18px" aria-hidden="true" />
             {{ t('profiles.consistentSnapshotInfo') }}
@@ -284,7 +287,11 @@ async function save(): Promise<void> {
             :loading="keysLoading"
             :options="keyOptions"
             :label="t('profiles.keyId')"
-            :hint="keyOptions.length === 0 && !keysLoading ? t('profiles.noKeys') : t('profiles.keyIdHint')"
+            :hint="
+              keyOptions.length === 0 && !keysLoading
+                ? t('profiles.noKeys')
+                : t('profiles.keyIdHint')
+            "
             :rules="[(v: string) => v.trim() !== '' || t('common.required')]"
             lazy-rules="ondemand"
           />

@@ -33,6 +33,8 @@ final class WpBackupCatalog implements BackupCatalogInterface {
 			$created   = Time::from_db( (string) $row['created_at'] );
 			$type      = BackupType::tryFrom( (string) $row['type'] );
 			$reliable  = null !== $created && null !== $type && 'complete' === $row['status'] && 'corrupt' !== $row['status'];
+			$meta      = is_string( $row['meta'] ) ? json_decode( $row['meta'], true ) : array();
+			$requires  = is_array( $meta ) && is_array( $meta['requires'] ?? null ) ? array_values( array_filter( $meta['requires'], 'is_string' ) ) : array();
 			$records[] = new BackupRecord(
 				(string) $row['id'],
 				$type ?? BackupType::Full,
@@ -41,7 +43,8 @@ final class WpBackupCatalog implements BackupCatalogInterface {
 				is_string( $row['parent_id'] ) && '' !== $row['parent_id'] ? $row['parent_id'] : null,
 				(bool) $row['protected'],
 				$reliable,
-				null === $row['profile_id'] ? null : (int) $row['profile_id']
+				null === $row['profile_id'] ? null : (int) $row['profile_id'],
+				$requires
 			);
 		}
 		return $records;

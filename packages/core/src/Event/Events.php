@@ -18,6 +18,12 @@ final class Events
     public const AFTER_RESTORE = 'after_restore';
     public const RESTORE_FAILED = 'restore_failed';
 
+    // Fine grained, always isolated (never vetoable) observation points around every job step.
+    public const BEFORE_STEP = 'before_step';
+    public const AFTER_STEP = 'after_step';
+    public const STEP_FAILED = 'step_failed';
+    public const JOB_STATE_CHANGED = 'job_state_changed';
+
     /** Events whose listeners may veto the operation by throwing. */
     public const VETOABLE = [
         self::BEFORE_BACKUP,

@@ -174,7 +174,9 @@ async function copyToken(): Promise<void> {
           </div>
           <div>
             <dt>{{ t('backups.restore.source') }}</dt>
-            <dd class="swbi-mono">{{ fmt.shortId(backup.id) }} · {{ fmt.dateTime(backup.created_at) }}</dd>
+            <dd class="swbi-mono">
+              {{ fmt.shortId(backup.id) }} · {{ fmt.dateTime(backup.created_at) }}
+            </dd>
           </div>
         </dl>
 

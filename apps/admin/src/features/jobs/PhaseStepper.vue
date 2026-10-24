@@ -54,7 +54,9 @@ const steps = computed(() =>
       :class="`swbi-step--${step.state}`"
       :aria-current="step.state === 'current' ? 'step' : undefined"
     >
-      <span class="swbi-step__dot"><q-icon :name="step.icon" size="18px" aria-hidden="true" /></span>
+      <span class="swbi-step__dot"
+        ><q-icon :name="step.icon" size="18px" aria-hidden="true"
+      /></span>
       <span class="swbi-step__label">{{ t(`phases.${step.phase}`) }}</span>
       <span class="swbi-sr-only">{{ t(`jobs.stepState.${step.state}`) }}</span>
     </li>

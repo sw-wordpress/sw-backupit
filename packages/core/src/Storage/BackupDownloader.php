@@ -17,6 +17,31 @@ use SWBackupIt\Core\Support\PathGuard;
 final class BackupDownloader
 {
     /**
+     * Downloads a backup together with every base backup its index references (incremental/differential chains).
+     *
+     * @param callable(string): void|null $onFile
+     * @return list<string> Downloaded backup ids (requested backup first).
+     */
+    public function downloadWithAncestors(RemoteStorageInterface $storage, string $backupId, string $destinationRoot, ?callable $onFile = null): array
+    {
+        $done = [];
+        $queue = [$backupId];
+        while ($queue !== []) {
+            $id = array_shift($queue);
+            if (in_array($id, $done, true)) {
+                continue;
+            }
+            $directory = $this->download($storage, $id, $destinationRoot, $onFile);
+            $done[] = $id;
+            foreach (Manifest::read($directory)->requires() as $required) {
+                $queue[] = $required;
+            }
+        }
+
+        return $done;
+    }
+
+    /**
      * @param callable(string): void|null $onFile Called with the relative path before each file is fetched.
      * @return string The local backup directory.
      */

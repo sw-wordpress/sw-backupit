@@ -30,6 +30,9 @@ final class HookBridge {
 		Events::BEFORE_RESTORE,
 		Events::AFTER_RESTORE,
 		Events::RESTORE_FAILED,
+		Events::BEFORE_STEP,
+		Events::AFTER_STEP,
+		Events::STEP_FAILED,
 	);
 
 	public function register( EventDispatcherInterface $dispatcher ): void {

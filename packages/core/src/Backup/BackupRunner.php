@@ -137,7 +137,15 @@ final class BackupRunner
                 $logger->setPhase($step->step()->value);
                 $this->machine->enterStep($job, $step->step());
                 $commit();
-                $outcome = $step->run($context);
+                $stepPayload = ['job_id' => $job->id, 'backup_id' => $job->backupId, 'step' => $step->step()->value, 'status' => $job->status->value];
+                $this->dispatcher->dispatch(Events::BEFORE_STEP, $stepPayload);
+                try {
+                    $outcome = $step->run($context);
+                } catch (Throwable $stepError) {
+                    $this->dispatcher->dispatch(Events::STEP_FAILED, $stepPayload + ['error' => $stepError instanceof SwbiException ? $stepError->getMessage() : $stepError::class]);
+                    throw $stepError;
+                }
+                $this->dispatcher->dispatch(Events::AFTER_STEP, $stepPayload + ['outcome' => $outcome === StepOutcome::Done ? 'done' : 'yield']);
                 $job->warningsCount = max($job->warningsCount, $logger->warningCount());
                 if ($outcome === StepOutcome::Done) {
                     $job->completedSteps[] = $step->step()->value;

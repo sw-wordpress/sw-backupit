@@ -69,6 +69,7 @@ const baseProfile = {
   db_tables_include: [] as string[],
   db_tables_exclude: ['wp_actionscheduler_logs'],
   db_include_foreign_tables: false,
+  db_consistent_snapshot: false,
   compression: { method: 'deflate' as const, level: 6 },
   volume_size_mb: 256,
   limits: { time_budget_seconds: 20, memory_mb: 128, batch_rows: 1000 },
@@ -97,6 +98,7 @@ let profiles: Profile[] = [
       max_count: 10,
       max_age_days: 0,
       max_storage_mb: 0,
+      delete_local_after_upload: false,
       gfs: { daily: 7, weekly: 4, monthly: 6, yearly: 1 },
     },
     created_at: iso(START - 90 * DAY),
@@ -116,6 +118,7 @@ let profiles: Profile[] = [
       max_count: 48,
       max_age_days: 3,
       max_storage_mb: 0,
+      delete_local_after_upload: false,
       gfs: { daily: 0, weekly: 0, monthly: 0, yearly: 0 },
     },
     created_at: iso(START - 60 * DAY),
@@ -136,6 +139,7 @@ let profiles: Profile[] = [
       max_count: 0,
       max_age_days: 30,
       max_storage_mb: 0,
+      delete_local_after_upload: false,
       gfs: { daily: 0, weekly: 0, monthly: 0, yearly: 0 },
     },
     created_at: iso(START - 30 * DAY),
@@ -155,6 +159,7 @@ let profiles: Profile[] = [
       max_count: 6,
       max_age_days: 0,
       max_storage_mb: 0,
+      delete_local_after_upload: false,
       gfs: { daily: 0, weekly: 0, monthly: 0, yearly: 0 },
     },
     created_at: iso(START - 12 * DAY),
@@ -173,6 +178,8 @@ let schedules: Schedule[] = [
     cron_expression: '',
     timezone: 'Europe/Berlin',
     time_of_day: '02:30',
+    weekday: 1,
+    monthday: 1,
     retry: { max_attempts: 3, backoff_seconds: 600 },
     next_run_at: iso(START + 9 * HOUR),
     last_run_at: iso(START - 15 * HOUR),
@@ -188,6 +195,8 @@ let schedules: Schedule[] = [
     cron_expression: '0 * * * *',
     timezone: 'UTC',
     time_of_day: '',
+    weekday: 0,
+    monthday: 1,
     retry: { max_attempts: 2, backoff_seconds: 300 },
     next_run_at: iso(START + 25 * MIN),
     last_run_at: iso(START - 35 * MIN),
@@ -204,6 +213,8 @@ let schedules: Schedule[] = [
     cron_expression: '',
     timezone: 'Europe/Berlin',
     time_of_day: '04:00',
+    weekday: 0,
+    monthday: 1,
     retry: { max_attempts: 1, backoff_seconds: 900 },
     next_run_at: null,
     last_run_at: null,
@@ -236,6 +247,10 @@ let targets: StorageTarget[] = [
       port: 22,
       username: 'wpbackup',
       root: '/srv/backups/site',
+      host_fingerprint: 'SHA256:3b1fK0mNq8vXq1Zb7yQ2cQ0aVwJ1y9lY2tqf8GxN4uE',
+      trust_unknown_host: false,
+      allow_private_network: false,
+      timeout: 30,
     },
     credentials_set: true,
     immutable: false,
@@ -255,6 +270,7 @@ let targets: StorageTarget[] = [
       bucket: 'site-backups',
       prefix: 'wp/',
       path_style: false,
+      allow_private_network: false,
     },
     credentials_set: true,
     immutable: true,
@@ -266,6 +282,10 @@ let targets: StorageTarget[] = [
   },
 ];
 let nextTargetId = 4;
+let keys: Array<{ id: string; source: string }> = [
+  { id: 'primary-2026', source: 'stored' },
+  { id: 'offsite', source: 'generated' },
+];
 
 let settings: Settings = {
   staging_dir: '/var/backups/swbackupit/staging',
@@ -294,7 +314,7 @@ function makeBackups(): Backup[] {
         : 400_000_000 + Math.floor(rand() * 600_000_000);
     const created = START - (i * 7 + 5) * HOUR * (1 + Math.floor(i / 12));
     const status =
-      i === 6 ? 'corrupt' : i === 11 ? 'incomplete' : i % 4 === 0 ? 'verified' : 'complete';
+      i === 6 ? 'corrupt' : i === 11 ? 'complete' : i % 4 === 0 ? 'verified' : 'complete';
     out.push({
       id: uuid(),
       profile_id: profile.id,
@@ -338,7 +358,9 @@ function makeFinishedJobs(): Job[] {
       profile_name: profile.name,
       type: profile.type,
       status: failed ? 'failed' : i === 9 ? 'cancelled' : 'completed',
-      phase: failed ? 'uploading' : 'finalizing',
+      phase: failed ? 'upload' : 'notify',
+      trigger: i % 3 === 0 ? 'schedule' : i % 7 === 0 ? 'cli' : 'manual',
+      next_retry_at: null,
       started_at: iso(started),
       updated_at: iso(started + dur * 1000),
       finished_at: iso(started + dur * 1000),
@@ -366,7 +388,12 @@ function makeFinishedJobs(): Job[] {
           error: failed && tid === 3 ? 'Access denied (HTTP 403)' : null,
         })),
       },
-      error: failed ? 'Upload to "Wasabi bucket" failed: Access denied (HTTP 403)' : null,
+      error: failed
+        ? {
+            code: 'swbi_storage_error',
+            message: 'Upload to "Wasabi bucket" failed: Access denied (HTTP 403)',
+          }
+        : null,
       warnings_count: i % 5 === 0 ? 2 : 0,
       retry_count: failed ? 3 : 0,
       backup_id: backup?.id ?? null,
@@ -387,13 +414,17 @@ const sims = new Map<string, Sim>();
 
 const PHASE_PLAN: Array<{ until: number; phase: string; status: JobStatus }> = [
   { until: 4, phase: 'preflight', status: 'preparing' },
-  { until: 12, phase: 'scanning', status: 'scanning' },
-  { until: 24, phase: 'exporting', status: 'exporting' },
-  { until: 66, phase: 'archiving', status: 'archiving' },
-  { until: 72, phase: 'encrypting', status: 'encrypting' },
-  { until: 80, phase: 'verifying', status: 'verifying' },
-  { until: 97, phase: 'uploading', status: 'uploading' },
-  { until: 100.1, phase: 'finalizing', status: 'uploading' },
+  { until: 12, phase: 'scan', status: 'scanning' },
+  { until: 24, phase: 'export', status: 'exporting' },
+  { until: 62, phase: 'archive', status: 'archiving' },
+  { until: 66, phase: 'encrypt', status: 'encrypting' },
+  { until: 72, phase: 'verify_local', status: 'verifying' },
+  { until: 75, phase: 'manifest', status: 'archiving' },
+  { until: 90, phase: 'upload', status: 'uploading' },
+  { until: 95, phase: 'verify_remote', status: 'verifying' },
+  { until: 97, phase: 'finalize', status: 'uploading' },
+  { until: 99, phase: 'retention', status: 'uploading' },
+  { until: 100.1, phase: 'notify', status: 'uploading' },
 ];
 
 function log(
@@ -415,6 +446,8 @@ function startJob(profile: Profile, percent = 0): Job {
     type: profile.type,
     status: 'preparing',
     phase: 'preflight',
+    trigger: 'manual',
+    next_retry_at: null,
     started_at: iso(now - (percent / 100) * 100_000),
     updated_at: iso(now),
     finished_at: null,
@@ -476,7 +509,7 @@ function advance(job: Job, boost = 0): void {
   let percent = Math.min(100, job.progress.percent + dt * 1.0 + boost);
   const profile = profiles.find((p) => p.id === job.profile_id);
   const encrypted = profile?.encryption.enabled ?? false;
-  if (!encrypted && percent > 66 && percent < 72) percent = 72;
+  if (!encrypted && percent > 62 && percent < 66) percent = 66;
   const step = PHASE_PLAN.find((s) => percent < s.until) ?? PHASE_PLAN[PHASE_PLAN.length - 1]!;
   const p = job.progress;
   p.percent = Math.round(percent * 10) / 10;
@@ -510,17 +543,14 @@ function advance(job: Job, boost = 0): void {
   if (!sim.loggedPhases.has(step.phase)) {
     sim.loggedPhases.add(step.phase);
     log(sim, 'notice', step.phase, `Entering phase ${step.phase}`);
-    if (step.phase === 'scanning')
-      log(
-        sim,
-        'warning',
-        'scanning',
-        'Skipped unreadable file wp-content/uploads/.htaccess-backup',
-        { path: 'wp-content/uploads/.htaccess-backup', errno: 13 },
-      );
+    if (step.phase === 'scan')
+      log(sim, 'warning', 'scan', 'Skipped unreadable file wp-content/uploads/.htaccess-backup', {
+        path: 'wp-content/uploads/.htaccess-backup',
+        errno: 13,
+      });
   }
-  if (percent < 66 && percent >= 12) {
-    log(sim, 'debug', 'archiving', `Added ${p.current_item ?? ''}`, { bytes: 120000 });
+  if (percent < 62 && percent >= 12) {
+    log(sim, 'debug', 'archive', `Added ${p.current_item ?? ''}`, { bytes: 120000 });
     if (Math.floor(percent) % 5 === 0)
       log(sim, 'info', step.phase, `${p.files_done}/${p.files_total} files processed`);
   }
@@ -530,7 +560,7 @@ function advance(job: Job, boost = 0): void {
 function finishJob(job: Job, profile: Profile | undefined): void {
   const sim = sims.get(job.id);
   job.status = 'completed';
-  job.phase = 'finalizing';
+  job.phase = 'notify';
   job.finished_at = iso(Date.now());
   job.progress.eta_seconds = null;
   job.progress.percent = 100;
@@ -573,17 +603,17 @@ function finishJob(job: Job, profile: Profile | undefined): void {
 const seededProfile = profiles[0]!;
 const seeded = startJob(seededProfile, 38);
 seeded.status = 'archiving';
-seeded.phase = 'archiving';
-['scanning', 'exporting'].forEach((ph) => sims.get(seeded.id)?.loggedPhases.add(ph));
+seeded.phase = 'archive';
+['scan', 'export'].forEach((ph) => sims.get(seeded.id)?.loggedPhases.add(ph));
 {
   const sim = sims.get(seeded.id)!;
-  log(sim, 'notice', 'scanning', 'Entering phase scanning');
-  log(sim, 'warning', 'scanning', 'Skipped unreadable file wp-content/uploads/.htaccess-backup', {
+  log(sim, 'notice', 'scan', 'Entering phase scan');
+  log(sim, 'warning', 'scan', 'Skipped unreadable file wp-content/uploads/.htaccess-backup', {
     path: 'wp-content/uploads/.htaccess-backup',
     errno: 13,
   });
-  log(sim, 'notice', 'exporting', 'Entering phase exporting');
-  log(sim, 'info', 'exporting', 'Exported 14 tables (22.4 MB)');
+  log(sim, 'notice', 'export', 'Entering phase export');
+  log(sim, 'info', 'export', 'Exported 14 tables (22.4 MB)');
   seeded.warnings_count = 1;
 }
 
@@ -606,7 +636,7 @@ const num = (v: unknown, fallback = 0): number =>
 const isRunning = (j: Job): boolean => !['completed', 'failed', 'cancelled'].includes(j.status);
 
 function health(): HealthReport {
-  const lastOk = backups.find((b) => b.status !== 'corrupt' && b.status !== 'incomplete');
+  const lastOk = backups.find((b) => b.status !== 'corrupt');
   const lastFail = jobs.find((j) => j.status === 'failed');
   return {
     status: 'warning',
@@ -638,7 +668,10 @@ function health(): HealthReport {
       ? {
           job_id: lastFail.id,
           finished_at: lastFail.finished_at ?? lastFail.updated_at,
-          error: lastFail.error ?? '',
+          error:
+            typeof lastFail.error === 'object' && lastFail.error
+              ? (lastFail.error.message ?? '')
+              : (lastFail.error ?? ''),
         }
       : null,
     next_run: { schedule_id: 2, schedule_name: 'Hourly DB', at: iso(START + 25 * MIN) },
@@ -770,7 +803,7 @@ export function handle(req: MockRequest): MockResponse {
       if (jobs.some(isRunning))
         return wpError(
           409,
-          'swbi_job_running',
+          'swbi_conflict',
           'Another backup job is already running. Wait for it to finish or cancel it.',
         );
       return { status: 201, body: startJob(p) };
@@ -787,7 +820,7 @@ export function handle(req: MockRequest): MockResponse {
       }
       if (method === 'DELETE') {
         if (query.get('confirm') !== 'true')
-          return wpError(400, 'swbi_confirm_required', 'Confirmation required.');
+          return wpError(400, 'swbi_confirmation_required', 'Confirmation required.');
         profiles = profiles.filter((x) => x.id !== id);
         return { status: 200, body: { deleted: true } };
       }
@@ -822,7 +855,7 @@ export function handle(req: MockRequest): MockResponse {
       const p = profiles.find((x) => x.id === s.profile_id);
       if (!p) return wpError(404, 'swbi_not_found', 'Profile not found.');
       if (jobs.some(isRunning))
-        return wpError(409, 'swbi_job_running', 'Another backup job is already running.');
+        return wpError(409, 'swbi_conflict', 'Another backup job is already running.');
       return { status: 201, body: startJob(p) };
     }
     if (method === 'GET') return { status: 200, body: s };
@@ -850,7 +883,7 @@ export function handle(req: MockRequest): MockResponse {
   if ((m = path.match(/^jobs\/([0-9a-f-]+)(?:\/(pause|resume|cancel|tick|logs))?$/))) {
     const job = jobs.find((j) => j.id === m![1]);
     if (!job) return wpError(404, 'swbi_not_found', 'Job not found.');
-    const sim = sims.get(job.id);
+    let sim = sims.get(job.id);
     const action = m[2];
     if (!action && method === 'GET') {
       advance(job);
@@ -876,26 +909,48 @@ export function handle(req: MockRequest): MockResponse {
         body: { items, last_id: items.length > 0 ? items[items.length - 1]!.id : after },
       };
     }
-    if (method === 'POST' && sim) {
+    if (method === 'POST' && action) {
+      if (!sim) {
+        sim = {
+          lastAdvance: Date.now(),
+          paused: false,
+          logs: [],
+          loggedPhases: new Set(),
+          nextLogId: 1,
+        };
+        sims.set(job.id, sim);
+      }
+      if (action === 'retry') {
+        if (job.status !== 'failed')
+          return wpError(400, 'swbi_error', 'Only failed jobs can be retried.');
+        if (jobs.some(isRunning))
+          return wpError(409, 'swbi_conflict', 'Another backup job is already running.');
+        job.status = 'archiving';
+        job.phase = 'archive';
+        job.error = null;
+        job.finished_at = null;
+        job.retry_count += 1;
+        job.progress.percent = Math.min(job.progress.percent, 40);
+        sim.lastAdvance = Date.now();
+        log(sim, 'notice', 'archive', 'Retrying from checkpoint');
+        job.updated_at = iso(Date.now());
+        return { status: 200, body: job };
+      }
       if (action === 'pause' && isRunning(job)) {
         sim.paused = true;
         job.status = 'paused';
-        log(sim, 'notice', job.phase, 'Job paused');
+        log(sim, 'notice', job.phase ?? '', 'Job paused');
       } else if (action === 'resume' && job.status === 'paused') {
         sim.paused = false;
         sim.lastAdvance = Date.now();
         job.status = PHASE_PLAN.find((s) => s.phase === job.phase)?.status ?? 'archiving';
-        log(sim, 'notice', job.phase, 'Job resumed');
+        log(sim, 'notice', job.phase ?? '', 'Job resumed');
       } else if (action === 'cancel' && isRunning(job)) {
         job.status = 'cancelled';
         job.finished_at = iso(Date.now());
-        log(sim, 'warning', job.phase, 'Job cancelled by user');
+        log(sim, 'warning', job.phase ?? '', 'Job cancelled by user');
       } else
-        return wpError(
-          409,
-          'swbi_invalid_state',
-          'The job is not in a state that allows this action.',
-        );
+        return wpError(400, 'swbi_error', 'The job is not in a state that allows this action.');
       job.updated_at = iso(Date.now());
       return { status: 200, body: job };
     }
@@ -928,15 +983,11 @@ export function handle(req: MockRequest): MockResponse {
         if (query.get('confirm') !== b.id)
           return wpError(
             400,
-            'swbi_confirm_required',
+            'swbi_confirmation_required',
             'Confirmation does not match the backup id.',
           );
         if (b.protected)
-          return wpError(
-            409,
-            'swbi_backup_protected',
-            'This backup is protected and cannot be deleted.',
-          );
+          return wpError(409, 'swbi_conflict', 'This backup is protected and cannot be deleted.');
         backups = backups.filter((x) => x.id !== b.id);
         return { status: 200, body: { deleted: true } };
       }
@@ -994,9 +1045,10 @@ export function handle(req: MockRequest): MockResponse {
       return {
         status: 200,
         body: {
-          restore_url:
-            'http://127.0.0.1:5173/wp-content/plugins/swbackupit/restore/index.php?token=mock-token',
+          restore_url: 'http://127.0.0.1:5173/wp-content/plugins/swbackupit/restore/index.php',
+          token: 'swbi-rt-' + uuid().replace(/-/g, '').slice(0, 24),
           token_expires_at: iso(Date.now() + 30 * MIN),
+          target_path: '/var/www/html/wordpress_dev',
           warnings: [
             'The backup was created with WordPress 6.8.2; this site runs 6.8.3.',
             'Disk space on the target is lower than twice the backup size.',
@@ -1005,13 +1057,7 @@ export function handle(req: MockRequest): MockResponse {
       };
     }
     if (action === 'restore' && method === 'POST') {
-      if (body.confirm !== b.id || body.target_path_confirmed !== true)
-        return wpError(400, 'swbi_confirm_required', 'Restore needs explicit confirmation.');
-      if (jobs.some(isRunning))
-        return wpError(409, 'swbi_job_running', 'Another job is already running.');
-      const p = profiles.find((x) => x.id === b.profile_id) ?? profiles[0]!;
-      const job = startJob({ ...p, name: `Restore: ${b.profile_name}` });
-      return { status: 201, body: job };
+      return wpError(501, 'swbi_use_wizard', 'Restore runs only in the standalone restore wizard.');
     }
     if (action === 'download' && method === 'GET')
       return { status: 200, body: { note: 'mock download' } };
@@ -1062,6 +1108,14 @@ export function handle(req: MockRequest): MockResponse {
         return { status: 200, body: t };
       }
       if (method === 'DELETE') {
+        const user = profiles.find((p) => p.storage_target_ids.includes(id));
+        if (user) {
+          return wpError(
+            409,
+            'swbi_conflict',
+            `The storage target is still used by profile "${user.name}".`,
+          );
+        }
         targets = targets.filter((x) => x.id !== id);
         return { status: 200, body: { deleted: true } };
       }
@@ -1081,36 +1135,31 @@ export function handle(req: MockRequest): MockResponse {
       };
     }
     if (action === 'discover' && method === 'GET') {
+      const mk = (
+        ageDays: number,
+        size: number,
+        error: string | null,
+        imported = false,
+        id = uuid(),
+      ) => ({
+        backup_id: id,
+        created_at: iso(START - ageDays * DAY),
+        size_bytes: size,
+        type: 'full',
+        profile_name: 'Nightly Full',
+        already_imported: imported,
+        error,
+      });
       return {
         status: 200,
         body: {
           items: [
-            {
-              backup_id: uuid(),
-              created_at: iso(START - 40 * DAY),
-              size_bytes: 512_000_000,
-              type: 'full',
-              profile_name: 'Nightly Full',
-              already_imported: false,
-            },
-            {
-              backup_id: uuid(),
-              created_at: iso(START - 41 * DAY),
-              size_bytes: 498_000_000,
-              type: 'full',
-              profile_name: 'Nightly Full',
-              already_imported: false,
-            },
-            {
-              backup_id: backups[3]!.id,
-              created_at: backups[3]!.created_at,
-              size_bytes: backups[3]!.size_bytes,
-              type: 'full',
-              profile_name: 'Nightly Full',
-              already_imported: true,
-            },
+            mk(40, 512_000_000, null),
+            mk(41, 498_000_000, null),
+            mk(55, 0, 'Manifest missing or unreadable'),
+            mk(3, backups[3]!.size_bytes, null, true, backups[3]!.id),
           ],
-          total: 3,
+          total: 4,
           pages: 1,
         },
       };
@@ -1119,6 +1168,41 @@ export function handle(req: MockRequest): MockResponse {
       const ids = Array.isArray(body.backup_ids) ? body.backup_ids : [];
       return { status: 200, body: { imported: ids.length } };
     }
+  }
+
+  // encryption keys
+  let km: RegExpMatchArray | null;
+  if (path === 'encryption-keys') {
+    if (method === 'GET') return { status: 200, body: { items: keys } };
+    if (method === 'POST') {
+      const id = typeof body.id === 'string' ? body.id.trim() : '';
+      if (!/^[A-Za-z0-9._-]{1,64}$/.test(id)) {
+        return wpError(400, 'swbi_invalid_param', 'Invalid parameter(s): id', {
+          id: 'Invalid key id',
+        });
+      }
+      if (keys.some((k) => k.id === id))
+        return wpError(409, 'swbi_conflict', 'A key with this id already exists.');
+      const pass = typeof body.passphrase === 'string' && body.passphrase !== '';
+      keys.push({ id, source: pass ? 'passphrase' : 'generated' });
+      const secret = pass
+        ? String(body.passphrase)
+        : Array.from({ length: 32 }, () =>
+            Math.floor(Math.random() * 256)
+              .toString(16)
+              .padStart(2, '0'),
+          ).join('');
+      return {
+        status: 201,
+        body: { id, secret, warning: 'Store this secret now. It cannot be shown again.' },
+      };
+    }
+  }
+  if ((km = path.match(/^encryption-keys\/([^/]+)$/)) && method === 'DELETE') {
+    const id = decodeURIComponent(km[1]!);
+    if (!keys.some((k) => k.id === id)) return wpError(404, 'swbi_not_found', 'Key not found.');
+    keys = keys.filter((k) => k.id !== id);
+    return { status: 200, body: { deleted: true } };
   }
 
   // settings

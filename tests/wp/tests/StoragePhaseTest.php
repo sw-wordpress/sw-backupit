@@ -189,4 +189,18 @@ class StoragePhaseTest extends WP_UnitTestCase {
 		$this->assertContains( $ids[0], $remaining, 'protected backup survives retention' );
 		$this->assertContains( $ids[2], $remaining );
 	}
+
+	public function test_incremental_chain_through_rest_keeps_the_base_during_retention(): void {
+		$profile = $this->request( 'POST', '/profiles', array( 'name' => 'Chain', 'type' => 'files', 'include_paths' => array( 'wp-includes/js/jquery' ) ) )->get_data();
+		$full    = $this->run_profile( (int) $profile['id'] );
+		$this->assertSame( 'completed', $full['status'], wp_json_encode( $full['error'] ) );
+		$this->request( 'PUT', '/profiles/' . $profile['id'], array( 'type' => 'incremental', 'retention' => array( 'max_count' => 1 ) ) );
+		$incremental = $this->run_profile( (int) $profile['id'] );
+		$this->assertSame( 'completed', $incremental['status'], wp_json_encode( $incremental['error'] ) );
+		$items = $this->request( 'GET', '/backups' )->get_data()['items'];
+		$types = wp_list_pluck( $items, 'type', 'id' );
+		$this->assertSame( 'incremental', $types[ $incremental['backup_id'] ] );
+		$this->assertArrayHasKey( $full['backup_id'], $types, 'retention keeps the base backup of a kept incremental backup' );
+		$this->assertSame( $full['backup_id'], wp_list_pluck( $items, 'parent_id', 'id' )[ $incremental['backup_id'] ] );
+	}
 }

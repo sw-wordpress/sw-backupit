@@ -9,6 +9,9 @@ use SWBackupIt\Core\Crypto\KeyProviderInterface;
 use SWBackupIt\Core\Crypto\StaticKeyProvider;
 use SWBackupIt\Core\Database\ConnectionConfig;
 use SWBackupIt\Core\Exception\SwbiException;
+use SWBackupIt\Core\Storage\BackupDownloader;
+use SWBackupIt\Core\Storage\StorageFactory;
+use SWBackupIt\Core\Storage\StorageTarget;
 use SWBackupIt\Core\Support\Bytes;
 use SWBackupIt\Core\Support\ResourceBudget;
 use SWBackupIt\Restore\Backup\BackupSet;
@@ -44,7 +47,7 @@ final class RestoreCli
     {
         $args = new ArgumentParser(
             $argv,
-            ['target', 'confirm-target', 'state-dir', 'db-host', 'db-name', 'db-user', 'db-password-file', 'confirm-database', 'overwrite', 'format', 'db-port', 'db-socket', 'key', 'key-file', 'new-prefix', 'mode', 'app-dir', 'backups', 'ttl', 'allow-target'],
+            ['target', 'confirm-target', 'state-dir', 'db-host', 'db-name', 'db-user', 'db-password-file', 'confirm-database', 'overwrite', 'format', 'db-port', 'db-socket', 'key', 'key-file', 'new-prefix', 'mode', 'app-dir', 'backups', 'ttl', 'allow-target', 'storage', 'to'],
             ['path', 'pattern', 'replace', 'allow-target'],
         );
         $command = $args->positional[0] ?? 'help';
@@ -58,6 +61,7 @@ final class RestoreCli
                 'restore' => $this->restore($args, $json),
                 'compare' => $this->compare($args, $json),
                 'web-init' => $this->webInit($args),
+                'fetch' => $this->fetch($args, $json),
                 'help', '--help' => $this->help(),
                 default => $this->usage('Unknown command: ' . $command),
             };
@@ -249,6 +253,36 @@ final class RestoreCli
         return 0;
     }
 
+    /**
+     * Downloads a backup (optionally with its whole chain) from a storage target described in a JSON file:
+     * {"type":"s3|sftp|local","config":{…},"credentials":{…}} (the file should be readable only by you).
+     */
+    private function fetch(ArgumentParser $args, bool $json): int
+    {
+        $file = $args->string('storage');
+        $backupId = $args->positional[1] ?? '';
+        $to = $args->string('to');
+        if ($file === '' || $to === '' || !is_file($file)) {
+            return $this->usage('fetch needs <backup-id>, --storage=<target.json> and --to=<directory>.');
+        }
+        $data = json_decode((string) file_get_contents($file), true);
+        if (!is_array($data) || !isset($data['type'])) {
+            return $this->usage('The storage file is not valid JSON with a "type".');
+        }
+        $target = new StorageTarget(0, 'cli', (string) $data['type'], (array) ($data['config'] ?? []), array_map('strval', (array) ($data['credentials'] ?? [])));
+        $storage = (new StorageFactory())->create($target);
+        $downloader = new BackupDownloader();
+        $progress = function (string $relative): void {
+            $this->err('downloading ' . $relative . "\n");
+        };
+        $ids = $args->flag('with-chain')
+            ? $downloader->downloadWithAncestors($storage, $backupId, $to, $progress)
+            : [basename($downloader->download($storage, $backupId, $to, $progress))];
+        $this->out($json ? json_encode(['downloaded' => $ids]) . "\n" : 'Downloaded: ' . implode(', ', $ids) . "\n");
+
+        return 0;
+    }
+
     private function webInit(ArgumentParser $args): int
     {
         $app = $args->string('app-dir', dirname(__DIR__, 2));
@@ -292,6 +326,7 @@ Usage:
   swbackupit-restore info    <backup-dir> [--format=json]
   swbackupit-restore verify  <backup-dir> [--deep] [--format=json]
   swbackupit-restore list    <backup-dir> [--path=wp-content/uploads] [--pattern='**/*.jpg']
+  swbackupit-restore fetch   <backup-id> --storage=target.json --to=/path/to/backups [--with-chain]   (download from a storage target)
   swbackupit-restore web-init --backups=/path/to/backups [--app-dir=DIR] [--ttl=3600] [--allow-target=/var/www]   (prepares the web wizard)
   swbackupit-restore compare <backup-dir> --target=/var/www/site [--mode=metadata|sha256] [--path=...] [--format=json]
   swbackupit-restore restore <backup-dir> --target=/var/www/site --confirm-target=/var/www/site

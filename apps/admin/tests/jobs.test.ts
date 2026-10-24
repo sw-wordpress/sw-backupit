@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { appendBounded } from '../src/composables/useJobMonitor';
 import type { JobLogEntry } from '../src/types/api';
-import { isActive, isTerminal, nextPollDelay, normalisePhase } from '../src/utils/jobs';
+import { isActive, isTerminal, jobErrorText, nextPollDelay, phaseIndex } from '../src/utils/jobs';
 
 const entry = (id: number): JobLogEntry => ({
   id,
@@ -20,10 +20,18 @@ describe('job utils', () => {
     expect(isActive({ status: 'uploading' })).toBe(true);
     expect(isActive({ status: 'retry_waiting' })).toBe(true);
   });
-  it('maps API statuses onto the stepper phases', () => {
-    expect(normalisePhase('preparing')).toBe('preflight');
-    expect(normalisePhase('archiving')).toBe('archiving');
-    expect(normalisePhase('weird')).toBeNull();
+  it('locates step ids in the pipeline', () => {
+    expect(phaseIndex('preflight')).toBe(0);
+    expect(phaseIndex('upload')).toBe(7);
+    expect(phaseIndex('notify')).toBe(11);
+    expect(phaseIndex('weird')).toBe(-1);
+    expect(phaseIndex(null)).toBe(-1);
+  });
+  it('reads job errors in both shapes', () => {
+    expect(jobErrorText('boom')).toBe('boom');
+    expect(jobErrorText({ code: 'swbi_integrity', message: 'bad hash' })).toBe('bad hash');
+    expect(jobErrorText({ code: 'swbi_vetoed' })).toBe('swbi_vetoed');
+    expect(jobErrorText(null)).toBeNull();
   });
   it('backs off while nothing changes and after errors', () => {
     expect(nextPollDelay({ unchangedCount: 0, errorCount: 0, paused: false })).toBe(1000);

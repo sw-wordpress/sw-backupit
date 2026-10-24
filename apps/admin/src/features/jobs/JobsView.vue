@@ -141,9 +141,12 @@ const typeLabel = (type: string): string =>
                     :to="{ name: 'backups', params: { id: j.backup_id } }"
                     >{{ t('jobs.openBackup') }}</router-link
                   >
-                  <span v-else-if="j.error" class="swbi-jv__err" :title="jobErrorText(j.error) ?? ''">{{
-                    jobErrorText(j.error)
-                  }}</span>
+                  <span
+                    v-else-if="j.error"
+                    class="swbi-jv__err"
+                    :title="jobErrorText(j.error) ?? ''"
+                    >{{ jobErrorText(j.error) }}</span
+                  >
                   <span v-else class="swbi-muted">–</span>
                 </td>
               </tr>

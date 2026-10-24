@@ -7,6 +7,7 @@ import DataState from '@/components/ui/DataState.vue';
 import FormSection from '@/components/ui/FormSection.vue';
 import PageHeader from '@/components/ui/PageHeader.vue';
 import SwbiCard from '@/components/ui/SwbiCard.vue';
+import KeysCard from './KeysCard.vue';
 import TagInput from '@/components/ui/TagInput.vue';
 import { useAsyncData } from '@/composables/useAsyncData';
 import { useCapabilities } from '@/composables/useCapabilities';
@@ -104,7 +105,7 @@ onBeforeRouteLeave(() => (dirty.value ? window.confirm(t('settings.unsaved')) : 
                   v-model="form.staging_dir"
                   outlined
                   dense
-                  class="swbi-mono"
+                  input-class="swbi-mono"
                   :label="t('settings.stagingDir')"
                   :rules="[(v: string) => v.trim() !== '' || t('common.required')]"
                   lazy-rules="ondemand"
@@ -399,10 +400,15 @@ onBeforeRouteLeave(() => (dirty.value ? window.confirm(t('settings.unsaved')) : 
         <p v-else class="swbi-muted">{{ t('common.noPermission') }}</p>
       </q-form>
     </DataState>
+
+    <KeysCard class="swbi-settings__keys" />
   </div>
 </template>
 
 <style scoped>
+.swbi-settings__keys {
+  margin-top: 16px;
+}
 .swbi-fieldset {
   border: 0;
   padding: 0;

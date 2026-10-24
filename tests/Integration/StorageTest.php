@@ -80,6 +80,54 @@ final class StorageTest extends TestCase
         }
     }
 
+    public function testS3MultipartUploadResumesWithTheMissingPartsOnly(): void
+    {
+        $port = getenv('SWBI_TEST_S3_PORT') ?: '33099';
+        if (@fsockopen('127.0.0.1', (int) $port, $errno, $error, 0.3) === false) {
+            self::markTestSkipped('No S3 mock available (bin/test-s3.sh start).');
+        }
+        $endpoint = "http://127.0.0.1:{$port}";
+        $bucket = 'swbi-mpu-' . bin2hex(random_bytes(3));
+        (new S3Client(['version' => 'latest', 'region' => 'us-east-1', 'endpoint' => $endpoint, 'use_path_style_endpoint' => true, 'credentials' => ['key' => 'k', 'secret' => 's']]))->createBucket(['Bucket' => $bucket]);
+        $storage = (new StorageFactory(new RetryPolicy(1, 1, 1)))->create(new StorageTarget(2, 'S3', 's3', ['endpoint' => $endpoint, 'bucket' => $bucket, 'path_style' => true, 'allow_private_network' => true], ['access_key' => 'k', 'secret_key' => 's']));
+        $dir = $this->makeTempDir('src');
+        $size = 20 * 1048576;
+        $handle = fopen($dir . '/big.bin', 'wb');
+        for ($i = 0; $i < 20; $i++) {
+            fwrite($handle, random_bytes(1048576));
+        }
+        fclose($handle);
+        $hash = (string) hash_file('sha256', $dir . '/big.bin');
+        $state = $dir . '/upload.state';
+
+        $sent = 0;
+        try {
+            $storage->upload($dir . '/big.bin', 'x/big.bin', function (int $bytes) use (&$sent): void {
+                $sent += $bytes;
+                if ($sent >= 12 * 1048576) {
+                    throw new \RuntimeException('connection dropped');
+                }
+            }, $state);
+            self::fail('the interrupted upload must fail');
+        } catch (TransientException) {
+            self::assertFileExists($state, 'resume state is kept');
+        }
+        self::assertFalse($storage->exists('x/big.bin'), 'an incomplete multipart upload is never visible under the final name');
+
+        $resumed = 0;
+        $storage->upload($dir . '/big.bin', 'x/big.bin', function (int $bytes) use (&$resumed): void {
+            $resumed += $bytes;
+        }, $state);
+        self::assertSame($size - 8 * 1048576, $resumed, 'only the parts that were not uploaded yet are sent again');
+        self::assertFileDoesNotExist($state);
+        self::assertTrue($storage->verify('x/big.bin', $size, $hash));
+
+        // A different file with a stale state file must not reuse it.
+        file_put_contents($state, json_encode(['sha256' => str_repeat('0', 64), 'size' => 1, 'state' => 'x']));
+        $storage->upload($dir . '/big.bin', 'x/big2.bin', null, $state);
+        self::assertTrue($storage->verify('x/big2.bin', $size, $hash));
+    }
+
     public function testS3WithWrongCredentialsFailsWithoutLeakingSecrets(): void
     {
         $port = getenv('SWBI_TEST_S3_PORT') ?: '33099';

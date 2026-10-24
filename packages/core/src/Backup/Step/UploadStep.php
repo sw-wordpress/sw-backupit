@@ -67,11 +67,12 @@ final class UploadStep implements BackupStepInterface
                     }
                     $target['status'] = 'uploading';
                     $progress->currentItem = $relative;
+                    $statePath = $context->layout->workDirectory() . '/upload-' . substr(hash('sha256', $key . '|' . $relative), 0, 24) . '.state';
                     $sha256 = $storage->upload($file['path'], $manifest->backupId() . '/' . $relative, function (int $bytes) use ($progress, &$bytesThisTick, $started): void {
                         $progress->uploadBytesDone += $bytes;
                         $bytesThisTick += $bytes;
                         $progress->uploadRateBps = round($bytesThisTick / max(0.001, microtime(true) - $started), 1);
-                    });
+                    }, $statePath);
                     if (!hash_equals($file['sha256'], $sha256)) {
                         throw new SwbiException('The file changed while it was being uploaded.', ['file' => $relative]);
                     }

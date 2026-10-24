@@ -23,7 +23,9 @@ const selected = ref<string[]>([]);
 const importing = ref(false);
 const download = ref(false);
 const items = computed(() => found.data.value ?? []);
-const importable = computed(() => items.value.filter((b) => !b.already_imported && b.error === null));
+const importable = computed(() =>
+  items.value.filter((b) => !b.already_imported && b.error === null),
+);
 
 watch(open, (isOpen) => {
   if (isOpen) {

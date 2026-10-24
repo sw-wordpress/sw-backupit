@@ -53,6 +53,9 @@ const de = {
     updated: 'Aktualisiert',
   },
   errors: {
+    useWizard: 'Diese Aktion ist hier nicht vorgesehen.',
+    useWizardHint: 'Die Wiederherstellung läuft im eigenständigen Restore-Assistenten.',
+    rateLimited: 'Zu viele Anfragen. Bitte kurz warten und erneut versuchen.',
     generic: 'Etwas ist schiefgelaufen.',
     loadFailed: 'Daten konnten nicht geladen werden',
     noAccessTitle: 'Kein Zugriff',
@@ -110,16 +113,18 @@ const de = {
     error: 'Fehler',
   },
   phases: {
-    preparing: 'Vorbereitung',
-    pending: 'Wartend',
     preflight: 'Vorprüfung',
-    scanning: 'Scannen',
-    exporting: 'Export',
-    archiving: 'Archivierung',
-    encrypting: 'Verschlüsselung',
-    verifying: 'Verifizierung',
-    uploading: 'Upload',
-    finalizing: 'Abschluss',
+    scan: 'Scannen',
+    export: 'Datenbank-Export',
+    archive: 'Archivierung',
+    encrypt: 'Verschlüsselung',
+    verify_local: 'Lokale Prüfung',
+    manifest: 'Manifest',
+    upload: 'Upload',
+    verify_remote: 'Remote-Prüfung',
+    finalize: 'Abschluss',
+    retention: 'Aufbewahrung',
+    notify: 'Benachrichtigung',
   },
   dashboard: {
     subtitle: 'Zustand deiner Backups auf einen Blick.',
@@ -163,6 +168,14 @@ const de = {
     cronLastTick: 'Letzter Cron-Lauf: {time}',
   },
   profiles: {
+    noKeys: 'Es gibt noch keine Schlüssel.',
+    createKey: 'Schlüssel in den Einstellungen anlegen',
+    consistentSnapshot: 'Konsistenter Datenbank-Snapshot (transaktional)',
+    consistentSnapshotInfo:
+      'Nur für InnoDB-Tabellen und nur in einem einzigen Durchlauf möglich. Bei großen Datenbanken ist die CLI empfohlen, weil das Zeitbudget pro Arbeitsschritt hier nicht reicht.',
+    deleteLocalAfterUpload: 'Lokale Kopie nach erfolgreichem Upload löschen',
+    deleteLocalAfterUploadHint:
+      'Spart lokalen Speicherplatz. Bleibt nur sinnvoll, wenn mindestens ein Remote-Ziel erfolgreich verifiziert wird.',
     subtitle: 'Profile legen fest, was gesichert wird, wie es verpackt wird und wohin es geht.',
     create: 'Profil erstellen',
     edit: 'Profil bearbeiten',
@@ -309,10 +322,26 @@ const de = {
       cron: 'Cron-Ausdruck',
     },
     every: {
+      hourly: 'Stündlich zur Minute {minute}',
       daily: 'Täglich um {time}',
-      weekly: 'Wöchentlich um {time}',
-      monthly: 'Monatlich um {time}',
+      weekly: 'Wöchentlich, {day}, um {time}',
+      monthly: 'Monatlich am {day}. um {time}',
     },
+    weekdays: {
+      0: 'Sonntag',
+      1: 'Montag',
+      2: 'Dienstag',
+      3: 'Mittwoch',
+      4: 'Donnerstag',
+      5: 'Freitag',
+      6: 'Samstag',
+    },
+    weekday: 'Wochentag',
+    monthday: 'Tag im Monat',
+    monthdayHint: 'Ab 29 wird in kürzeren Monaten der letzte Tag verwendet.',
+    monthdayInvalid: 'Zahl von 1 bis 31 erforderlich.',
+    hourlyMinute: 'Minute der Stunde',
+    hourlyMinuteHint: 'Nur die Minute der Uhrzeit zählt, z. B. 00:15 = jede Stunde um :15.',
     timeOfDay: 'Uhrzeit',
     timezone: 'Zeitzone',
     cronExpression: 'Cron-Ausdruck',
@@ -337,6 +366,8 @@ const de = {
     backoff: 'Wartezeit zwischen Versuchen',
   },
   backups: {
+    downloadParts: 'Weitere Dateien',
+    part: { database: 'Datenbank-Dump', manifest: 'Manifest', index: 'Index' },
     subtitle:
       'Alle vorhandenen Sicherungen durchsuchen, prüfen, herunterladen und wiederherstellen.',
     filters: 'Backups filtern',
@@ -431,6 +462,16 @@ const de = {
       sampleNote: 'Nur eine Auswahl von {n} Pfaden.',
     },
     restore: {
+      wizardOnly:
+        'Die Wiederherstellung läuft ausschließlich im eigenständigen Restore-Assistenten, nie direkt in WordPress.',
+      targetPath: 'Zielverzeichnis',
+      reveal: 'Token anzeigen',
+      tokenOnce:
+        'Der Token wird nur jetzt einmalig angezeigt und nach dem Schließen verworfen. Kopiere ihn, bevor du den Dialog schließt.',
+      token: 'Restore-Token',
+      copy: 'Kopieren',
+      copied: 'Kopiert',
+      copyFailed: 'Kopieren nicht möglich. Markiere den Token und kopiere ihn manuell.',
       open: 'Wiederherstellen',
       title: 'Backup wiederherstellen',
       steps: 'Schritte der Wiederherstellung',
@@ -452,7 +493,6 @@ const de = {
       source: 'Quelle',
       confirmPath:
         'Ich habe geprüft, dass das Zielverzeichnis und die Zieldatenbank dieser Website überschrieben werden dürfen.',
-      continue: 'Weiter',
       ready: 'Wiederherstellung ist freigegeben',
       expires: 'Der Freigabe-Link ist gültig bis {time} ({rel}).',
       optionStandalone: 'Eigenständigen Restore öffnen',
@@ -460,13 +500,14 @@ const de = {
         'Empfohlen: Der Restore läuft unabhängig von WordPress und funktioniert auch bei defekter Installation.',
       openRestore: 'Restore in neuem Tab öffnen',
       invalidUrl: 'Der vom Server gelieferte Link ist ungültig und wird nicht angezeigt.',
-      optionJob: 'Restore als Job in WordPress ausführen',
       optionJobText:
         'Startet die Wiederherstellung sofort als Hintergrund-Job. Nur bei intakter WordPress-Installation empfohlen.',
-      execute: 'Restore jetzt ausführen',
     },
   },
   jobs: {
+    retry: 'Erneut versuchen',
+    trigger: { manual: 'Manuell gestartet', schedule: 'Per Zeitplan', cli: 'Per CLI' },
+    retryWaitingAt: 'Nächster Versuch am {time} ({rel}).',
     subtitle: 'Laufende und abgeschlossene Backup- und Restore-Jobs.',
     running: 'Laufende Jobs',
     runningCount: '{n} Job läuft | {n} Jobs laufen',
@@ -541,6 +582,7 @@ const de = {
     },
   },
   storage: {
+    inUse: 'Entferne das Ziel zuerst aus allen Profilen.',
     subtitle: 'Orte, an denen Backups abgelegt werden.',
     add: 'Speicherziel hinzufügen',
     edit: 'Speicherziel bearbeiten',
@@ -575,6 +617,16 @@ const de = {
       protection: 'Schutz und Aufbewahrung',
     },
     fields: {
+      hostFingerprint: 'Host-Key-Fingerprint',
+      hostFingerprintHint: 'Empfohlen: SHA-256-Fingerprint des Servers, z. B. SHA256:abc…',
+      timeout: 'Zeitlimit',
+      trustUnknown: 'Unbekannten Host-Key akzeptieren',
+      trustUnknownWarning:
+        'Sicherheitsrisiko: Ohne Fingerprint-Prüfung ist ein Man-in-the-Middle-Angriff möglich. Nur kurzfristig zum Einrichten verwenden und danach den Fingerprint eintragen.',
+      allowPrivate: 'Zugriff auf private Netzwerke erlauben',
+      allowPrivateWarning:
+        'Sicherheitsrisiko: Adressen wie localhost, 127.0.0.1 oder 10.x.x.x sind sonst gesperrt (SSRF-Schutz). Aktiviere dies nur, wenn der Dienst bewusst intern erreichbar sein soll.',
+      keyPassphrase: 'Passphrase des privaten Schlüssels',
       path: 'Verzeichnis',
       pathHint: 'Absoluter Pfad, z. B. /var/backups/swbackupit',
       host: 'Host',
@@ -599,6 +651,8 @@ const de = {
       'Bereits abgelegte Backups bleiben am Ort bestehen, sind aber nicht mehr verwaltet.',
     deleted: 'Speicherziel gelöscht.',
     discover: {
+      download: 'Daten in den lokalen Staging-Bereich herunterladen',
+      downloadHint: 'Ohne diese Option wird das Backup nur im Katalog registriert.',
       open: 'Backups finden',
       title: 'Vorhandene Backups finden',
       intro:
@@ -612,6 +666,36 @@ const de = {
     },
   },
   settings: {
+    keys: {
+      title: 'Verschlüsselungsschlüssel',
+      intro:
+        'Profile verweisen über die Schlüssel-ID auf einen Schlüssel. Die Geheimnisse selbst werden nie angezeigt, außer einmalig direkt nach dem Erstellen.',
+      emptyTitle: 'Keine Schlüssel',
+      emptyText: 'Lege einen Schlüssel an, um Backups zu verschlüsseln.',
+      source: 'Quelle',
+      create: 'Neuen Schlüssel anlegen',
+      id: 'Schlüssel-ID',
+      idHint: 'Buchstaben, Ziffern, Punkt, Unterstrich und Bindestrich',
+      idInvalid: 'Nur A–Z, 0–9, . _ - (max. 64 Zeichen).',
+      passphrase: 'Passphrase (optional)',
+      passphraseHint: 'Ohne Passphrase erzeugt der Server einen zufälligen 256-Bit-Schlüssel.',
+      createButton: 'Schlüssel erstellen',
+      createdTitle: 'Schlüssel „{id}“ erstellt',
+      storeNow: 'Jetzt sicher aufbewahren!',
+      storeNowText:
+        'Dieses Geheimnis wird nur dieses eine Mal angezeigt. Ohne es lassen sich verschlüsselte Backups nicht wiederherstellen, und niemand kann es nachträglich abrufen.',
+      copy: 'Kopieren',
+      copied: 'Kopiert',
+      copyFailed: 'Kopieren nicht möglich. Markiere das Geheimnis und kopiere es manuell.',
+      storedConfirm: 'Ich habe das Geheimnis sicher gespeichert.',
+      deleteNamed: 'Schlüssel {id} löschen',
+      deleteTitle: 'Schlüssel löschen?',
+      deleteConsequence1:
+        'Backups, die mit diesem Schlüssel verschlüsselt wurden, können danach nur noch mit einer externen Kopie des Geheimnisses wiederhergestellt werden.',
+      deleteConsequence2:
+        'Profile, die diesen Schlüssel verwenden, können keine neuen Backups mehr erstellen.',
+      deleted: 'Schlüssel gelöscht.',
+    },
     subtitle: 'Globale Voreinstellungen und Grenzwerte.',
     saved: 'Einstellungen gespeichert.',
     unsavedChanges: 'Ungespeicherte Änderungen',

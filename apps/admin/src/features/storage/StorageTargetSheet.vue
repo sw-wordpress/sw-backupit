@@ -228,7 +228,7 @@ async function save(): Promise<void> {
               :model-value="str('host_fingerprint')"
               outlined
               dense
-              class="swbi-mono"
+              input-class="swbi-mono"
               :label="t('storage.fields.hostFingerprint')"
               :hint="t('storage.fields.hostFingerprintHint')"
               autocomplete="off"

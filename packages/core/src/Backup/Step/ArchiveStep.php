@@ -61,7 +61,7 @@ final class ArchiveStep implements BackupStepInterface
         $preflight = $job->checkpoint(Step::Preflight);
         $parentInfo = is_array($preflight['parent'] ?? null) && in_array($preflight['effective_type'] ?? '', ['incremental', 'differential'], true) ? $preflight['parent'] : null;
         $parentReader = $parentInfo === null ? null : ParentIndex::open(
-            $context->layout->stagingRoot() . '/' . $parentInfo['backup_id'],
+            $context->layout->stagingRoot() . '/' . (string) $parentInfo['backup_id'],
             $context->keys,
             $context->layout->workDirectory() . '/parent',
         );
@@ -112,7 +112,7 @@ final class ArchiveStep implements BackupStepInterface
                             $parentPeek = $parentGen->valid() ? $parentGen->current() : null;
                         }
                         if ($parentPeek !== null && $this->isUnchanged($parentPeek[0], $path, $size, (int) $stat['mtime'])) {
-                            $base = (string) ($parentPeek[0]['b'] ?? $parentInfo['backup_id']);
+                            $base = (string) ($parentPeek[0]['b'] ?? (string) ($parentInfo['backup_id'] ?? ''));
                             $entry = array_intersect_key($entry, array_flip(['p', 't', 'mode'])) + ['s' => $size, 'm' => (int) $stat['mtime'], 'st' => 'ok'];
                             foreach (['h', 'v', 'a', 'c'] as $key) {
                                 if (isset($parentPeek[0][$key])) {

@@ -79,6 +79,22 @@ and UTC time zone. Binary columns are hex literals, text is escaped by the drive
   It cannot be resumed (a crash restarts the export) and ignores the time budget, so use it from the CLI.
 * Tables without primary key are paged with LIMIT/OFFSET (unstable under concurrent writes).
 
+## Incremental and differential backups
+
+Every backup's `files.ndjson` is a **complete** description of the file state at backup time. Entries whose data lives in another
+backup carry `b` (the backup id that holds `v`/`a`/`c`); entries without `b` reference this backup's own volumes. Consequences:
+
+* Restoring any point in time needs only that backup's index plus the volumes of the backups named in `b` – deletions need no special
+  handling (a deleted file is simply absent), renames are stored as delete + new file (no content de-duplication).
+* `chain.requires` in the manifest lists exactly those base backups; `parent` names the backup the comparison was made against
+  (incremental: the previous complete backup of the profile, differential: the last non-delta backup).
+* A file is "unchanged" when the base index holds its data with identical size and modification time; everything else is archived again.
+  The database is always exported completely (true incremental database backups are not implemented).
+* Without a usable base (none yet, or its local index is gone) a full backup is created instead and recorded with `type: full`.
+* Retention treats `requires` and `parent` as dependencies and never deletes a backup that a kept backup needs; the restore verifies
+  that all required bases are present (next to the backup directory) and refuses to start otherwise. `swbackupit-restore fetch --with-chain`
+  downloads a backup and its whole chain from a storage target.
+
 ## Encryption (SWBE1)
 
 Optional client side encryption of volumes, database parts and the file index (the manifest stays readable and contains no

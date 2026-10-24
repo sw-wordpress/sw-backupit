@@ -16,10 +16,12 @@ interface RemoteStorageInterface
      * Uploads a local file so that it only appears under its final name when complete (temporary object
      * name + rename, or an inherently atomic PUT). Throws TransientException for retryable failures.
      *
-     * @param callable(int): void|null $onProgress Receives the bytes read since the last call.
-     * @return string SHA-256 of the data that was actually sent.
+     * @param callable(int): void|null $onProgress Receives the bytes sent since the last call.
+     * @param string|null $resumeStatePath File in which providers with resumable (multipart) uploads keep their state so an
+     *                                      interrupted upload continues with the missing parts instead of starting over.
+     * @return string SHA-256 of the data that was sent.
      */
-    public function upload(string $localPath, string $remotePath, ?callable $onProgress = null): string;
+    public function upload(string $localPath, string $remotePath, ?callable $onProgress = null, ?string $resumeStatePath = null): string;
 
     public function exists(string $remotePath): bool;
 

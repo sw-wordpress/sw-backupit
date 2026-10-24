@@ -37,6 +37,7 @@ final class IncrementalChainTest extends TestCase
 
     private string $site = '';
     private string $staging = '';
+    private string $remote = '';
     private FileJobRepository $repository;
     private BackupRunner $runner;
 
@@ -47,6 +48,7 @@ final class IncrementalChainTest extends TestCase
         $this->site = $this->makeTempDir('site');
         $this->buildSiteFiles($this->site);
         $work = $this->makeTempDir('work');
+        $this->remote = $this->makeTempDir('remote');
         $this->staging = $work . '/staging';
         $this->repository = new FileJobRepository($work . '/jobs');
         $this->runner = new BackupRunner(
@@ -58,7 +60,7 @@ final class IncrementalChainTest extends TestCase
             new SystemClock(),
             'info',
             new EnvironmentKeyProvider(['chain-key' => 'chain passphrase long enough']),
-            null,
+            new \SWBackupIt\Core\Storage\StorageManager(new \SWBackupIt\Core\Storage\ArrayStorageResolver([new \SWBackupIt\Core\Storage\StorageTarget(1, 'remote', 'local', ['path' => $this->remote])])),
             new DirectoryBackupCatalog($this->staging),
         );
     }
@@ -176,6 +178,27 @@ final class IncrementalChainTest extends TestCase
         self::assertSame([$first], $manifest->requires());
         $keys = new EnvironmentKeyProvider(['chain-key' => 'chain passphrase long enough']);
         self::assertSame($this->snapshotTree($this->site), $this->snapshotTree($this->restoreTo($second, $keys)));
+    }
+
+    public function testChainIsDownloadedFromStorageAndRestoredAfterTotalLoss(): void
+    {
+        $full = $this->backup('full', ['storage_target_ids' => [1]]);
+        file_put_contents($this->site . '/wp-content/uploads/after-full.txt', 'later');
+        $inc = $this->backup('incremental', ['storage_target_ids' => [1]]);
+        $expected = $this->snapshotTree($this->site);
+
+        // Total loss: local staging and production are gone, only the storage target remains.
+        \SWBackupIt\Core\Support\AtomicFile::removeTree($this->staging);
+        $remote = (new \SWBackupIt\Core\Storage\StorageFactory())->create(new \SWBackupIt\Core\Storage\StorageTarget(1, 'remote', 'local', ['path' => $this->remote]));
+        $fetched = $this->makeTempDir('fetched');
+        $ids = (new \SWBackupIt\Core\Storage\BackupDownloader())->downloadWithAncestors($remote, $inc, $fetched);
+        self::assertSame([$inc, $full], $ids);
+
+        $target = $this->makeTempDir('target');
+        $request = new RestoreRequest($fetched . '/' . $inc, $target, (string) realpath($target), $this->makeTempDir('state'), restoreDatabase: false);
+        $outcome = (new RestoreEngine())->run($request, ResourceBudget::unlimited());
+        self::assertSame(RestoreOutcome::COMPLETED, $outcome->status, implode('; ', $outcome->messages));
+        self::assertSame($expected, $this->snapshotTree($target));
     }
 
     public function testUnchangedRunProducesNoNewVolumes(): void
