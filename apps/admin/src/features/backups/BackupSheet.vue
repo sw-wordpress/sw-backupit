@@ -188,7 +188,7 @@ const verifyOk = computed(
                 :href="api.backups.downloadUrl(backup.id, 'database', 1)"
                 rel="noopener"
               >
-                <q-item-section avatar><q-icon name="r_database" /></q-item-section>
+                <q-item-section avatar><q-icon name="r_storage" /></q-item-section>
                 <q-item-section>{{ t('backups.part.database') }}</q-item-section>
               </q-item>
               <q-item

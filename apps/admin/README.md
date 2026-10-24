@@ -130,6 +130,16 @@ The dev host page (`index.html`) simulates hostile wp-admin globals (`h1`, `p`, 
 - **Storage targets:** `lock_days` for all types, s3 `object_lock {mode, days}` (note: bucket needs Object Lock), `immutable` with the explanation that retention never deletes immutable/locked targets.
 - **Chains:** incremental/differential backups show their parent id as a chip in the table; the detail shows a "Required base backups" hint with a link to the parent.
 
+## Profile editor (wizard)
+
+Create/edit profile is a full page (`/profiles/new`, `/profiles/:id/edit`, `features/profiles/ProfileEditorView.vue`) following the approved UX Pilot design "SWBackupIt - Profil erstellen": breadcrumb, amber unsaved badge, 6-step stepper (`<nav><ol>` of buttons with `aria-current="step"`, scrolls horizontally on narrow screens), form card with two-column sections (`steps/StepSection.vue`, stacks via container query), footer with Back / "Next: <step>" and a validation hint, and a sticky context column (live `profile.json` preview + equivalent WP-CLI command) when the container is at least 900 px wide, otherwise below the form.
+
+- Steps: General (name, description, type cards, execution), Content, Compression & encryption, Storage target (+ success policy), Retention (+ notifications), Summary (read-only review with "Edit" links and all validation messages, final save).
+- Validation is pure and grouped by step (`wizard.ts: validateProfile`); "Next" is blocked while the current step has issues; unvalidated later steps are not reachable when creating; editing an existing profile makes all steps reachable.
+- Real data only. Type = `profile.type`; the incremental/differential note shows the real number of full backups (`GET /backups?type=full`). Resource priority = presets for `profile.limits` (Gentle 10 s/250 rows, Normal 20 s/1000, Maximum 40 s/2000; memory untouched, "custom" when edited). "Verify integrity" = `profile.checksums`. Encryption text names libsodium XChaCha20-Poly1305 and the key select reads `GET /encryption-keys`.
+- Deliberately not implemented (no backend support): maintenance-mode toggle, draft saving, estimated size/duration, restore-chain labels. The ID chip shows "assigned when saving" (or `#id` when editing); the CLI line quotes the profile name (`wp swbackupit backup create --profile='<name>'`), no fake slug.
+- Fonts: Inter and JetBrains Mono are bundled (`@fontsource-variable`), no external requests. Tests: `tests/profile-wizard.test.ts`.
+
 ## Behaviour notes
 
 - **Job runner.** `useJobMonitor` polls `GET /jobs/{id}` with backoff (1 s → 5 s while unchanged, 5 s while paused, exponential up to 30 s on errors), pulls logs with `after=<last_id>`, keeps at most 2000 log lines, pauses while the tab is hidden and stops when its scope is disposed. While the job is active and the tab is visible, and "Drive job from this browser" is on (default), it calls `POST /jobs/{id}/tick` in a loop instead of `GET`. Progress is never simulated.

@@ -22,6 +22,33 @@ const VIEWS = [
             await p.waitForTimeout(500);
         },
     },
+    ...[1, 2, 3, 4, 5, 6].map((n) => ({
+        name: `profile-step${n}`,
+        hash: '/profiles/new',
+        action: async (p) => {
+            await p.locator('input[type="text"]').first().fill('Komplette Website');
+            await p.locator('textarea').first().fill('Dateien + Datenbank, nächtlich auf S3.');
+            for (let i = 1; i < n; i += 1) {
+                await p
+                    .getByRole('button', { name: /^(Weiter|Next|Suivant|Dalej|Avanti)/ })
+                    .click();
+                await p.waitForTimeout(250);
+            }
+            await p.waitForTimeout(500);
+        },
+        fullPage: true,
+    })),
+    {
+        name: 'profile-edit',
+        hash: '/profiles',
+        action: async (p) => {
+            await p
+                .getByRole('button', { name: /Nightly Full bearbeiten|Edit Nightly Full/ })
+                .click();
+            await p.waitForTimeout(900);
+        },
+        fullPage: true,
+    },
     { name: 'schedules', hash: '/schedules' },
     {
         name: 'schedule-edit',
@@ -204,7 +231,7 @@ for (const mode of MODES) {
                 errors.push(`action ${view.name}: ${e.message.split('\n')[0]}`);
             }
         }
-        const fullPage = !view.action;
+        const fullPage = !view.action || view.fullPage === true;
         await page.screenshot({ path: `screenshots/${view.name}-${mode.suffix}.png`, fullPage });
     }
     if (errors.length) console.log(`[${mode.suffix}]\n  ` + [...new Set(errors)].join('\n  '));

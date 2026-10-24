@@ -34,6 +34,17 @@ const routes: RouteRecordRaw[] = [
     component: () => import('@/features/profiles/ProfilesView.vue'),
   },
   {
+    path: '/profiles/new',
+    name: 'profile-new',
+    component: () => import('@/features/profiles/ProfileEditorView.vue'),
+  },
+  {
+    path: '/profiles/:id(\\d+)/edit',
+    name: 'profile-edit',
+    component: () => import('@/features/profiles/ProfileEditorView.vue'),
+    props: true,
+  },
+  {
     path: '/schedules',
     name: 'schedules',
     component: () => import('@/features/schedules/SchedulesView.vue'),

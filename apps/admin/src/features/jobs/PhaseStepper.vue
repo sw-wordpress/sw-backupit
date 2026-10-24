@@ -10,7 +10,7 @@ const { t } = useI18n();
 const ICONS: Record<JobStep, string> = {
   preflight: 'r_checklist',
   scan: 'r_manage_search',
-  export: 'r_database',
+  export: 'r_storage',
   archive: 'r_folder_zip',
   encrypt: 'r_lock',
   verify_local: 'r_fact_check',

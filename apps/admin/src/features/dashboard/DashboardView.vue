@@ -169,7 +169,7 @@ const cronWarn = computed(
           </StatTile>
           <StatTile
             :label="t('dashboard.storageUsed')"
-            icon="r_database"
+            icon="r_storage"
             :value="fmt.bytes(report.storage_bytes)"
             :hint="
               t(

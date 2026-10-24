@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { computed, ref, watch } from 'vue';
 import { useI18n } from 'vue-i18n';
+import { useRouter } from 'vue-router';
 import { useApi } from '@/api';
 import ConfirmDialog from '@/components/ui/ConfirmDialog.vue';
 import DataState from '@/components/ui/DataState.vue';
@@ -17,7 +18,6 @@ import { useRunProfile } from '@/composables/useRunProfile';
 import { useLookupsStore } from '@/stores/lookups';
 import type { Profile } from '@/types/api';
 import { ADVANCED_TYPES } from './defaults';
-import ProfileSheet from './ProfileSheet.vue';
 
 const { t } = useI18n();
 const fmt = useFormat();
@@ -32,21 +32,18 @@ const list = useAsyncData(() => api.profiles.list({ page: page.value, per_page: 
 watch(page, () => void list.load());
 
 const items = computed(() => list.data.value?.items ?? []);
-const sheetOpen = ref(false);
-const editing = ref<Profile | null>(null);
 const toDelete = ref<Profile | null>(null);
 const deleteOpen = ref(false);
 const deleting = ref(false);
 const duplicatingId = ref<number | null>(null);
 const canManage = computed(() => can('swbi_manage_profiles'));
 
+const router = useRouter();
 function openCreate(): void {
-  editing.value = null;
-  sheetOpen.value = true;
+  void router.push({ name: 'profile-new' });
 }
 function openEdit(p: Profile): void {
-  editing.value = p;
-  sheetOpen.value = true;
+  void router.push({ name: 'profile-edit', params: { id: p.id } });
 }
 function askDelete(p: Profile): void {
   toDelete.value = p;
@@ -255,13 +252,6 @@ function retentionSummary(p: Profile): string {
         :total="list.data.value.total"
       />
     </DataState>
-
-    <ProfileSheet
-      v-model="sheetOpen"
-      :profile="editing"
-      :readonly="!canManage"
-      @saved="list.load()"
-    />
 
     <ConfirmDialog
       v-model="deleteOpen"

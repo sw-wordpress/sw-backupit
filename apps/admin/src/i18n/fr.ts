@@ -213,6 +213,111 @@ const fr: Schema = {
     cronLastTick: 'Dernière exécution du cron : {time}',
   },
   profiles: {
+    wizard: {
+      setup: 'Configuration',
+      stepOf: 'Étape {n} / {total}',
+      stepperLabel: 'Étapes de configuration',
+      stepDone: 'terminée',
+      stepHasIssues: 'nécessite votre attention',
+      breadcrumb: "Fil d'Ariane",
+      newCrumb: 'Nouveau profil',
+      badgeNew: 'Nouveau · non enregistré',
+      badgeDirty: 'Modifications non enregistrées',
+      save: 'Enregistrer le profil',
+      savedWithId: 'Profil enregistré (ID {id}).',
+      announceStep: 'Étape {n} sur {total} : {title}',
+      identityHelp:
+        "Le nom apparaît dans les listes, les planifications et les notifications. L'ID est attribué par le serveur à l'enregistrement.",
+      nameExample: 'p. ex. « Sauvegarde complète nocturne »',
+      descPlaceholder: 'À quoi sert ce profil ?',
+      tooLong: '{n} caractères au maximum',
+      idLabel: 'ID',
+      idPending: "attribué à l'enregistrement",
+      copyId: "Copier l'ID",
+      typeHelp:
+        "Détermine quelles données sont sauvegardées et comment les sauvegardes suivantes s'appuient les unes sur les autres.",
+      recommended: 'Recommandé',
+      advanced: 'Avancé',
+      needsFull: 'Nécessite une sauvegarde complète existante',
+      fullFound:
+        'actuellement : {n} sauvegarde complète trouvée | actuellement : {n} sauvegardes complètes trouvées',
+      capFiles: 'Fichiers',
+      capDb: 'BD',
+      execution: 'Exécution',
+      executionHelp:
+        'Détermine la charge imposée au serveur. Sur un hébergement mutualisé, « Ménager » est généralement le choix sûr.',
+      priority: 'Priorité des ressources',
+      fineTune: 'Régler les limites en détail',
+      checksumsTitle: "Vérifier ensuite l'intégrité",
+      checksumsText:
+        "Enregistre des sommes de contrôle SHA-256 afin de pouvoir vérifier et comparer l'archive plus tard.",
+      pathsDefault:
+        'Vide signifie tout le répertoire WordPress. Les dossiers de cache sont exclus par défaut.',
+      noFilesForType:
+        'Ce type de sauvegarde ne contient pas de fichiers ; les répertoires et motifs ne sont donc pas utilisés.',
+      noDbForType:
+        'Ce type de sauvegarde ne contient pas de base de données ; les réglages de tables ne sont donc pas utilisés.',
+      encryptionHelp:
+        "Les archives sont chiffrées avec libsodium (XChaCha20-Poly1305). La clé provient de Réglages → Clés de chiffrement ; la phrase secrète n'est jamais saisie ici.",
+      noTargetSelected:
+        'Aucune destination sélectionnée : la sauvegarde ne serait copiée nulle part.',
+      back: 'Retour',
+      next: 'Suivant : {step}',
+      allOk: 'Tous les champs obligatoires sont remplis',
+      issuesCount:
+        '{n} information manquante ou invalide | {n} informations manquantes ou invalides',
+      previewTitle: 'Aperçu en direct du profil',
+      previewHint: 'Aperçu des données envoyées au serveur',
+      live: 'en direct',
+      copyCommand: 'Copier la commande',
+      steps: {
+        general: {
+          title: 'Général',
+          hint: 'Nom et type de sauvegarde',
+          desc: 'Identité de base et stratégie de sauvegarde du profil.',
+        },
+        content: {
+          title: 'Contenu',
+          hint: 'Dossiers, tables, exclusions',
+          desc: 'Ce qui est exactement inclus dans la sauvegarde.',
+        },
+        compression: {
+          title: 'Compression et chiffrement',
+          hint: 'Format, niveau, chiffrement',
+          desc: 'Comment les archives sont compressées et protégées.',
+        },
+        storage: {
+          title: 'Destination',
+          hint: 'Local, S3, SFTP …',
+          desc: 'Où les sauvegardes terminées sont copiées.',
+        },
+        retention: {
+          title: 'Conservation',
+          hint: 'Rotation et notifications',
+          desc: 'Combien de temps les sauvegardes sont conservées et qui est informé.',
+        },
+        summary: {
+          title: 'Récapitulatif',
+          hint: 'Vérifier et enregistrer',
+          desc: "Vérifiez tous les choix avant d'enregistrer.",
+        },
+      },
+      presets: { low: 'Ménager', normal: 'Normal', high: 'Maximal', custom: 'Personnalisé' },
+      summary: {
+        intro: 'Vérifiez tous les choix. « Modifier » permet de changer une section.',
+        problems: 'Veuillez corriger ce qui suit',
+        ok: 'Tout est en ordre – le profil peut être enregistré.',
+        edit: 'Modifier',
+        editNamed: 'Modifier la section {name}',
+        yes: 'Oui',
+        no: 'Non',
+        none: 'Aucun',
+        wholeSite: 'Tout le répertoire WordPress',
+        allTables: 'Toutes les tables WordPress',
+        noTargets: 'Aucune destination sélectionnée',
+        off: 'désactivé',
+      },
+    },
     noKeys: "Aucune clé n'existe pour le moment.",
     createKey: 'Créer une clé dans les réglages',
     consistentSnapshot: 'Instantané cohérent de la base de données (transactionnel)',
@@ -248,14 +353,6 @@ const fr: Schema = {
     notEncrypted: 'Non chiffrée',
     methodStoreShort: 'sans compression',
     levelShort: 'niveau {n}',
-    tabs: {
-      general: 'Général',
-      content: 'Contenu',
-      compression: 'Compression et chiffrement',
-      storage: 'Stockage et rétention',
-      limits: 'Limites',
-      notifications: 'Notifications',
-    },
     sections: {
       identity: 'Identité',
       identityDesc: 'Nom et description facultative du profil.',
