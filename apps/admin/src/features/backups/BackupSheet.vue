@@ -14,6 +14,7 @@ import type { Backup, VerifyResult } from '@/types/api';
 import BackupFileBrowser from './BackupFileBrowser.vue';
 import CompareDialog from './CompareDialog.vue';
 import RestoreDialog from './RestoreDialog.vue';
+import RestoreTestPanel from './RestoreTestPanel.vue';
 
 const open = defineModel<boolean>({ required: true });
 const props = defineProps<{ backupId: string }>();
@@ -356,6 +357,21 @@ const verifyOk = computed(
           </div>
         </dl>
 
+        <div v-if="backup.parent_id" class="swbi-bs__chain" role="note">
+          <q-icon name="r_account_tree" size="20px" aria-hidden="true" />
+          <div>
+            <strong>{{ t('backups.chain.title') }}</strong>
+            <p>{{ t('backups.chain.text', { type: t(`types.${backup.type}`) }) }}</p>
+            <router-link
+              class="swbi-mono"
+              :to="{ name: 'backups', params: { id: backup.parent_id } }"
+              >{{ fmt.shortId(backup.parent_id) }}</router-link
+            >
+          </div>
+        </div>
+
+        <RestoreTestPanel :backup="backup" @tested="detail.load(); emit('changed')" />
+
         <section>
           <h3 class="swbi-bs__h">{{ t('backups.locations') }}</h3>
           <p v-if="backup.locations.length === 0" class="swbi-muted">
@@ -448,6 +464,15 @@ const verifyOk = computed(
 }
 .swbi-bs__meta dd {
   overflow-wrap: anywhere;
+}
+.swbi-bs__chain {
+  display: flex;
+  gap: 12px;
+  padding: 12px 14px;
+  border-radius: var(--swbi-radius-sm);
+  background: var(--swbi-info-bg);
+  color: var(--swbi-info-text);
+  font-size: 14px;
 }
 .swbi-bs__h {
   font-size: 15px;
