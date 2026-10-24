@@ -7,7 +7,13 @@ import FormSheet from '@/components/ui/FormSheet.vue';
 import SecretInput from '@/components/ui/SecretInput.vue';
 import { useFormError } from '@/composables/useFormError';
 import { useNotify } from '@/composables/useNotify';
-import type { Retention, StorageConfig, StorageTarget, StorageTargetInput, StorageType } from '@/types/api';
+import type {
+  Retention,
+  StorageConfig,
+  StorageTarget,
+  StorageTargetInput,
+  StorageType,
+} from '@/types/api';
 
 const open = defineModel<boolean>({ required: true });
 const props = defineProps<{ target: StorageTarget | null; readonly?: boolean }>();

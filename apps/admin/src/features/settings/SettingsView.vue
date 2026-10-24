@@ -65,11 +65,22 @@ function filterTz(val: string, update: (fn: () => void) => void): void {
   });
 }
 
+/** Only the top-level groups that differ from the loaded state are sent. */
+function changedGroups(): Partial<Settings> {
+  const out: Record<string, unknown> = {};
+  if (!form.value) return out;
+  const base = JSON.parse(original.value) as Record<string, unknown>;
+  for (const [key, value] of Object.entries(form.value as unknown as Record<string, unknown>)) {
+    if (JSON.stringify(value) !== JSON.stringify(base[key])) out[key] = value;
+  }
+  return out as Partial<Settings>;
+}
+
 async function save(): Promise<void> {
   if (!form.value) return;
   saving.value = true;
   try {
-    const saved = await api.settings.update(form.value);
+    const saved = await api.settings.update(changedGroups());
     load.data.value = saved;
     notify.success(t('settings.saved'));
   } catch (e) {
@@ -339,6 +350,18 @@ onBeforeRouteLeave(() => (dirty.value ? window.confirm(t('settings.unsaved')) : 
                     lazy-rules="ondemand"
                   />
                 </div>
+                <q-input
+                  v-model.number="form.logging.audit_retention_days"
+                  outlined
+                  dense
+                  type="number"
+                  min="0"
+                  suffix="d"
+                  :label="t('settings.auditRetention')"
+                  :hint="t('settings.auditRetentionHint')"
+                  :rules="[nonNegative]"
+                  lazy-rules="ondemand"
+                />
               </FormSection>
             </SwbiCard>
 
@@ -369,6 +392,65 @@ onBeforeRouteLeave(() => (dirty.value ? window.confirm(t('settings.unsaved')) : 
                   :options="profileOptions"
                   :label="t('settings.preUpdateProfile')"
                   :hint="t('settings.preUpdateProfileHint')"
+                />
+                <div class="swbi-two">
+                  <q-input
+                    v-model.number="form.pre_update_backup.max_age_minutes"
+                    outlined
+                    dense
+                    type="number"
+                    min="0"
+                    suffix="min"
+                    :label="t('settings.preUpdateMaxAge')"
+                    :hint="t('settings.preUpdateMaxAgeHint')"
+                    :rules="[nonNegative]"
+                    lazy-rules="ondemand"
+                  />
+                  <q-input
+                    v-model.number="form.pre_update_backup.wait_seconds"
+                    outlined
+                    dense
+                    type="number"
+                    min="0"
+                    suffix="s"
+                    :label="t('settings.preUpdateWait')"
+                    :hint="t('settings.preUpdateWaitHint')"
+                    :rules="[nonNegative]"
+                    lazy-rules="ondemand"
+                  />
+                </div>
+                <q-toggle
+                  v-model="form.pre_update_backup.block_on_failure"
+                  :label="t('settings.preUpdateBlock')"
+                />
+                <p v-if="form.pre_update_backup.block_on_failure" class="swbi-warn" role="alert">
+                  <q-icon name="r_warning" size="20px" aria-hidden="true" />
+                  {{ t('settings.preUpdateBlockWarning') }}
+                </p>
+              </FormSection>
+            </SwbiCard>
+
+            <SwbiCard :title="t('settings.sectionRestoreTests')" icon="r_science">
+              <FormSection
+                :title="t('settings.restoreTest')"
+                :description="t('settings.restoreTestDesc')"
+              >
+                <q-toggle
+                  v-model="form.restore_test.enabled"
+                  :label="t('settings.restoreTestEnabled')"
+                />
+                <q-input
+                  v-model.number="form.restore_test.interval_days"
+                  outlined
+                  dense
+                  type="number"
+                  min="1"
+                  suffix="d"
+                  :disable="!form.restore_test.enabled"
+                  :label="t('settings.restoreTestInterval')"
+                  :hint="t('settings.restoreTestIntervalHint')"
+                  :rules="[positive]"
+                  lazy-rules="ondemand"
                 />
               </FormSection>
             </SwbiCard>
@@ -406,6 +488,15 @@ onBeforeRouteLeave(() => (dirty.value ? window.confirm(t('settings.unsaved')) : 
 </template>
 
 <style scoped>
+.swbi-warn {
+  display: flex;
+  gap: 10px;
+  padding: 10px 14px;
+  border-radius: var(--swbi-radius-sm);
+  background: var(--swbi-warning-bg);
+  color: var(--swbi-warning-text);
+  font-size: 14px;
+}
 .swbi-settings__keys {
   margin-top: 16px;
 }

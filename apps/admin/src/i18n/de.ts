@@ -1,5 +1,45 @@
 /** German messages (default for `de_*` locales). This file defines the schema; en.ts must match. */
 const de = {
+  audit: {
+    subtitle: 'Wer hat wann was getan: sicherheitsrelevante Aktionen im Überblick.',
+    filters: 'Audit-Log filtern',
+    action: 'Aktion',
+    objectType: 'Objekttyp',
+    userId: 'Benutzer-ID',
+    noMatch: 'Keine Treffer',
+    noMatchText: 'Mit diesen Filtern wurde kein Eintrag gefunden.',
+    emptyTitle: 'Noch keine Einträge',
+    emptyText:
+      'Sobald Aktionen ausgeführt werden, erscheinen sie hier. Es werden keine Geheimnisse protokolliert.',
+    col: { time: 'Zeitpunkt', user: 'Benutzer', object: 'Objekt', details: 'Details' },
+    objects: {
+      backup: 'Backup',
+      profile: 'Profil',
+      schedule: 'Zeitplan',
+      storage_target: 'Speicherziel',
+      encryption_key: 'Schlüssel',
+      settings: 'Einstellungen',
+    },
+    actions: {
+      backup_started: 'Backup gestartet',
+      backup_downloaded: 'Backup heruntergeladen',
+      backup_deleted: 'Backup gelöscht',
+      backup_protected: 'Backup-Schutz geändert',
+      backup_verified: 'Backup verifiziert',
+      restore_prepared: 'Wiederherstellung vorbereitet',
+      restore_tested: 'Restore-Test durchgeführt',
+      profile_saved: 'Profil gespeichert',
+      profile_deleted: 'Profil gelöscht',
+      schedule_saved: 'Zeitplan gespeichert',
+      schedule_deleted: 'Zeitplan gelöscht',
+      storage_target_saved: 'Speicherziel gespeichert',
+      storage_target_deleted: 'Speicherziel gelöscht',
+      encryption_key_created: 'Schlüssel erstellt',
+      encryption_key_deleted: 'Schlüssel gelöscht',
+      settings_updated: 'Einstellungen geändert',
+      backups_imported: 'Backups importiert',
+    },
+  },
   app: {
     skipToContent: 'Zum Inhalt springen',
     mainNavigation: 'Hauptnavigation',
@@ -9,6 +49,7 @@ const de = {
     expandNav: 'Navigation ausklappen',
   },
   nav: {
+    audit: 'Audit',
     dashboard: 'Übersicht',
     backups: 'Backups',
     jobs: 'Jobs',
@@ -366,6 +407,39 @@ const de = {
     backoff: 'Wartezeit zwischen Versuchen',
   },
   backups: {
+    chain: {
+      title: 'Benötigte Basis-Backups',
+      text: 'Dieses {type}e Backup lässt sich nur mit seinem Basis-Backup wiederherstellen. Lösche die Basis nicht.',
+      basedOn: 'Basiert auf',
+    },
+    restoreTest: {
+      title: 'Restore-Test',
+      run: 'Restore testen',
+      running:
+        'Der Test läuft und kann mehrere Minuten dauern. Bitte dieses Fenster geöffnet lassen.',
+      status: { passed: 'Bestanden', partial: 'Teilweise bestanden', failed: 'Fehlgeschlagen' },
+      done: {
+        passed: 'Restore-Test bestanden.',
+        partial: 'Restore-Test teilweise bestanden.',
+        failed: 'Restore-Test fehlgeschlagen.',
+      },
+      duration: 'Dauer {time}',
+      partialExplain:
+        'Teilweise bedeutet: Die Datenbankprüfung wurde übersprungen, weil dem Datenbankbenutzer das Recht CREATE DATABASE fehlt. Dateien und Archiv wurden geprüft.',
+      checks: 'Prüfschritte',
+      check: { passed: 'Bestanden', failed: 'Fehlgeschlagen', skipped: 'Übersprungen' },
+      never:
+        'Noch nie getestet. Ein ungetestetes Backup ist keine geprüfte Wiederherstellungsoption.',
+      noDetails: 'Zuletzt getestet, aber ohne gespeichertes Ergebnis.',
+      confirmTitle: 'Restore-Test starten?',
+      confirmMessage:
+        'Das Backup wird probeweise wiederhergestellt, um zu prüfen, dass es wirklich funktioniert.',
+      consequence1:
+        'Der Test läuft in einem isolierten temporären Verzeichnis und einer Scratch-Datenbank.',
+      consequence2: 'Die Produktivseite wird nicht verändert.',
+      consequence3: 'Er kann mehrere Minuten dauern und belastet den Server währenddessen.',
+      start: 'Test starten',
+    },
     downloadParts: 'Weitere Dateien',
     part: { database: 'Datenbank-Dump', manifest: 'Manifest', index: 'Index' },
     subtitle:
@@ -582,6 +656,17 @@ const de = {
     },
   },
   storage: {
+    lockDays: 'Sperrfrist',
+    lockDaysHint:
+      'Backups werden frühestens nach dieser Zahl von Tagen gelöscht. 0 = keine Sperrfrist.',
+    objectLock: {
+      mode: 'Object-Lock-Modus',
+      off: 'Aus',
+      governance: 'Governance (mit Sonderrecht aufhebbar)',
+      compliance: 'Compliance (nicht aufhebbar)',
+      days: 'Sperrdauer',
+      note: 'Der Bucket muss mit aktiviertem Object Lock erstellt worden sein, sonst schlägt der Upload fehl. Im Compliance-Modus kann niemand, auch nicht der Root-Account, die Objekte vor Ablauf löschen.',
+    },
     inUse: 'Entferne das Ziel zuerst aus allen Profilen.',
     subtitle: 'Orte, an denen Backups abgelegt werden.',
     add: 'Speicherziel hinzufügen',
@@ -597,7 +682,8 @@ const de = {
     credentialsKeepHint: 'Leer lassen, um den gespeicherten Wert zu behalten.',
     immutableShort: 'Unveränderlich',
     immutable: 'Unveränderlich (Backups dürfen nicht gelöscht oder überschrieben werden)',
-    immutableHint: 'Nur wirksam, wenn das Speicherziel Objektsperren unterstützt.',
+    immutableHint:
+      'Die Aufbewahrung (Retention) löscht unveränderliche oder gesperrte Ziele nie. Backups bleiben bis zum manuellen Eingriff oder Ablauf der Sperre erhalten.',
     ownRetention: 'Eigene Aufbewahrungsregeln für dieses Ziel',
     test: 'Verbindung testen',
     testOk: 'Verbindung ok ({ms} ms)',
@@ -666,6 +752,22 @@ const de = {
     },
   },
   settings: {
+    sectionRestoreTests: 'Restore-Tests',
+    restoreTest: 'Regelmäßige Restore-Tests',
+    restoreTestDesc:
+      'Testet Backups automatisch in einer isolierten Umgebung, damit Probleme vor dem Ernstfall auffallen.',
+    restoreTestEnabled: 'Automatische Restore-Tests aktivieren',
+    restoreTestInterval: 'Intervall',
+    restoreTestIntervalHint: 'Wie oft das jeweils neueste Backup getestet wird.',
+    auditRetention: 'Aufbewahrung des Audit-Logs',
+    auditRetentionHint: '0 = unbegrenzt behalten',
+    preUpdateMaxAge: 'Maximales Alter eines vorhandenen Backups',
+    preUpdateMaxAgeHint: 'Ist ein Backup jünger, wird kein neues erstellt.',
+    preUpdateWait: 'Maximale Wartezeit',
+    preUpdateWaitHint: 'Wie lange das Update auf das Backup wartet.',
+    preUpdateBlock: 'Update blockieren, wenn das Backup fehlschlägt',
+    preUpdateBlockWarning:
+      'Achtung: Schlägt das Backup fehl (z. B. kein Speicherplatz), werden Updates verhindert, auch Sicherheitsupdates. Aktiviere dies nur, wenn du Backups regelmäßig überwachst.',
     keys: {
       title: 'Verschlüsselungsschlüssel',
       intro:

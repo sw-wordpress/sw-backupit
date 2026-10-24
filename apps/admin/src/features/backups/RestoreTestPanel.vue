@@ -50,7 +50,9 @@ async function run(): Promise<void> {
 <template>
   <section class="swbi-rt" :aria-labelledby="`swbi-rt-${backup.id}`">
     <div class="swbi-rt__head">
-      <h3 :id="`swbi-rt-${backup.id}`" class="swbi-rt__title">{{ t('backups.restoreTest.title') }}</h3>
+      <h3 :id="`swbi-rt-${backup.id}`" class="swbi-rt__title">
+        {{ t('backups.restoreTest.title') }}
+      </h3>
       <q-btn
         v-if="can('swbi_restore')"
         outline
@@ -76,12 +78,17 @@ async function run(): Promise<void> {
           :label="t(`backups.restoreTest.status.${backup.restore_test.status}`)"
         />
         <span class="swbi-muted swbi-num">
-          {{ t('backups.restoreTest.duration', { time: fmt.duration(backup.restore_test.seconds) }) }}
-          · {{ fmt.dateTime(backup.restore_test.tested_at) }} ({{ fmt.relative(backup.restore_test.tested_at) }})
+          {{
+            t('backups.restoreTest.duration', { time: fmt.duration(backup.restore_test.seconds) })
+          }}
+          · {{ fmt.dateTime(backup.restore_test.tested_at) }} ({{
+            fmt.relative(backup.restore_test.tested_at)
+          }})
         </span>
       </div>
       <p v-if="backup.restore_test.status === 'partial'" class="swbi-rt__note" role="note">
-        <q-icon name="r_info" size="18px" aria-hidden="true" /> {{ t('backups.restoreTest.partialExplain') }}
+        <q-icon name="r_info" size="18px" aria-hidden="true" />
+        {{ t('backups.restoreTest.partialExplain') }}
       </p>
       <ul class="swbi-rt__checks" :aria-label="t('backups.restoreTest.checks')">
         <li v-for="c in backup.restore_test.checks" :key="c.name">
@@ -99,7 +106,11 @@ async function run(): Promise<void> {
 
     <p v-else class="swbi-muted swbi-rt__never">
       <q-icon name="r_help_outline" size="18px" aria-hidden="true" />
-      {{ backup.restore_tested_at ? t('backups.restoreTest.noDetails') : t('backups.restoreTest.never') }}
+      {{
+        backup.restore_tested_at
+          ? t('backups.restoreTest.noDetails')
+          : t('backups.restoreTest.never')
+      }}
     </p>
 
     <ConfirmDialog

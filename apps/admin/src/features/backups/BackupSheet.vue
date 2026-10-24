@@ -370,7 +370,13 @@ const verifyOk = computed(
           </div>
         </div>
 
-        <RestoreTestPanel :backup="backup" @tested="detail.load(); emit('changed')" />
+        <RestoreTestPanel
+          :backup="backup"
+          @tested="
+            detail.load();
+            emit('changed');
+          "
+        />
 
         <section>
           <h3 class="swbi-bs__h">{{ t('backups.locations') }}</h3>

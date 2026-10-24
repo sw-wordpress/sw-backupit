@@ -23,9 +23,9 @@ Chronological log of completed work (newest last). Test counts refer to the stat
 - Audit log (append-only table, REST + hooks), isolated restore tests (temp dir + scratch database, documented result), background verification and scheduled restore tests, health monitor (overdue schedules, low disk), job watchdog, pre-update backups (core/plugins/themes; recency window, wait limit, optional blocking), multisite semantics (network-wide data, network admin UI, one cron watcher), immutable targets / lock periods / S3 Object Lock, load and failure tests (20,000 files, 300 MB file, concurrent workers, full disk), REST security regression tests, SPA features for all of the above (second delegated round).
 
 ## Test and quality status (end of Phase 4)
-- Main PHPUnit suites (unit + integration + e2e): 131 tests green (private MariaDB and S3 mock); load suite 4 tests green; WordPress integration suite 35 tests green in single-site and multisite mode.
+- Main PHPUnit suites (unit + integration + e2e): 133 tests green (private MariaDB and S3 mock); load suite 4 tests green; WordPress integration suite 35 tests green in single-site and multisite mode.
 - PHPStan level 8: clean. PHPCS: PSR-12 (core/restore/tests) and WordPress Coding Standards (adapter) clean (documented exceptions in the rulesets).
-- SPA: `vue-tsc`, ESLint, Vitest (35+ tests) and production build green.
+- SPA: `vue-tsc`, ESLint, Vitest (41 tests) and production build green.
 
 ## Key architecture decisions
 See `docs/implementation-plan.md` and `docs/architecture.md`: NDJSON index (no pdo_sqlite dependency), volume-granular resume, flags/lease outside the job entity, manifest written after verified artifacts and uploaded last, complete index per delta backup, network-wide data on multisite, restore never inside WordPress, secrets only as hashes/encrypted values.

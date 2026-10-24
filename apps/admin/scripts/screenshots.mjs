@@ -109,6 +109,43 @@ const VIEWS = [
     },
     { name: 'settings', hash: '/settings' },
     {
+        name: 'audit',
+        hash: '/audit',
+        action: async (p) => {
+            await p
+                .getByRole('button', { name: /Details/ })
+                .first()
+                .click();
+            await p.waitForTimeout(400);
+        },
+    },
+    {
+        name: 'restore-test',
+        hash: '/backups',
+        action: async (p) => {
+            await p.locator('tbody tr').nth(1).click();
+            await p.waitForTimeout(600);
+            await p.getByRole('button', { name: /Restore testen|Test restore/ }).click();
+            await p.waitForTimeout(500);
+            await p.screenshot({
+                path: `screenshots/restore-test-confirm-${p.viewportSize().width}.png`,
+            });
+            await p.getByRole('button', { name: /Test starten|Start test/ }).click();
+            await p.waitForTimeout(900);
+        },
+    },
+    {
+        name: 'backup-chain',
+        hash: '/backups',
+        action: async (p) => {
+            await p
+                .locator('tbody tr', { hasText: /Differenziell|Differential/ })
+                .first()
+                .click();
+            await p.waitForTimeout(700);
+        },
+    },
+    {
         name: 'keys-created',
         hash: '/settings',
         action: async (p) => {

@@ -242,6 +242,17 @@ function openRow(id: string): void {
                   :label="t(`types.${b.type}`)"
                   dense
                 />
+                <router-link
+                  v-if="b.parent_id"
+                  class="swbi-chain"
+                  :to="{ name: 'backups', params: { id: b.parent_id } }"
+                  :title="t('backups.chain.title')"
+                  @click.stop
+                >
+                  <q-icon name="r_subdirectory_arrow_right" size="16px" aria-hidden="true" />
+                  <span class="swbi-sr-only">{{ t('backups.chain.basedOn') }}</span>
+                  <span class="swbi-mono">{{ fmt.shortId(b.parent_id) }}</span>
+                </router-link>
               </td>
               <td :data-label="t('common.status')">
                 <div class="swbi-flags">
@@ -314,6 +325,18 @@ function openRow(id: string): void {
 </template>
 
 <style scoped>
+.swbi-chain {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  margin-left: 8px;
+  padding: 1px 8px 1px 4px;
+  border-radius: 999px;
+  background: var(--swbi-neutral-bg);
+  color: var(--swbi-neutral-text) !important;
+  font-size: 12px;
+  text-decoration: none !important;
+}
 .swbi-filters {
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));

@@ -321,7 +321,12 @@ let settings: Settings = {
   limits: { time_budget_seconds: 20, memory_mb: 128, batch_rows: 1000, max_parallel_uploads: 1 },
   encryption: { default_key_id: 'primary-2026' },
   notifications: { recipients: ['admin@example.com'], dedupe_minutes: 60 },
-  logging: { retention_days: 30, max_events_per_job: 5000, level: 'info', audit_retention_days: 365 },
+  logging: {
+    retention_days: 30,
+    max_events_per_job: 5000,
+    level: 'info',
+    audit_retention_days: 365,
+  },
   restore_test: { enabled: true, interval_days: 30 },
   cron: { mode: 'wp-cron', timezone: 'Europe/Berlin' },
   retention_default: {
@@ -378,8 +383,16 @@ function makeBackups(): Backup[] {
               tested_at: iso(created + 2 * DAY),
               checks: [
                 { name: 'Archive integrity', status: 'passed', detail: '3 volumes, SHA-256 ok' },
-                { name: 'Extract sample files', status: 'passed', detail: '250 files extracted to temp directory' },
-                { name: 'Database import', status: 'skipped', detail: 'No CREATE DATABASE privilege for the scratch database' },
+                {
+                  name: 'Extract sample files',
+                  status: 'passed',
+                  detail: '250 files extracted to temp directory',
+                },
+                {
+                  name: 'Database import',
+                  status: 'skipped',
+                  detail: 'No CREATE DATABASE privilege for the scratch database',
+                },
               ],
             }
           : null,
@@ -1116,19 +1129,49 @@ export function handle(req: MockRequest): MockResponse {
         checks:
           b.status === 'corrupt'
             ? [
-                { name: 'Archive integrity', status: 'failed', detail: 'Volume 2: SHA-256 mismatch' },
-                { name: 'Extract sample files', status: 'skipped', detail: 'Skipped after failed integrity check' },
-                { name: 'Database import', status: 'skipped', detail: 'Skipped after failed integrity check' },
+                {
+                  name: 'Archive integrity',
+                  status: 'failed',
+                  detail: 'Volume 2: SHA-256 mismatch',
+                },
+                {
+                  name: 'Extract sample files',
+                  status: 'skipped',
+                  detail: 'Skipped after failed integrity check',
+                },
+                {
+                  name: 'Database import',
+                  status: 'skipped',
+                  detail: 'Skipped after failed integrity check',
+                },
               ]
             : [
                 { name: 'Archive integrity', status: 'passed', detail: '3 volumes, SHA-256 ok' },
-                { name: 'Extract sample files', status: 'passed', detail: '250 files extracted to temp directory' },
-                { name: 'Database import', status: 'passed', detail: '14 tables imported into scratch database' },
+                {
+                  name: 'Extract sample files',
+                  status: 'passed',
+                  detail: '250 files extracted to temp directory',
+                },
+                {
+                  name: 'Database import',
+                  status: 'passed',
+                  detail: '14 tables imported into scratch database',
+                },
               ],
       };
       b.restore_test = res;
       b.restore_tested_at = res.tested_at;
-      audit.unshift({ id: nextAuditId++, time: res.tested_at, user_id: 1, user: 'admin', ip: '127.0.0.1', action: 'restore_tested', object_type: 'backup', object_id: b.id, context: { status: res.status } });
+      audit.unshift({
+        id: nextAuditId++,
+        time: res.tested_at,
+        user_id: 1,
+        user: 'admin',
+        ip: '127.0.0.1',
+        action: 'restore_tested',
+        object_type: 'backup',
+        object_id: b.id,
+        context: { status: res.status },
+      });
       return { status: 200, body: res };
     }
     if (action === 'restore' && method === 'POST') {

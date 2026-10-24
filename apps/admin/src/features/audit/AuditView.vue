@@ -19,7 +19,14 @@ const api = useApi();
 const { can } = useCapabilities();
 const allowed = can('swbi_settings');
 
-const OBJECT_TYPES = ['backup', 'profile', 'schedule', 'storage_target', 'encryption_key', 'settings'];
+const OBJECT_TYPES = [
+  'backup',
+  'profile',
+  'schedule',
+  'storage_target',
+  'encryption_key',
+  'settings',
+];
 
 const action = ref<string | null>(null);
 const objectType = ref<string | null>(null);
@@ -63,7 +70,9 @@ onBeforeUnmount(() => {
 const actionOptions = computed(() =>
   AUDIT_ACTIONS.map((a) => ({ value: a, label: t(`audit.actions.${a}`) })),
 );
-const typeOptions = computed(() => OBJECT_TYPES.map((o) => ({ value: o, label: t(`audit.objects.${o}`) })));
+const typeOptions = computed(() =>
+  OBJECT_TYPES.map((o) => ({ value: o, label: t(`audit.objects.${o}`) })),
+);
 const actionLabel = (a: string): string => (te(`audit.actions.${a}`) ? t(`audit.actions.${a}`) : a);
 const objectLabel = (o: string): string => (te(`audit.objects.${o}`) ? t(`audit.objects.${o}`) : o);
 const hasContext = (c: Record<string, unknown>): boolean => Object.keys(c ?? {}).length > 0;
@@ -87,22 +96,77 @@ function reset(): void {
   <NoAccess v-if="!allowed" />
   <div v-else>
     <PageHeader :title="t('nav.audit')" :subtitle="t('audit.subtitle')">
-      <q-btn flat no-caps icon="r_refresh" :label="t('common.refresh')" :loading="list.loading.value" @click="list.load()" />
+      <q-btn
+        flat
+        no-caps
+        icon="r_refresh"
+        :label="t('common.refresh')"
+        :loading="list.loading.value"
+        @click="list.load()"
+      />
     </PageHeader>
 
     <SwbiCard :padding="false">
       <form class="swbi-filters" role="search" :aria-label="t('audit.filters')" @submit.prevent>
-        <q-select v-model="action" outlined dense clearable emit-value map-options :options="actionOptions" :label="t('audit.action')" />
-        <q-select v-model="objectType" outlined dense clearable emit-value map-options :options="typeOptions" :label="t('audit.objectType')" />
-        <q-input v-model="userId" outlined dense clearable inputmode="numeric" :label="t('audit.userId')" autocomplete="off" />
+        <q-select
+          v-model="action"
+          outlined
+          dense
+          clearable
+          emit-value
+          map-options
+          :options="actionOptions"
+          :label="t('audit.action')"
+        />
+        <q-select
+          v-model="objectType"
+          outlined
+          dense
+          clearable
+          emit-value
+          map-options
+          :options="typeOptions"
+          :label="t('audit.objectType')"
+        />
+        <q-input
+          v-model="userId"
+          outlined
+          dense
+          clearable
+          inputmode="numeric"
+          :label="t('audit.userId')"
+          autocomplete="off"
+        />
       </form>
 
-      <DataState :loading="list.loading.value" :error="list.error.value" :empty="items.length === 0" @retry="list.load()">
+      <DataState
+        :loading="list.loading.value"
+        :error="list.error.value"
+        :empty="items.length === 0"
+        @retry="list.load()"
+      >
         <template #empty>
-          <EmptyState v-if="hasFilters" illustration="search" :title="t('audit.noMatch')" :text="t('audit.noMatchText')">
-            <q-btn flat no-caps color="primary" icon="r_filter_alt_off" :label="t('backups.resetFilters')" @click="reset" />
+          <EmptyState
+            v-if="hasFilters"
+            illustration="search"
+            :title="t('audit.noMatch')"
+            :text="t('audit.noMatchText')"
+          >
+            <q-btn
+              flat
+              no-caps
+              color="primary"
+              icon="r_filter_alt_off"
+              :label="t('backups.resetFilters')"
+              @click="reset"
+            />
           </EmptyState>
-          <EmptyState v-else illustration="jobs" :title="t('audit.emptyTitle')" :text="t('audit.emptyText')" />
+          <EmptyState
+            v-else
+            illustration="jobs"
+            :title="t('audit.emptyTitle')"
+            :text="t('audit.emptyText')"
+          />
         </template>
         <table class="swbi-table">
           <thead>
@@ -111,7 +175,9 @@ function reset(): void {
               <th scope="col">{{ t('audit.col.user') }}</th>
               <th scope="col">{{ t('audit.action') }}</th>
               <th scope="col">{{ t('audit.col.object') }}</th>
-              <th scope="col"><span class="swbi-sr-only">{{ t('audit.col.details') }}</span></th>
+              <th scope="col">
+                <span class="swbi-sr-only">{{ t('audit.col.details') }}</span>
+              </th>
             </tr>
           </thead>
           <tbody>
@@ -160,7 +226,12 @@ function reset(): void {
             </template>
           </tbody>
         </table>
-        <PaginationBar v-if="list.data.value" v-model:page="page" :pages="list.data.value.pages" :total="list.data.value.total" />
+        <PaginationBar
+          v-if="list.data.value"
+          v-model:page="page"
+          :pages="list.data.value.pages"
+          :total="list.data.value.total"
+        />
       </DataState>
     </SwbiCard>
   </div>

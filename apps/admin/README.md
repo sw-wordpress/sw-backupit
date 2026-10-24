@@ -122,6 +122,14 @@ The dev host page (`index.html`) simulates hostile wp-admin globals (`h1`, `p`, 
 - **Encryption keys.** Settings > "Encryption keys" (list, create with optional passphrase, secret shown once with a copy button and a required "stored" confirmation, delete with typed confirmation). The profile's encryption tab selects from this list.
 - **Errors.** `message` is always shown; 400/409 on forms render inline with per-field `data.params`; 501 (`swbi_use_wizard`/`swbi_not_implemented`) is an informative toast; 429 a "slow down" warning; 409 on delete (target in use, protected backup) is shown inside the confirmation dialog or toast.
 
+## Phase 4 (enterprise) UI
+
+- **Audit** (`/audit`, nav entry and view require `swbi_settings`): `GET /audit` with filters (action, object type, user id), pagination, translated action labels (`audit.actions.*`), relative and absolute time, expandable `context` (rendered as text only), empty/error states.
+- **Restore test** (backup detail, `swbi_restore`): confirmation dialog (isolated temp directory + scratch database, production untouched, may take minutes), then `POST /backups/{id}/restore-test`. The result (also the stored `backup.restore_test`) is shown as a status badge (passed/partial/failed), duration and a per-check list with chips; `partial` is explained (database check skipped, no CREATE DATABASE privilege). Untested backups show a "never tested" hint.
+- **Settings:** "Backup before updates" (toggles, profile, `max_age_minutes`, `wait_seconds`, `block_on_failure` with a warning), "Restore tests" (`enabled`, `interval_days`), `logging.audit_retention_days`. `PUT /settings` sends only the top-level groups that changed.
+- **Storage targets:** `lock_days` for all types, s3 `object_lock {mode, days}` (note: bucket needs Object Lock), `immutable` with the explanation that retention never deletes immutable/locked targets.
+- **Chains:** incremental/differential backups show their parent id as a chip in the table; the detail shows a "Required base backups" hint with a link to the parent.
+
 ## Behaviour notes
 
 - **Job runner.** `useJobMonitor` polls `GET /jobs/{id}` with backoff (1 s → 5 s while unchanged, 5 s while paused, exponential up to 30 s on errors), pulls logs with `after=<last_id>`, keeps at most 2000 log lines, pauses while the tab is hidden and stops when its scope is disposed. While the job is active and the tab is visible, and "Drive job from this browser" is on (default), it calls `POST /jobs/{id}/tick` in a loop instead of `GET`. Progress is never simulated.
