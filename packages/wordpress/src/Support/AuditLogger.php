@@ -18,23 +18,23 @@ final class AuditLogger {
 
 	/** Actions to listen to => [object type, argument holding the object id (0-based) or null]. */
 	private const MAP = array(
-		'swbi_backup_started'           => array( 'job', 0 ),
-		'swbi_backup_downloaded'        => array( 'backup', 0 ),
-		'swbi_backup_deleted'           => array( 'backup', 0 ),
-		'swbi_backup_protected'         => array( 'backup', 0 ),
-		'swbi_backup_verified'          => array( 'backup', 0 ),
-		'swbi_restore_prepared'         => array( 'backup', 0 ),
-		'swbi_restore_tested'           => array( 'backup', 0 ),
-		'swbi_profile_saved'            => array( 'profile', 0 ),
-		'swbi_profile_deleted'          => array( 'profile', 0 ),
-		'swbi_schedule_saved'           => array( 'schedule', 0 ),
-		'swbi_schedule_deleted'         => array( 'schedule', 0 ),
-		'swbi_storage_target_saved'     => array( 'storage_target', 0 ),
-		'swbi_storage_target_deleted'   => array( 'storage_target', 0 ),
-		'swbi_encryption_key_created'   => array( 'encryption_key', 0 ),
-		'swbi_encryption_key_deleted'   => array( 'encryption_key', 0 ),
-		'swbi_settings_updated'         => array( 'settings', null ),
-		'swbi_backups_imported'         => array( 'storage_target', 0 ),
+		'swbi_backup_started'         => array( 'job', 0 ),
+		'swbi_backup_downloaded'      => array( 'backup', 0 ),
+		'swbi_backup_deleted'         => array( 'backup', 0 ),
+		'swbi_backup_protected'       => array( 'backup', 0 ),
+		'swbi_backup_verified'        => array( 'backup', 0 ),
+		'swbi_restore_prepared'       => array( 'backup', 0 ),
+		'swbi_restore_tested'         => array( 'backup', 0 ),
+		'swbi_profile_saved'          => array( 'profile', 0 ),
+		'swbi_profile_deleted'        => array( 'profile', 0 ),
+		'swbi_schedule_saved'         => array( 'schedule', 0 ),
+		'swbi_schedule_deleted'       => array( 'schedule', 0 ),
+		'swbi_storage_target_saved'   => array( 'storage_target', 0 ),
+		'swbi_storage_target_deleted' => array( 'storage_target', 0 ),
+		'swbi_encryption_key_created' => array( 'encryption_key', 0 ),
+		'swbi_encryption_key_deleted' => array( 'encryption_key', 0 ),
+		'swbi_settings_updated'       => array( 'settings', null ),
+		'swbi_backups_imported'       => array( 'storage_target', 0 ),
 	);
 
 	public function register(): void {
@@ -51,7 +51,8 @@ final class AuditLogger {
 	}
 
 	/**
-	 * @param list<mixed> $args
+	 * @param string            $hook Action name.
+	 * @param array<int, mixed> $args Action arguments.
 	 */
 	private function on_action( string $hook, array $args ): void {
 		[ $type, $index ] = self::MAP[ $hook ];
@@ -71,7 +72,10 @@ final class AuditLogger {
 	}
 
 	/**
-	 * @param array<string, mixed> $context Must not contain secrets.
+	 * @param string               $action      Action name (without prefix).
+	 * @param string               $object_type Kind of object.
+	 * @param string               $object_id   Identifier of the object.
+	 * @param array<string, mixed> $context     Must not contain secrets.
 	 */
 	public static function record( string $action, string $object_type = '', string $object_id = '', array $context = array() ): void {
 		global $wpdb;

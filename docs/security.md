@@ -13,11 +13,26 @@ Backups contain credentials, personal data and `wp-config.php`. They are treated
 | Tampered backup | SHA-256 of index, volumes, database parts bound to the manifest; verification before restore | `testTamperedIndexIsCaughtByVerification` |
 | Half-written artifacts | volumes/parts/manifest are written to temp names, fsynced, renamed; manifest last | `JobEngineTest::testCompletedVolumes…` |
 | SQL injection | `$wpdb->prepare`, identifiers only from fixed allowlists/`SHOW` results (quoted) | WPCS DB sniffs |
-| Unsafe deserialisation | backups are never `unserialize`d; URL migration uses a parser that does not instantiate objects | Phase 2 |
+| Unsafe deserialisation | backups are never `unserialize`d; URL migration parses the serialization format itself (no objects, no autoload); S3 resume state is JSON | `SerializedReplacerTest::testObjectsArePreservedWithoutInstantiation` |
+| SSRF via storage endpoints | hosts resolving to loopback/private/link-local/metadata ranges are refused unless the target opts in; no userinfo in URLs, http only with opt-in, redirects disabled, TLS verification on | `StorageTest::testSsrfPolicyBlocksDangerousEndpoints`, WP `test_storage_target_credentials…` |
+| Weak/forged encrypted files | SWBE1 authenticated streaming encryption; header bound to every chunk, FINAL tag, bounded KDF cost on read; wrong key never creates output | `CryptoTest` |
+| Restore wizard abuse | one-time token stored as hash, expiry, global rate limit (5 failures / 15 min), HttpOnly SameSite=Strict session, CSRF on every POST, strict CSP (no inline script/style), typed confirmation of target path and database, self-lock and removal after success, credentials purged from the session after the run | `WebWizardTest` |
+| Tampered chains | verify checks every base backup of a delta chain; restore refuses a missing/damaged base before writing | `IncrementalChainTest` |
+| Lost audit trail | append-only audit table (create/download/delete/restore/config changes), no secrets, only `REMOTE_ADDR` as source address | WP `EnterprisePhaseTest::test_audit_log…` |
+| Accidental deletion of replicas | retention never deletes protected/needed backups or immutable/lock-period targets; a failing target keeps the backup; S3 Object Lock optional | `RetentionTest`, WP `test_immutable…` |
+| Pre-update hook loops/blocking | lock + recency window + 20 s wait limit, blocks only when explicitly configured | WP `test_pre_update_backup…` |
 | Secrets in logs | `Redactor` removes secret-like keys and URL credentials from all job events | `JobEngineTest::testEventLogIsBoundedAndRedacted` |
 | Stored credentials | storage-target credentials encrypted with libsodium secretbox (key option + WP salts). Honest limit: an attacker who can read the DB *and* `wp-config.php` can decrypt them | `PluginTest::test_secrets_roundtrip` |
 | Hook misuse | before_* events may veto (blocking), all others are isolated; no shell commands can be configured from the UI | `JobEngineTest` hook tests |
 | Restore code execution | restored PHP files are never included/executed by the restore; `wp-config.php` is edited as text | `WpConfigEditor` |
+
+## Residual risks and honest limits
+
+* Credentials of storage targets are encrypted with a key stored in the same WordPress installation; an attacker who can read both the options table and `wp-config.php` can decrypt them.
+* Encryption keys stored via the UI live in the database. For real protection against a compromised site keep keys outside (`SWBACKUPIT_KEY_<ID>`, environment) and in a password manager.
+* The restore wizard is reachable on the web while a token is valid; use HTTPS, a short lifetime and remove it afterwards (it does so itself after success).
+* S3 Object Lock is applied for uploads but only verified against an S3 mock for single-part objects; test your provider before relying on it.
+* A successful test restore proves restorability of data, not correct behaviour of the restored site.
 
 ## Not promised
 

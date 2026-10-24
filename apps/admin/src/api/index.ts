@@ -3,6 +3,8 @@ import { ApiClient } from './client';
 import type { Query } from './client';
 import type {
   ArchiveEntry,
+  AuditEntry,
+  RestoreTestResult,
   Backup,
   BackupFilters,
   CompareMode,
@@ -85,6 +87,7 @@ export function createApi(client: ApiClient) {
         q: PageQuery & { path?: string; search?: string },
         signal?: AbortSignal,
       ) => client.get<Paginated<ArchiveEntry>>(`backups/${id}/files`, q as Query, signal),
+      restoreTest: (id: string) => client.post<RestoreTestResult>(`backups/${id}/restore-test`),
       compare: (id: string, mode: CompareMode) =>
         client.post<CompareResult>(`backups/${id}/compare`, { mode }),
       downloadUrl: (id: string, part: DownloadPart, volume?: number) =>
@@ -113,6 +116,10 @@ export function createApi(client: ApiClient) {
           download,
         }),
     },
+    audit: {
+      list: (q: PageQuery & { action?: string; object_type?: string; user_id?: number } = {}) =>
+        client.get<Paginated<AuditEntry>>('audit', q as Query),
+    },
     keys: {
       list: () => client.get<{ items: EncryptionKey[] }>('encryption-keys'),
       create: (id: string, passphrase?: string) =>
@@ -124,7 +131,8 @@ export function createApi(client: ApiClient) {
     },
     settings: {
       get: () => client.get<Settings>('settings'),
-      update: (input: Settings) => client.put<Settings>('settings', input),
+      /** Sends only the given groups (top-level keys). */
+      update: (input: Partial<Settings>) => client.put<Settings>('settings', input),
     },
   };
 }

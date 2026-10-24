@@ -205,3 +205,9 @@ Config keys: `local`: `path`; `sftp`: `host, port, username, root, host_fingerpr
 * Encryption key ids match `^[A-Za-z0-9._-]{1,64}$`; `DELETE /encryption-keys/{id}` answers `409 swbi_conflict` while a profile uses the key.
 * `part=database` downloads database part number `volume` (1-based); the number of parts equals `database_parts` in the manifest (the backup detail will expose `database_part_count` – until then use 1…n and treat 404 as the end).
 * Rate-limit (429) responses are only produced by the standalone restore wizard (HTML), not by the REST API.
+
+## Enterprise endpoints (Phase 4)
+* `GET /audit?page=&per_page=&action=&object_type=&user_id=` (capability `swbi_settings`) → list envelope of `{ id, time, user_id, user, ip, action, object_type, object_id, context }`. Actions: `backup_started, backup_downloaded, backup_deleted, backup_protected, backup_verified, restore_prepared, restore_tested, profile_saved, profile_deleted, schedule_saved, schedule_deleted, storage_target_saved, storage_target_deleted, encryption_key_created, encryption_key_deleted, settings_updated, backups_imported`. Entries never contain secrets.
+* `POST /backups/{id}/restore-test` (capability `swbi_restore`) → `{ status: passed|partial|failed, seconds, tested_at, checks: [{ name, status: passed|failed|skipped, detail }] }`. Runs synchronously in an isolated temp directory and scratch database; `partial` = database check skipped (no CREATE DATABASE privilege). The Backup resource gains `restore_test` (the last result or `null`) next to `restore_tested_at`.
+* Settings additions: `pre_update_backup: { core, plugins, themes, profile_id, max_age_minutes, wait_seconds, block_on_failure }`, `restore_test: { enabled, interval_days }`, `logging.audit_retention_days`.
+* Storage target config additions: `lock_days` (all types, retention lock in days) and `object_lock: { mode: GOVERNANCE|COMPLIANCE, days }` (s3).

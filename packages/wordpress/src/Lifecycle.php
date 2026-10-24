@@ -20,7 +20,7 @@ final class Lifecycle {
 	 *
 	 * @param bool $network_wide Whether activated network wide (multisite).
 	 */
-	public static function activate( bool $network_wide = false ): void {
+	public static function activate( bool $network_wide = false ): void { // phpcs:ignore Generic.CodeAnalysis.UnusedFunctionParameter.Found -- signature dictated by register_activation_hook().
 		if ( is_multisite() ) {
 			// Network wide data model: set up once, on the main site (tables use the base prefix).
 			switch_to_blog( get_main_site_id() );

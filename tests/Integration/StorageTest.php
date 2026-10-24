@@ -128,6 +128,43 @@ final class StorageTest extends TestCase
         self::assertTrue($storage->verify('x/big2.bin', $size, $hash));
     }
 
+    public function testS3ObjectLockIsAppliedToUploadsAndRejectedWhereUnsupported(): void
+    {
+        $port = getenv('SWBI_TEST_S3_PORT') ?: '33099';
+        if (@fsockopen('127.0.0.1', (int) $port, $errno, $error, 0.3) === false) {
+            self::markTestSkipped('No S3 mock available (bin/test-s3.sh start).');
+        }
+        $endpoint = "http://127.0.0.1:{$port}";
+        $client = new S3Client(['version' => 'latest', 'region' => 'us-east-1', 'endpoint' => $endpoint, 'use_path_style_endpoint' => true, 'credentials' => ['key' => 'k', 'secret' => 's']]);
+        $locked = 'swbi-lock-' . bin2hex(random_bytes(3));
+        $client->createBucket(['Bucket' => $locked, 'ObjectLockEnabledForBucket' => true]);
+        $plain = 'swbi-nolock-' . bin2hex(random_bytes(3));
+        $client->createBucket(['Bucket' => $plain]);
+        $dir = $this->makeTempDir('src');
+        file_put_contents($dir . '/a.bin', 'locked data');
+        $factory = new StorageFactory(new RetryPolicy(1, 1, 1));
+        $make = static fn (string $bucket) => $factory->create(new StorageTarget(2, 'S3', 's3', [
+            'endpoint' => $endpoint, 'bucket' => $bucket, 'path_style' => true, 'allow_private_network' => true, 'object_lock' => ['mode' => 'GOVERNANCE', 'days' => 7],
+        ], ['access_key' => 'k', 'secret_key' => 's']));
+
+        $storage = $make($locked);
+        self::assertContains('object_lock', $storage->capabilities());
+        $storage->upload($dir . '/a.bin', 'bk/a.bin');
+        $until = $storage->retainUntil('bk/a.bin');
+        self::assertNotNull($until, 'the object carries a retention date');
+        self::assertGreaterThan(new \DateTimeImmutable('+6 days'), $until);
+
+        // A bucket without Object Lock must not silently store unprotected data when the target promises immutability.
+        $this->expectException(\SWBackupIt\Core\Exception\SwbiException::class);
+        $make($plain)->upload($dir . '/a.bin', 'bk/a.bin');
+    }
+
+    public function testInvalidObjectLockConfigurationIsRejected(): void
+    {
+        $this->expectException(ConfigurationException::class);
+        (new StorageFactory())->create(new StorageTarget(1, 'S3', 's3', ['bucket' => 'my-bucket', 'object_lock' => ['mode' => 'FOREVER', 'days' => 5]], ['access_key' => 'a', 'secret_key' => 'b']));
+    }
+
     public function testS3WithWrongCredentialsFailsWithoutLeakingSecrets(): void
     {
         $port = getenv('SWBI_TEST_S3_PORT') ?: '33099';

@@ -1,25 +1,31 @@
 # DONE
 
-Chronological log of completed work (newest last).
+Chronological log of completed work (newest last). Test counts refer to the state at the end of each phase.
 
-## 2026-10-24
-- Analysed `PLAN.md` and `CODE-STYLE.md`; wrote `docs/implementation-plan.md` (ADRs, phases), `AGENTS.md`, `docs/rest-api.md` (REST contract).
-- Initialised git repo, root `composer.json` (PSR-4 monorepo mapping), dev tooling installed.
+## 2026-10-24 – Phase 1: Core / MVP
+- Analysed `PLAN.md` and `CODE-STYLE.md`; wrote `docs/implementation-plan.md` (ADRs, phases), `AGENTS.md`, `docs/rest-api.md` (REST contract), git repo, monorepo (core / restore / wordpress).
+- Job engine: persistent state machine, lease/lock, checkpoints, pause/cancel/retry with backoff; resumable file scanner (canonical order, NDJSON index instead of SQLite); ZIP64 volumes with chunking of huge files; streaming resumable DB exporter (opt-in consistent snapshot); manifest v1; local verification.
+- Standalone restore engine + CLI (verify, list, restore, selective, dry-run) with zip-slip / symlink / zip-bomb protection, resumable file and DB restore, wp-config rewrite.
+- WordPress adapter: schema + migrations, wpdb repositories, REST API, WP-Cron watcher, WP-CLI, capabilities, settings, health. Vue 3 / Quasar / TypeScript SPA (built by a delegated frontend sub-agent), build scripts for plugin ZIP and standalone restore distribution.
 
-## Phase 1 (Core / MVP) – completed 2026-10-24
-Implemented: monorepo (core / restore / wordpress), job engine with persistent state machine, leases, checkpoints,
-pause/cancel/retry; resumable file scanner; ZIP64 volumes with chunking of huge files; streaming resumable DB exporter
-(+ opt-in consistent snapshot); manifest v1 and NDJSON file index; local verification; standalone restore engine and CLI with
-zip-slip/symlink/zip-bomb protection, resumable file and DB restore, wp-config rewrite; WordPress adapter (schema + migrations,
-wpdb repositories, REST API, WP-Cron watcher, WP-CLI, capabilities, settings, health); Vue/Quasar SPA (built by a sub-agent);
-build scripts (plugin ZIP, standalone restore distribution).
+## Phase 2: Storage & Recovery
+- Flysystem 3 storage layer (local, SFTP, S3) with capability handling, SSRF endpoint policy, retry with backoff + jitter, upload with temp names/atomic finalisation, per-target status, remote verification (size + SHA-256, S3 via object metadata), success policies, remote catalog discovery/import, backup + chain download.
+- SWBE1 streaming authenticated encryption (libsodium secretstream, Argon2id or raw key), encrypt step with decrypt round-trip proof, key providers (constant/env/stored), restore-side decryption, verification without key.
+- Retention: count / age / storage / GFS, protected + newest full + chain dependencies, unreliable metadata never deleted, dry-run, executor with failure isolation, catalogs (directory, WordPress).
+- Restore: serialization-safe URL/path migration (own parser, never `unserialize`), transactional resumable DB migration, table prefix migration, file comparator (merge-join in canonical order, metadata/SHA-256), selective restore, secured web wizard (token hash, rate limit, CSRF, CSP, typed confirmations, self-lock/removal).
+- WordPress: storage targets (encrypted credentials), encryption keys API, e-mail notifications with de-duplication, compare/restore-prepare endpoints, WP-CLI storage/retention/compare/restore.
 
-Tests (all green): 62 PHPUnit tests in the main suite (unit, integration incl. private MariaDB, E2E backup→wipe→restore, restore
-security, CLI, standalone distribution in a separate process) + 12 WordPress integration tests; PHPStan level 8 clean; PHPCS
-(PSR-12) and WPCS clean (documented exceptions in the ruleset).
+## Phase 3: Advanced backup
+- Incremental and differential backups with a complete per-backup index (`b` references), base selection with fallback to full, chain-aware retention, restore/verification across chains, `fetch --with-chain`.
+- Resumable S3 multipart upload (JSON state, part granularity), step-level hook events (`before_step`/`after_step`/`step_failed`), `docs/hooks.md`.
 
-Architecture decisions: see `docs/implementation-plan.md` (NDJSON index instead of SQLite because pdo_sqlite is missing on many hosts;
-volume-granular resume; flags/lease handled outside the job entity; enum-only Domain dir excluded from two PHPCompatibility sniffs).
+## Phase 4: Enterprise
+- Audit log (append-only table, REST + hooks), isolated restore tests (temp dir + scratch database, documented result), background verification and scheduled restore tests, health monitor (overdue schedules, low disk), job watchdog, pre-update backups (core/plugins/themes; recency window, wait limit, optional blocking), multisite semantics (network-wide data, network admin UI, one cron watcher), immutable targets / lock periods / S3 Object Lock, load and failure tests (20,000 files, 300 MB file, concurrent workers, full disk), REST security regression tests, SPA features for all of the above (second delegated round).
 
-Known limitations: no external storage/encryption/retention/URL migration/notifications yet (Phase 2); restore web wizard open;
-`compare` and web restore endpoints answer 501; external (absolute) paths are rejected by preflight.
+## Test and quality status (end of Phase 4)
+- Main PHPUnit suites (unit + integration + e2e): 131 tests green (private MariaDB and S3 mock); load suite 4 tests green; WordPress integration suite 35 tests green in single-site and multisite mode.
+- PHPStan level 8: clean. PHPCS: PSR-12 (core/restore/tests) and WordPress Coding Standards (adapter) clean (documented exceptions in the rulesets).
+- SPA: `vue-tsc`, ESLint, Vitest (35+ tests) and production build green.
+
+## Key architecture decisions
+See `docs/implementation-plan.md` and `docs/architecture.md`: NDJSON index (no pdo_sqlite dependency), volume-granular resume, flags/lease outside the job entity, manifest written after verified artifacts and uploaded last, complete index per delta backup, network-wide data on multisite, restore never inside WordPress, secrets only as hashes/encrypted values.

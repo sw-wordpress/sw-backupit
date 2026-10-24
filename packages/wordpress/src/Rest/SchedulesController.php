@@ -93,7 +93,7 @@ final class SchedulesController extends BaseController {
 		if ( is_wp_error( $data ) ) {
 			return $data;
 		}
-		$id  = $this->services()->schedules()->create( $data );
+		$id = $this->services()->schedules()->create( $data );
 		do_action( 'swbi_schedule_saved', (string) $id );
 		$row = $this->services()->schedules()->find( $id );
 		return new \WP_REST_Response( $this->services()->schedules()->to_rest( (array) $row ), 201 );

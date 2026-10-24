@@ -13,7 +13,8 @@ namespace SWBackupIt\WordPress\Support;
 final class Options {
 
 	/**
-	 * @param mixed $default Value when the option does not exist.
+	 * @param string $name    Option name.
+	 * @param mixed  $default Value when the option does not exist.
 	 * @return mixed
 	 */
 	public static function get( string $name, mixed $default = false ): mixed {

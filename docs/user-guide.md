@@ -1,43 +1,91 @@
 # User guide
 
 ## Installation
-Upload the plugin ZIP (Plugins → Add New → Upload) and activate it. Open **SWBackupIt** in the admin menu. The dashboard
-shows warnings (missing PHP extensions, staging directory location, WP-Cron reliability).
+Upload the plugin ZIP (Plugins → Add New → Upload) and activate it. On multisite activate it network wide and use the **Network Admin**
+menu (all data and backups are network wide). Open **SWBackupIt**. The dashboard shows warnings (missing PHP extensions, staging directory
+location, WP-Cron reliability, overdue schedules, free disk space).
+
+Requirements: PHP 8.2+, WordPress 6.4+, extensions `zip`, `zlib`, `pdo_mysql` (and `sodium` for encryption). No Composer or Node.js on the server.
 
 ## Backup profiles
-A profile defines what is backed up: type (Full, Files only, Database only), directories/patterns to include or exclude,
-database tables, compression, volume size, resource limits, retention and notifications. A running job always uses a snapshot of
-the profile as it was when the job started. Use *Run now* for a manual backup; progress, phase and logs are shown live. Jobs can be
-paused, resumed and cancelled. Only one backup runs at a time.
+A profile defines what is backed up: type (Full, Files only, Database only, Incremental, Differential), directories/patterns to include or
+exclude, database tables, compression, volume size, resource limits, storage targets, retention and notifications. A running job always uses
+a snapshot of the profile as it was when the job started. *Run now* starts a manual backup; progress, phase and logs are shown live. Jobs can be
+paused, resumed, cancelled and (when failed) retried; they continue from their checkpoints. Only one backup runs at a time.
+
+* **Incremental** stores only files changed since the previous backup, **Differential** only files changed since the last full backup. Without a base
+  backup the first run is a full backup. The database is always exported completely. A backup chain needs all its base backups to restore.
+* *Consistent database snapshot* exports the database in one transaction (InnoDB only). It cannot be resumed, so use it from the CLI.
+* Database and files are never an atomic snapshot of each other (see `backup-format.md`).
 
 ## Schedules
-Hourly, daily, weekly, monthly or a cron expression, in a chosen timezone (DST-safe). WP-Cron needs site visitors; for exact
-timing use a system cron job (`wp swbackupit schedule run-due`, see `wp-cli.md`). Failed scheduled runs are retried with backoff.
+Hourly, daily, weekly, monthly or a cron expression, in a chosen timezone (DST-safe). WP-Cron needs site visitors; for exact timing use a system
+cron job (`wp swbackupit schedule run-due`, see `wp-cli.md`). Failed scheduled runs are retried with backoff. Overdue schedules are reported.
+
+## Storage targets
+Add targets under *Storage targets*: **local directory**, **SFTP** (set the host key fingerprint; accepting an unknown host is an explicit, warned
+option) or **S3-compatible object storage** (endpoint, bucket, region, path style). Credentials are write-only and stored encrypted. Private or
+loopback addresses are refused unless you tick the private-network option (SSRF protection). *Test connection* writes, reads and deletes a probe file.
+A backup is uploaded to every target of its profile (manifest last), verified remotely and counts as successful according to the profile's
+success policy (*all targets*, *at least one*, *local only*). A failing target never harms the verified copies on other targets.
+*Immutable* targets and a *lock period* (days) keep backups from being deleted by retention; S3 targets can additionally apply Object Lock
+(the bucket must have it enabled; verified for single-part uploads only in the test suite).
+*Discover / import* lists backups found on a target and registers them in the catalog (disaster recovery after losing the WordPress database).
+
+## Retention
+Per profile: keep the newest N, keep for N days, maximum storage, and grandfather-father-son (daily/weekly/monthly/yearly). A backup is kept if
+any rule keeps it. Protected backups, the newest full backup and every base backup needed by a kept backup are never deleted; backups with
+unreliable metadata are never deleted automatically. `wp swbackupit retention run --dry-run` shows what would be deleted.
+
+## Encryption
+Settings → *Encryption keys* creates a random 256-bit key (shown **once** – store it in a password manager) or a passphrase-based key. Select the
+key in the profile. Volumes, database parts and the file index are encrypted with libsodium (XChaCha20-Poly1305, streaming). The manifest stays
+readable and contains no secret. Best practice: keep the key outside the database (`define( 'SWBACKUPIT_KEY_<ID>', '…' );` in wp-config.php or the
+environment). Without the key a backup can be verified (checksums) but not read or restored.
+
+## Notifications
+E-mail through WordPress for success, failure, warnings, upload failures, overdue backups, low disk space and failed test restores. Identical
+notifications are de-duplicated within the configured window.
 
 ## Backups
-The list shows all backups with size, files and status. *Verify* checks checksums of all volumes. *Browse* the file index,
-*Download* single volumes (authorised, never public), *Protect* a backup against deletion. Deleting needs confirmation.
+The list shows all backups with size, files, status and replication state. *Verify* checks checksums, *Browse* the file index, *Compare* shows
+differences to the current installation (only in backup / only local / modified / identical / not comparable, metadata or SHA-256), *Download*
+single files (authorised, never public), *Protect* against deletion, *Test restore* runs an isolated restore (temp directory + scratch database)
+and documents the result. Deleting needs confirmation. A regular background check verifies stored backups and warns about damaged ones.
 
 ## Restore (standalone)
-Restore does not need WordPress. Copy the backup directory and the `restore-app` folder (inside the plugin) to the target server:
+Restore never runs inside WordPress. In the UI choose *Restore* → *Prepare*: a copy of the restore application is placed in a directory with a random
+name and protected by a one-time token (shown once, valid 1 hour). Open the shown URL (HTTPS recommended), sign in, choose the backup, confirm the
+target directory and database name by typing them again, review verification and comparison, and start. Progress is saved; reload to resume. After
+success the wizard locks itself and removes its files. The command line works the same way and is independent of WordPress:
+
 ```bash
 php restore-app/bin/swbackupit-restore verify /path/to/backup --deep
+php restore-app/bin/swbackupit-restore compare /path/to/backup --target=/var/www/site --mode=sha256
 SWBI_DB_PASSWORD=… php restore-app/bin/swbackupit-restore restore /path/to/backup \
   --target=/var/www/site --confirm-target=/var/www/site \
-  --db-host=localhost --db-name=site --db-user=site --confirm-database=site
+  --db-host=localhost --db-name=site --db-user=site --confirm-database=site \
+  [--key=…] [--path=wp-content/uploads] [--overwrite=if_different] [--dry-run]
+php restore-app/bin/swbackupit-restore fetch <backup-id> --storage=target.json --to=/path/to/backups --with-chain   # from a storage target
 ```
-Options: `--overwrite=always|never|if_different`, `--path=` / `--pattern=` for selective restore, `--dry-run`,
-`--no-database`, `--no-files`. An interrupted restore continues when the same command is run again.
-Restore verifies the backup first and never reports success if a phase failed.
 
-## Migration to another domain/server
-Planned for the next release (URL/path migration with serialized-data safety).
+Restore verifies the backup first, never overwrites outside the confirmed target, never follows symlinks, refuses suspicious archives and never
+reports success if a phase failed. An interrupted restore continues when started again.
 
-## Encryption, notifications
-Planned (next release). Until then protect the staging directory and downloaded backups yourself.
+## Migration to another domain, subdirectory or server
+Restore with URL migration: `--replace='https://alte-domain.de=>https://neue-domain.de/wordpress'` (and a path pair, e.g. old and new document root),
+optionally `--new-prefix=blog_` and `--migration-dry-run`. PHP serialized values are rewritten structurally (lengths are corrected, nothing is ever
+unserialized), `guid` columns stay unchanged, wp-config.php gets the new database settings. The web wizard has the same options.
+
+## Updates and audit
+Settings → *Backup before updates* creates a backup before core/plugin/theme updates (reused if recent, waits at most 20 s, never blocks the
+update unless you enable *block on failure*). The **audit log** (Settings) records who created, downloaded, deleted or restored backups and which
+settings changed.
 
 ## Troubleshooting
-* *Backup stuck*: a crashed worker blocks the job until its lease expires (about a minute); then it continues.
-* *Failed*: open the job log, fix the cause, press retry (`wp swbackupit job resume <id>`); it continues from its checkpoints.
+* *Backup stuck*: a crashed worker blocks the job until its lease expires (about a minute); a watchdog restarts lost jobs.
+* *Failed*: open the job log, fix the cause, press retry (`wp swbackupit job resume <id>`).
 * *Schedules do not start*: check the cron notice on the dashboard; use a system cron.
 * *Staging warnings*: set a directory outside the web root in Settings.
+* *Encrypted backup cannot be read*: provide the key (`--key`, `SWBI_KEY`, or `SWBACKUPIT_KEY_<ID>`).
+* *Restore says a base backup is missing*: download the whole chain (`fetch --with-chain`) into the same directory.

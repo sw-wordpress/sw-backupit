@@ -48,7 +48,7 @@ final class PreUpdateBackup {
 			'theme' => ! empty( $settings['themes'] ),
 			default => false,
 		};
-		$profile  = $enabled && isset( $settings['profile_id'] ) ? Services::instance()->profiles()->find( (int) $settings['profile_id'] ) : null;
+		$profile = $enabled && isset( $settings['profile_id'] ) ? Services::instance()->profiles()->find( (int) $settings['profile_id'] ) : null;
 		if ( null === $profile ) {
 			return $response;
 		}
@@ -61,8 +61,9 @@ final class PreUpdateBackup {
 	}
 
 	/**
-	 * @param array<string, mixed> $settings
-	 * @param bool|\WP_Error       $response
+	 * @param \SWBackupIt\Core\Domain\BackupProfile $profile  Profile used for the pre-update backup.
+	 * @param array<string, mixed>                  $settings pre_update_backup settings.
+	 * @param bool|\WP_Error                        $response Value to return unchanged unless the update must be blocked.
 	 * @return bool|\WP_Error
 	 */
 	private function ensure_backup( \SWBackupIt\Core\Domain\BackupProfile $profile, array $settings, $response ) {

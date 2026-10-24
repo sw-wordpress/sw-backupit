@@ -65,6 +65,9 @@ final class S3RemoteStorage extends FlysystemRemoteStorage
             if ($state !== null) {
                 $options['state'] = $state;
             }
+            if ($size < self::PART_SIZE) {
+                return $this->putSmallObject($localPath, $key, $hash, $size, $mtime, $onProgress);
+            }
             $uploader = new MultipartUploader($this->client, $localPath, $options);
             try {
                 $uploader->upload();
@@ -86,6 +89,41 @@ final class S3RemoteStorage extends FlysystemRemoteStorage
 
             return $hash;
         }, static fn (\Throwable $throwable): bool => false);
+    }
+
+    /**
+     * Objects below the multipart part size go up with a single PutObject. The SHA-256 is sent as a checksum header, so the
+     * provider verifies the data on arrival (and Object Lock uploads, which require a checksum, are accepted).
+     */
+    private function putSmallObject(string $localPath, string $key, string $hash, int $size, int|false $mtime, ?callable $onProgress): string
+    {
+        $stream = fopen($localPath, 'rb');
+        if ($stream === false) {
+            throw new IntegrityException('Cannot read the local file.');
+        }
+        try {
+            $this->client->putObject([
+                'Bucket' => $this->bucket,
+                'Key' => $key,
+                'Body' => $stream,
+                'Metadata' => ['sha256' => $hash],
+                'ChecksumAlgorithm' => 'SHA256',
+                'ChecksumSHA256' => base64_encode((string) hex2bin($hash)),
+            ] + $this->lockParameters());
+        } catch (\Throwable $throwable) {
+            throw $this->translate($throwable, 'upload');
+        } finally {
+            fclose($stream);
+        }
+        if ($onProgress !== null) {
+            $onProgress($size);
+        }
+        clearstatcache(true, $localPath);
+        if (filesize($localPath) !== $size || filemtime($localPath) !== $mtime) {
+            throw new IntegrityException('The local file changed while it was being uploaded.');
+        }
+
+        return $hash;
     }
 
     /**

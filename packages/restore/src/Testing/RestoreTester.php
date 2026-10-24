@@ -65,7 +65,7 @@ final class RestoreTester
                 $manifest->hasFiles(),
                 $database !== null,
                 $database,
-                $database?->name ?? '',
+                $database === null ? '' : $database->name,
                 false,
                 OverwriteMode::Always,
                 keys: $keys,

@@ -17,6 +17,17 @@ Status legend: [x] done, [~] partial, [ ] open. The authoritative task list is `
 | 9 | Core events via `EventDispatcherInterface` with explicit failure policies per event (blocking vs. non-blocking) | Hooks may never leave state inconsistent (spec §17). |
 | 10 | Restore web wizard: single-use token (hashed at rest), CSRF, rate limit, path confirmation, self-lock/self-delete after success | Spec §13.6. |
 
+## Status (see `TODO.md` / `DONE.md` for details)
+
+| Phase | State |
+|---|---|
+| 1 Core / MVP | done |
+| 2 Storage & Recovery | done |
+| 3 Advanced backup | done (incremental/differential chains, resumable multipart, hooks); true incremental *database* backups are out of scope as in the spec |
+| 4 Enterprise | done (audit, restore tests, health monitoring, multisite, immutable storage/object lock, pre-update backups, error handling, load/security tests) |
+
+Open items are tracked in `TODO.md` (selective restore of single multisite sites, SFTP integration test against a real server, chunk-resumable SFTP uploads, ...).
+
 ## Phases
 
 ### Phase 1 – Core / MVP

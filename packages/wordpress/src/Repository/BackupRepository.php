@@ -152,13 +152,14 @@ final class BackupRepository {
 	/**
 	 * Stores the documented result of a test restore (PLAN.md §22: restore result documentation).
 	 *
+	 * @param string               $id     Backup id.
 	 * @param array<string, mixed> $result Result of the RestoreTester.
 	 */
 	public function record_restore_test( string $id, array $result ): void {
 		global $wpdb;
-		$row  = $this->find_row( $id );
-		$meta = null !== $row && is_string( $row['meta'] ) ? json_decode( $row['meta'], true ) : array();
-		$meta = is_array( $meta ) ? $meta : array();
+		$row                  = $this->find_row( $id );
+		$meta                 = null !== $row && is_string( $row['meta'] ) ? json_decode( $row['meta'], true ) : array();
+		$meta                 = is_array( $meta ) ? $meta : array();
 		$meta['restore_test'] = $result;
 		$wpdb->update( // phpcs:ignore WordPress.DB.DirectDatabaseQuery
 			$this->table(),
@@ -224,6 +225,7 @@ final class BackupRepository {
 			);
 		}
 		$profile_id = null === $row['profile_id'] ? null : (int) $row['profile_id'];
+		$meta       = is_string( $row['meta'] ) ? json_decode( $row['meta'], true ) : array();
 		return array(
 			'id'                => (string) $row['id'],
 			'profile_id'        => $profile_id,
@@ -241,6 +243,7 @@ final class BackupRepository {
 			'site_url'          => (string) $row['site_url'],
 			'verified_at'       => Time::to_iso( $row['verified_at'] ),
 			'restore_tested_at' => Time::to_iso( $row['restore_tested_at'] ),
+			'restore_test'      => is_array( $meta ) && is_array( $meta['restore_test'] ?? null ) ? $meta['restore_test'] : null,
 			'locations'         => $locations,
 		);
 	}

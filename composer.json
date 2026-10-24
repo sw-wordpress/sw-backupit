@@ -60,15 +60,17 @@
         "test": "phpunit --testsuite unit,integration",
         "test:e2e": "phpunit --testsuite e2e",
         "stan": "phpstan analyse --memory-limit=1G",
-        "cs": "phpcs",
+        "cs": "phpcs --runtime-set ignore_warnings_on_exit 1",
         "cs:fix": "phpcbf",
         "test:wp": "cd tests/wp && vendor/bin/phpunit -c phpunit.xml.dist",
-        "cs:wp": "phpcs --standard=phpcs-wordpress.xml.dist",
+        "cs:wp": "phpcs --standard=phpcs-wordpress.xml.dist --runtime-set ignore_warnings_on_exit 1",
         "check": [
             "@cs",
             "@cs:wp",
             "@stan",
             "@test"
-        ]
+        ],
+        "test:load": "phpunit --testsuite load",
+        "test:wp:ms": "cd tests/wp && vendor/bin/phpunit -c phpunit-ms.xml.dist"
     }
 }

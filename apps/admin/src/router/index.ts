@@ -1,11 +1,14 @@
 import { createRouter, createWebHashHistory } from 'vue-router';
 import type { RouteRecordRaw } from 'vue-router';
+import type { Capability } from '@/types/config';
 
 export interface NavItem {
   name: string;
   to: string;
   icon: string;
   labelKey: string;
+  /** UX-only: hide the entry without this capability. */
+  cap?: Capability;
 }
 
 export const NAV_ITEMS: NavItem[] = [
@@ -15,6 +18,7 @@ export const NAV_ITEMS: NavItem[] = [
   { name: 'profiles', to: '/profiles', icon: 'r_tune', labelKey: 'nav.profiles' },
   { name: 'schedules', to: '/schedules', icon: 'r_calendar_month', labelKey: 'nav.schedules' },
   { name: 'storage', to: '/storage', icon: 'r_cloud', labelKey: 'nav.storage' },
+  { name: 'audit', to: '/audit', icon: 'r_history', labelKey: 'nav.audit', cap: 'swbi_settings' },
   { name: 'settings', to: '/settings', icon: 'r_settings', labelKey: 'nav.settings' },
 ];
 
@@ -52,6 +56,7 @@ const routes: RouteRecordRaw[] = [
     name: 'storage',
     component: () => import('@/features/storage/StorageView.vue'),
   },
+  { path: '/audit', name: 'audit', component: () => import('@/features/audit/AuditView.vue') },
   {
     path: '/settings',
     name: 'settings',

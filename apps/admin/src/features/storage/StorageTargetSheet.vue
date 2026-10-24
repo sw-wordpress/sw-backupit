@@ -7,7 +7,7 @@ import FormSheet from '@/components/ui/FormSheet.vue';
 import SecretInput from '@/components/ui/SecretInput.vue';
 import { useFormError } from '@/composables/useFormError';
 import { useNotify } from '@/composables/useNotify';
-import type { Retention, StorageTarget, StorageTargetInput, StorageType } from '@/types/api';
+import type { Retention, StorageConfig, StorageTarget, StorageTargetInput, StorageType } from '@/types/api';
 
 const open = defineModel<boolean>({ required: true });
 const props = defineProps<{ target: StorageTarget | null; readonly?: boolean }>();
@@ -23,7 +23,9 @@ const type = ref<StorageType>('local');
 const immutable = ref(false);
 const ownRetention = ref(false);
 const retention = ref<Retention>(blankRetention());
-const cfg = ref<Record<string, string | number | boolean>>({});
+const cfg = ref<StorageConfig>({});
+const lockMode = ref<'' | 'GOVERNANCE' | 'COMPLIANCE'>('');
+const lockObjectDays = ref(30);
 /** Write-only secrets. Never prefilled from the server, wiped on close. */
 const secrets = ref<Record<string, string>>({});
 
@@ -36,7 +38,7 @@ function blankRetention(): Retention {
     gfs: { daily: 0, weekly: 0, monthly: 0, yearly: 0 },
   };
 }
-function defaultsFor(kind: StorageType): Record<string, string | number | boolean> {
+function defaultsFor(kind: StorageType): StorageConfig {
   switch (kind) {
     case 'sftp':
       return {
@@ -48,6 +50,7 @@ function defaultsFor(kind: StorageType): Record<string, string | number | boolea
         trust_unknown_host: false,
         allow_private_network: false,
         timeout: 30,
+        lock_days: 0,
       };
     case 's3':
       return {
@@ -57,9 +60,10 @@ function defaultsFor(kind: StorageType): Record<string, string | number | boolea
         prefix: '',
         path_style: false,
         allow_private_network: false,
+        lock_days: 0,
       };
     default:
-      return { path: '' };
+      return { path: '', lock_days: 0 };
   }
 }
 
@@ -73,6 +77,10 @@ watch(open, (isOpen) => {
     ownRetention.value = tg?.retention != null;
     retention.value = tg?.retention ? JSON.parse(JSON.stringify(tg.retention)) : blankRetention();
     cfg.value = { ...defaultsFor(type.value), ...(tg?.config ?? {}) };
+    const ol = cfg.value.object_lock;
+    lockMode.value = typeof ol === 'object' ? ol.mode : '';
+    lockObjectDays.value = typeof ol === 'object' ? ol.days : 30;
+    delete cfg.value.object_lock;
     secrets.value = {};
   } else {
     secrets.value = {};
@@ -85,7 +93,7 @@ watch(type, (kind) => {
 
 const isEdit = computed(() => props.target !== null);
 const credentialsSet = computed(() => props.target?.credentials_set === true);
-const required = (v: string | number | boolean): true | string =>
+const required = (v: string | number | boolean | undefined): true | string =>
   (v !== '' && v !== undefined) || t('common.required');
 const str = (key: string): string => String(cfg.value[key] ?? '');
 const secret = (key: string): string => secrets.value[key] ?? '';
@@ -103,7 +111,12 @@ async function save(): Promise<void> {
   const input: StorageTargetInput = {
     name: name.value.trim(),
     type: type.value,
-    config: cfg.value,
+    config: {
+      ...cfg.value,
+      ...(type.value === 's3' && lockMode.value !== ''
+        ? { object_lock: { mode: lockMode.value, days: Number(lockObjectDays.value) } }
+        : {}),
+    },
     immutable: immutable.value,
     retention: ownRetention.value ? retention.value : null,
     ...(Object.keys(credentials).length > 0 ? { credentials } : {}),
@@ -369,6 +382,45 @@ async function save(): Promise<void> {
       </FormSection>
 
       <FormSection :title="t('storage.sections.protection')">
+        <q-input
+          :model-value="Number(cfg.lock_days ?? 0)"
+          outlined
+          dense
+          type="number"
+          min="0"
+          suffix="d"
+          :label="t('storage.lockDays')"
+          :hint="t('storage.lockDaysHint')"
+          @update:model-value="setStr('lock_days', Number($event))"
+        />
+        <template v-if="type === 's3'">
+          <div class="swbi-two">
+            <q-select
+              v-model="lockMode"
+              outlined
+              dense
+              emit-value
+              map-options
+              :options="[
+                { value: '', label: t('storage.objectLock.off') },
+                { value: 'GOVERNANCE', label: t('storage.objectLock.governance') },
+                { value: 'COMPLIANCE', label: t('storage.objectLock.compliance') },
+              ]"
+              :label="t('storage.objectLock.mode')"
+            />
+            <q-input
+              v-model.number="lockObjectDays"
+              outlined
+              dense
+              type="number"
+              min="1"
+              suffix="d"
+              :disable="lockMode === ''"
+              :label="t('storage.objectLock.days')"
+            />
+          </div>
+          <p class="swbi-muted swbi-small" role="note">{{ t('storage.objectLock.note') }}</p>
+        </template>
         <q-toggle v-model="immutable" :label="t('storage.immutable')" />
         <p class="swbi-muted swbi-small">{{ t('storage.immutableHint') }}</p>
         <q-toggle v-model="ownRetention" :label="t('storage.ownRetention')" />

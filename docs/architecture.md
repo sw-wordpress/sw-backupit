@@ -9,28 +9,38 @@ flowchart LR
     CLI[WP-CLI] --> SVC
     REST --> SVC[JobService / ScheduleRunner]
     CRON[WP-Cron / system cron] --> SVC
+    CRON --> BG[Watchdog, HealthMonitor,<br/>BackgroundChecks]
     SVC --> REPO[(swbi_* tables<br/>wpdb repositories)]
+    HOOKS[HookBridge: swbi_* actions/filters] -.-> RUN
+    AUDIT[AuditLogger] -.listens.-> HOOKS
   end
   subgraph CORE[Core library - packages/core, no WordPress]
-    RUN[BackupRunner<br/>lease + ticks] --> STEPS[Steps: preflight, scan, export,<br/>archive, verify, finalize]
-    STEPS --> SCAN[FileScanner] & DBX[DatabaseExporter] & ZIP[VolumeWriter ZIP64]
+    RUN[BackupRunner<br/>lease + ticks] --> STEPS[Steps: preflight, scan, export, archive, encrypt,<br/>verify_local, manifest, upload, verify_remote, finalize, retention]
+    STEPS --> SCAN[FileScanner] & DBX[DatabaseExporter] & ZIP[VolumeWriter ZIP64] & CRY[StreamCipher SWBE1]
+    STEPS --> ST[StorageManager<br/>Flysystem: local / SFTP / S3]
+    STEPS --> RET[RetentionPlanner]
     RUN --> SM[JobStateMachine]
     STEPS --> MAN[Manifest + NDJSON index]
   end
   subgraph RESTORE[Standalone restore - packages/restore]
-    RE[RestoreEngine] --> FR[FileRestorer] & DI[SqlImporter] & VER[Verifier]
-    RCLI[swbackupit-restore CLI]
+    RE[RestoreEngine] --> FR[FileRestorer] & DI[SqlImporter] & VER[Verifier] & MIG[DatabaseMigrator]
+    RT[RestoreTester] --> RE
+    RCLI[swbackupit-restore CLI] --> RE
+    WEB[Web wizard<br/>token + CSRF + self-lock] --> RE
   end
   SVC --> RUN
   RUN -->|writes| BK[(backup directory:<br/>manifest, index, volumes, db parts)]
+  ST <-->|replicas| REMOTE[(storage targets)]
   BK -->|reads| RE
-  REPO -. cache of .-> BK
+  REMOTE -->|fetch| BK
+  REPO -. catalog cache of .-> BK
 ```
 
-* `packages/core` (`SWBackupIt\Core`): framework independent. Interfaces for persistence (`JobRepositoryInterface`,
-  `JobEventStoreInterface`), source description (`SourceInfoProviderInterface`) and events.
-* `packages/restore` (`SWBackupIt\Restore`): reads backups only; shares the format classes of core. Distributed as a
-  self-contained directory (`bin/build-restore.sh`), no Composer/WordPress needed.
+* `packages/core` (`SWBackupIt\Core`): framework independent. Interfaces for persistence (`JobRepositoryInterface`, `JobEventStoreInterface`),
+  source description (`SourceInfoProviderInterface`), storage (`RemoteStorageInterface`, `StorageResolverInterface`), keys
+  (`KeyProviderInterface`), the backup catalog (`BackupCatalogInterface`) and events.
+* `packages/restore` (`SWBackupIt\Restore`): reads backups only; shares the format classes of core. Distributed as a self-contained directory
+  (`bin/build-restore.sh`), no Composer/WordPress needed. Contains the CLI, the web wizard, comparator, migration and the restore tester.
 * `packages/wordpress` (`SWBackupIt\WordPress`): the only code that touches WordPress APIs.
 * `apps/admin`: Vue 3 + Quasar + Vite + TypeScript SPA, compiled to `assets/admin` (no Node on the target).
 
@@ -40,26 +50,28 @@ Dependencies point inwards: wordpress → core ← restore.
 
 ```
 swbackupit.php, uninstall.php      plugin bootstrap
-packages/core/src                  Archive, Backup(+Step), Database, Domain, Event, Exception, Job, Log, Manifest, Scanner, Support
-packages/restore/src               Backup, Cli, Config, Files, Sql, RestoreEngine
-packages/restore/bin               swbackupit-restore
+packages/core/src                  Archive, Backup(+Step), Crypto, Database, Domain, Event, Exception, Job, Log, Manifest, Retention, Retry, Scanner, Storage, Support
+packages/restore/src               Backup, Cli, Config, Files, Migration, Sql, Testing, Web, RestoreEngine
+packages/restore/public            web wizard entry point and assets (copied into restore-app/)
 packages/wordpress/src             Admin, Cli, Database, Repository, Rest, Runner, Support
 apps/admin                         SPA sources
-tests/{Unit,Integration,E2e,wp}    PHPUnit (wp = WordPress integration, own Composer env)
-docs/                              this documentation, REST contract, plans
-bin/                               build and test helper scripts
+tests/{Unit,Integration,E2e,Load}  PHPUnit (Load = separate suite)  ·  tests/wp: WordPress integration (own Composer env, single + multisite)
+docs/                              documentation, REST contract, plans
+bin/                               build and test helper scripts (ZIP, restore app, private MariaDB, S3 mock)
 ```
 
 ## Dependencies
 
-`league/flysystem` (storage abstraction), `maennchen/zipstream-php` (streamed ZIP64), `psr/log`,
-`dragonmantank/cron-expression`; PHP extensions `zip`, `zlib`, `hash`, `json`, `pdo_mysql` (+ `sodium` for encryption).
+`league/flysystem` (+ local, aws-s3-v3, sftp-v3), `aws/aws-sdk-php` (via the S3 adapter), `phpseclib` (SFTP), `maennchen/zipstream-php`
+(streamed ZIP64), `psr/log`, `dragonmantank/cron-expression`; PHP extensions `zip`, `zlib`, `hash`, `json`, `pdo_mysql` (+ `sodium` for encryption).
 
-## Data model (WordPress tables, prefix `{$wpdb->prefix}swbi_`)
+## Data model (tables `{$wpdb->base_prefix}swbi_*`; network wide on multisite)
 
-`profiles`, `schedules`, `jobs` (JSON entity + lease/flags columns), `job_events`, `backups` (catalog cache),
-`backup_locations` (status per storage target), `storage_targets`. The external manifest stays independent; the catalog
-can be rebuilt (`wp swbackupit catalog rebuild`). Schema versions are applied by `Schema::migrate()`.
+`profiles`, `schedules`, `jobs` (JSON entity + lease/flags columns), `job_events`, `backups` (catalog cache incl. chain info and last restore test),
+`backup_locations` (status per storage target), `storage_targets` (credentials encrypted), `audit` (append-only). The external manifest stays
+independent; the catalog can be rebuilt from storage (`discover/import`) or the staging directory (`wp swbackupit catalog rebuild`).
+Schema versions are applied by `Schema::migrate()` (v1 base tables, v2 audit). Multisite: all data and settings are network options/tables on the
+main site, one cron watcher per network, UI in the Network Admin, a backup always covers the whole network (selective restore of single sites is a future stage).
 
 ## Job state machine
 
@@ -67,7 +79,8 @@ can be rebuilt (`wp swbackupit catalog rebuild`). Schema versions are applied by
 stateDiagram-v2
   [*] --> pending
   pending --> preparing
-  preparing --> scanning --> exporting --> archiving --> encrypting --> uploading --> verifying
+  preparing --> scanning --> exporting --> archiving --> encrypting --> verifying --> uploading
+  uploading --> verifying: remote verification
   verifying --> completed
   preparing --> failed
   note right of verifying: steps move between the active states;\nany active state may go to paused, retry_waiting, failed, cancelled
@@ -78,28 +91,28 @@ stateDiagram-v2
   cancelled --> [*]
 ```
 
-Execution model: `BackupRunner::tick()` acquires a lease, runs steps until the time budget is exhausted, persists
-checkpoints and releases the lease. Resume granularity is the finished (fsynced, renamed) volume / database part / inventory
-slice. Lease expiry recovers from crashed workers. Transient errors (`TransientException`) become `retry_waiting` with
-exponential backoff + jitter; everything else fails. Pause/cancel are flags consumed between work units.
+Execution model: `BackupRunner::tick()` acquires a lease, runs steps until the time budget is exhausted, persists checkpoints and releases the lease. Resume
+granularity is the finished (fsynced, renamed) volume / database part / encrypted file / uploaded file (S3: multipart part) / inventory slice. Lease expiry
+recovers from crashed workers, the watchdog restarts lost jobs and fails jobs that made no progress for 48 h. Transient errors (`TransientException`)
+become `retry_waiting` with exponential backoff + jitter; everything else fails. Pause/cancel are flags consumed between work units.
 
-Steps (`Step` enum, in order): preflight, scan, export, archive, encrypt, verify_local, upload, verify_remote, finalize,
-retention, notify. Steps that do not apply to a profile are skipped.
+Steps (`Step` enum, in order): preflight, scan, export, archive, encrypt, verify_local, manifest, upload, verify_remote, finalize, retention, notify.
+Steps that do not apply to a profile are skipped. Order rationale: the manifest is written after all artifacts exist and are verified locally, so remote copies can
+include it (uploaded last); `finalize` decides success according to the profile's success policy.
 
 ## Events and hooks
 
-Core events (`before_backup`, `after_backup`, `backup_failed`, `before/after_database_export`, `before/after_upload`,
-`before/after_restore`, `restore_failed`). `before_*` events may veto via a *blocking* listener (the job fails cleanly with
-`swbi_vetoed` before state changes); all other listeners are *isolated* – exceptions are logged and never alter state.
-WordPress bridge: action `swbi_<event>`, filter `swbi_allow_<event>` for vetoes.
+See `hooks.md`. `before_*` events may veto (blocking listener, clean failure before state changes); everything else is isolated.
 
 ## Archive format, restore process, storage, security
 
-See `backup-format.md` and `security.md`. Restore: verify → files (atomic, resumable per file, guarded) → database
-(streamed, resumable at statement level) → wp-config update → done; the engine never reports success when a phase failed.
+See `backup-format.md` and `security.md`. Restore: verify → files (atomic, resumable per file, guarded) → database (streamed, resumable at statement level)
+→ URL/prefix migration (transactional progress) → wp-config update → done; the engine never reports success when a phase failed.
 
 ## Tests
 
-Unit (value objects, scanner, splitter), integration (job engine, DB roundtrip on a private MariaDB, restore security, CLI,
-standalone distribution in a separate process), E2E (backup → wipe → restore), WordPress integration (REST, schema, schedules,
-capabilities). Static analysis: PHPStan level 8, PHPCS (PSR-12 core/restore/tests, WPCS for the adapter).
+Unit (value objects, scanner, splitter, retention, crypto, serialized replacer), integration (job engine, DB roundtrip on a private MariaDB, storage incl. S3
+mock + multipart resume, restore security, CLI, web wizard, migration, comparator, restore tester, retention step, standalone distribution in a separate
+process), E2E (backup → wipe → restore, encrypted multi-target, incremental/differential chains), load (20,000 files, 300 MB file, concurrent workers, full disk),
+WordPress integration (REST, schema, schedules, capabilities, audit, pre-update, watchdog, multisite, security regressions). Static analysis: PHPStan level 8,
+PHPCS (PSR-12 core/restore/tests, WPCS for the adapter), ESLint/vue-tsc/Vitest for the SPA.

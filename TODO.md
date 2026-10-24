@@ -1,38 +1,20 @@
 # TODO
 
-See `docs/implementation-plan.md` for context. `[x]` items are mirrored in `DONE.md`.
+Open and future work. Everything else is listed in `DONE.md`. See `docs/implementation-plan.md` for context.
 
-## Phase 1 – Core / MVP
-- [x] Repo, composer, tooling (PHPUnit, PHPStan L8, PHPCS PSR-12 + WPCS)
-- [x] Core domain model, job state machine, repositories (file + wpdb)
-- [x] Support layer (path guard, atomic writes, resource budget)
-- [x] File scanner (resumable, canonical order), rules
-- [x] Database exporter (streaming, resumable, optional consistent snapshot)
-- [x] ZIP64 volumes, chunking of huge files, verification
-- [x] Manifest v1 + file index
-- [x] Backup runner (checkpoints, lease, pause/cancel/retry)
-- [x] Standalone restore engine + CLI (verify, list, restore, selective, dry-run)
-- [x] WP adapter: bootstrap, schema, repositories, REST, scheduler, WP-CLI
-- [x] Admin SPA (Vue/Quasar) built to assets/admin
-- [x] E2E backup → wipe → restore, security and reliability tests
-- [x] Docs (user guide, architecture, backup format, security, wp-cli, development)
-- [ ] Restore web wizard (token auth) – scheduled with Phase 2
-- [ ] Add docblocks to all adapter methods (documented WPCS exception, `phpcs-wordpress.xml.dist`)
-- [ ] Adapt SPA to final API (real phase names, schedule weekday/monthday, retry, target_path) – after Phase 2 API is complete
+## Known gaps (explicitly not implemented)
+- [ ] **Real SFTP integration test** – no SSH server was available in the development environment; SFTP is covered by configuration/SSRF/host-key validation tests only (the Flysystem adapter is the library's own, shared contract code with the local adapter).
+- [ ] **S3 Object Lock for multipart uploads** is sent with `CreateMultipartUpload` but was only verified for single-part objects (the S3 mock does not return lock data for multipart); verify with your provider.
+- [ ] **Resumable local/SFTP uploads** – only S3 resumes within a file (multipart parts); local/SFTP restart the file (finished files are never repeated).
+- [ ] **True incremental database backups** (binlog based) – database is exported completely on every run (as allowed by the spec).
+- [ ] **Selective restore of single sites of a multisite network** (full network backup/restore works).
+- [ ] **Content de-duplication of renamed files** in incremental backups (renamed files are stored again).
+- [ ] **`.pot` / German translation files** for the PHP side (`languages/` is prepared, textdomain `swbackupit`; the SPA ships its own de/en catalogue).
+- [ ] **Docblocks for all adapter methods** (documented WPCS relaxation in `phpcs-wordpress.xml.dist`; typed signatures carry the contract).
+- [ ] SSE for live progress (REST polling is implemented; SSE was optional).
+- [ ] Database part download count in the backup resource (`database_part_count`) so the UI can offer all parts.
+- [ ] Upload parallelism setting (`max_parallel_uploads` is stored but uploads are sequential).
 
-## Phase 2 – Storage & Recovery
-- [ ] Flysystem storage manager, local/SFTP/S3, capability interfaces
-- [ ] Multi-target upload, retry/backoff, remote verification
-- [ ] Retention (count/age/GFS), dry-run
-- [ ] Encryption (sodium secretstream) + restore decryption
-- [ ] URL/path migration (serialized-safe), selective restore, compare
-- [ ] Notifications (WP mail, dedupe)
-
-## Phase 3 – Advanced backup
-- [ ] Incremental/differential, chains, chain-aware retention
-- [ ] Chunked/multipart upload, full resume, hook system
-
-## Phase 4 – Enterprise
-- [ ] Audit log, restore test automation, health monitoring
-- [ ] Multisite, immutable storage, pre-update backups
-- [ ] Load/security tests
+## Ideas
+- [ ] Per-site backups on multisite; WebDAV/FTP adapters as optional Composer packages; restore test scheduling UI polish.
+- [ ] Hosting matrix tests (PHP-FPM worker kills, very low `memory_limit`, restrictive open_basedir).

@@ -206,4 +206,40 @@ class EnterprisePhaseTest extends WP_UnitTestCase {
 		$this->assertSame( 'corrupt', $this->request( 'GET', '/backups/' . $job['backup_id'] )->get_data()['status'] );
 		$this->assertCount( 1, $mail, 'the administrator is told about the damaged backup' );
 	}
+
+	public function test_full_wordpress_backup_survives_total_loss_and_restores_via_standalone_engine(): void {
+		global $wpdb;
+		// The WP test suite runs inside a transaction, which the exporter's own connection cannot see: commit a marker row separately.
+		$writer = new PDO( 'mysql:host=127.0.0.1;port=' . ( getenv( 'SWBI_TEST_DB_PORT' ) ?: '33077' ) . ';dbname=' . DB_NAME . ';charset=utf8mb4', DB_USER, DB_PASSWORD, array( PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION ) );
+		$writer->prepare( "REPLACE INTO {$wpdb->options} (option_name, option_value, autoload) VALUES ('swbi_e2e_marker', ?, 'no')" )->execute( array( serialize( array( 'title' => 'Backup me ünï 😀', 'url' => home_url() ) ) ) );
+		[ , $job ] = $this->backup( array( 'type' => 'full', 'include_paths' => array( 'wp-includes/css', 'wp-includes/js/jquery' ), 'volume_size_mb' => 1 ) );
+		$dir = $this->staging . '/' . $job['backup_id'];
+
+		// Restore with the standalone engine into a fresh directory and a scratch database (the "new server").
+		$admin   = \SWBackupIt\Core\Database\ConnectionConfig::fromWordPressHost( DB_HOST, DB_NAME, DB_USER, DB_PASSWORD );
+		$scratch = 'swbi_e2e_' . bin2hex( random_bytes( 4 ) );
+		$pdo     = new PDO( 'mysql:host=127.0.0.1;port=' . ( getenv( 'SWBI_TEST_DB_PORT' ) ?: '33077' ), DB_USER, DB_PASSWORD, array( PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION ) );
+		$pdo->exec( "CREATE DATABASE `{$scratch}`" );
+		$target = sys_get_temp_dir() . '/swbi-e2e-target-' . bin2hex( random_bytes( 4 ) );
+		mkdir( $target, 0775, true );
+		try {
+			$database = new \SWBackupIt\Core\Database\ConnectionConfig( $admin->host, $scratch, $admin->user, $admin->password, $admin->port );
+			$request  = new \SWBackupIt\Restore\RestoreRequest( $dir, $target, (string) realpath( $target ), $this->staging . '/state', true, true, $database, $scratch, false );
+			do {
+				$outcome = ( new \SWBackupIt\Restore\RestoreEngine() )->run( $request, new \SWBackupIt\Core\Support\ResourceBudget( 30.0 ) );
+			} while ( 'continue' === $outcome->status );
+			$this->assertSame( 'completed', $outcome->status, implode( '; ', $outcome->messages ) );
+
+			$this->assertFileEquals( ABSPATH . 'wp-includes/css/dashicons.min.css', $target . '/wp-includes/css/dashicons.min.css' );
+			$restored = new PDO( "mysql:host=127.0.0.1;port=" . ( getenv( 'SWBI_TEST_DB_PORT' ) ?: '33077' ) . ";dbname={$scratch};charset=utf8mb4", DB_USER, DB_PASSWORD );
+			$marker   = unserialize( (string) $restored->query( "SELECT option_value FROM {$wpdb->options} WHERE option_name = 'swbi_e2e_marker'" )->fetchColumn(), array( 'allowed_classes' => false ) );
+			$this->assertSame( 'Backup me ünï 😀', $marker['title'] );
+			$this->assertSame( home_url(), (string) $restored->query( "SELECT option_value FROM {$wpdb->options} WHERE option_name = 'home'" )->fetchColumn() );
+			$this->assertNotFalse( $restored->query( "SHOW TABLES LIKE '" . $wpdb->base_prefix . "swbi_jobs'" )->fetch(), 'the plugin tables travel with the backup' );
+		} finally {
+			$writer->exec( "DELETE FROM {$wpdb->options} WHERE option_name = 'swbi_e2e_marker'" );
+			$pdo->exec( "DROP DATABASE IF EXISTS `{$scratch}`" );
+			\SWBackupIt\Core\Support\AtomicFile::removeTree( $target );
+		}
+	}
 }

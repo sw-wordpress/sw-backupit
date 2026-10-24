@@ -17,6 +17,7 @@ const { can } = useCapabilities();
 const config = getConfig();
 const main = ref<HTMLElement | null>(null);
 const allowed = computed(() => can('swbi_view'));
+const navItems = computed(() => NAV_ITEMS.filter((i) => !i.cap || can(i.cap)));
 
 onMounted(() => {
   if (allowed.value) jobs.subscribe();
@@ -51,7 +52,7 @@ const transitionKey = computed(() => String(route.name ?? ''));
 
       <nav v-if="allowed" class="swbi-rail__nav" :aria-label="t('app.mainNavigation')">
         <ul>
-          <li v-for="item in NAV_ITEMS" :key="item.name">
+          <li v-for="item in navItems" :key="item.name">
             <router-link
               :to="item.to"
               class="swbi-nav-link"

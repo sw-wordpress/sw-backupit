@@ -196,7 +196,7 @@ export interface Job {
   finished_at: string | null;
   progress: JobProgress;
   /** Plain message, or `{code, message}` (codes such as swbi_vetoed, swbi_integrity). */
-  error: string | { code?: string; message?: string } | null;
+  error: string | { code?: string; message?: string; retryable?: boolean } | null;
   warnings_count: number;
   retry_count: number;
   backup_id: string | null;
@@ -242,6 +242,10 @@ export interface Backup {
   site_url: string;
   verified_at: string | null;
   restore_tested_at: string | null;
+  /** Last stored restore-test result or null. */
+  restore_test: RestoreTestResult | null;
+  /** Number of database dump parts (may be absent on older servers). */
+  database_part_count?: number;
   locations: BackupLocation[];
 }
 
@@ -275,6 +279,58 @@ export interface CompareResult {
   samples: Record<string, string[]>;
 }
 
+export type RestoreTestStatus = 'passed' | 'partial' | 'failed';
+export interface RestoreTestCheck {
+  name: string;
+  status: 'passed' | 'failed' | 'skipped';
+  detail: string;
+}
+export interface RestoreTestResult {
+  status: RestoreTestStatus;
+  seconds: number;
+  tested_at: string;
+  checks: RestoreTestCheck[];
+}
+
+export interface AuditEntry {
+  id: number;
+  time: string;
+  user_id: number;
+  user: string;
+  ip: string;
+  action: string;
+  object_type: string;
+  object_id: string;
+  context: Record<string, unknown>;
+}
+
+export const AUDIT_ACTIONS = [
+  'backup_started',
+  'backup_downloaded',
+  'backup_deleted',
+  'backup_protected',
+  'backup_verified',
+  'restore_prepared',
+  'restore_tested',
+  'profile_saved',
+  'profile_deleted',
+  'schedule_saved',
+  'schedule_deleted',
+  'storage_target_saved',
+  'storage_target_deleted',
+  'encryption_key_created',
+  'encryption_key_deleted',
+  'settings_updated',
+  'backups_imported',
+] as const;
+
+export interface ObjectLock {
+  mode: 'GOVERNANCE' | 'COMPLIANCE';
+  days: number;
+}
+export type StorageConfigValue = string | number | boolean | ObjectLock;
+export type StorageConfig = Record<string, StorageConfigValue>;
+
 export interface RestorePrepareResult {
   restore_url: string;
   /** Shown to the user exactly once; never stored by the UI. */
@@ -289,7 +345,7 @@ export interface StorageTarget {
   name: string;
   type: StorageType;
   /** local: `path`; sftp: `host, port, username, root`; s3: `endpoint, region, bucket, prefix, path_style`. */
-  config: Record<string, string | number | boolean>;
+  config: StorageConfig;
   credentials_set: boolean;
   immutable: boolean;
   retention: Retention | null;
@@ -302,7 +358,7 @@ export interface StorageTarget {
 export interface StorageTargetInput {
   name: string;
   type: StorageType;
-  config: Record<string, string | number | boolean>;
+  config: StorageConfig;
   /** Write-only secrets (`password`, `private_key`, `secret_key`, `access_key`); omitted when unchanged. */
   credentials?: Record<string, string>;
   immutable: boolean;
@@ -348,7 +404,13 @@ export interface Settings {
   };
   encryption: { default_key_id: string };
   notifications: { recipients: string[]; dedupe_minutes: number };
-  logging: { retention_days: number; max_events_per_job: number; level: Severity };
+  logging: {
+    retention_days: number;
+    max_events_per_job: number;
+    level: Severity;
+    audit_retention_days: number;
+  };
+  restore_test: { enabled: boolean; interval_days: number };
   cron: { mode: 'wp-cron' | 'system'; timezone: string };
   retention_default: { max_count: number; max_age_days: number; gfs: RetentionGfs };
   pre_update_backup: {
@@ -356,5 +418,8 @@ export interface Settings {
     plugins: boolean;
     themes: boolean;
     profile_id: number | null;
+    max_age_minutes: number;
+    wait_seconds: number;
+    block_on_failure: boolean;
   };
 }

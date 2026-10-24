@@ -5,6 +5,8 @@
  */
 import type {
   ArchiveEntry,
+  AuditEntry,
+  RestoreTestResult,
   Backup,
   BackupType,
   HealthReport,
@@ -282,6 +284,33 @@ let targets: StorageTarget[] = [
   },
 ];
 let nextTargetId = 4;
+let nextAuditId = 1;
+const AUDIT_SEED: Array<[string, string, string, Record<string, unknown>]> = [
+  ['backup_started', 'profile', '1', { trigger: 'schedule' }],
+  ['backup_downloaded', 'backup', 'b1', { part: 'volume', volume: 1 }],
+  ['settings_updated', 'settings', 'global', { groups: ['limits', 'cron'] }],
+  ['storage_target_saved', 'storage_target', '3', { type: 's3', changed: ['config'] }],
+  ['encryption_key_created', 'encryption_key', 'primary-2026', {}],
+  ['restore_prepared', 'backup', 'b2', { target_path: '/var/www/html/wordpress_dev' }],
+  ['backup_deleted', 'backup', 'b3', { size_bytes: 512000000 }],
+  ['profile_saved', 'profile', '2', { created: false }],
+  ['backup_protected', 'backup', 'b4', { protected: true }],
+  ['backup_verified', 'backup', 'b5', { ok: true }],
+];
+const audit: AuditEntry[] = Array.from({ length: 47 }, (_, i) => {
+  const [action, object_type, object_id, context] = AUDIT_SEED[i % AUDIT_SEED.length]!;
+  return {
+    id: nextAuditId++,
+    time: iso(START - i * 3.3 * HOUR),
+    user_id: i % 4 === 3 ? 2 : 1,
+    user: i % 4 === 3 ? 'editor-anna' : 'admin',
+    ip: i % 4 === 3 ? '203.0.113.17' : '198.51.100.4',
+    action,
+    object_type,
+    object_id,
+    context,
+  };
+});
 let keys: Array<{ id: string; source: string }> = [
   { id: 'primary-2026', source: 'stored' },
   { id: 'offsite', source: 'generated' },
@@ -292,14 +321,23 @@ let settings: Settings = {
   limits: { time_budget_seconds: 20, memory_mb: 128, batch_rows: 1000, max_parallel_uploads: 1 },
   encryption: { default_key_id: 'primary-2026' },
   notifications: { recipients: ['admin@example.com'], dedupe_minutes: 60 },
-  logging: { retention_days: 30, max_events_per_job: 5000, level: 'info' },
+  logging: { retention_days: 30, max_events_per_job: 5000, level: 'info', audit_retention_days: 365 },
+  restore_test: { enabled: true, interval_days: 30 },
   cron: { mode: 'wp-cron', timezone: 'Europe/Berlin' },
   retention_default: {
     max_count: 10,
     max_age_days: 0,
     gfs: { daily: 7, weekly: 4, monthly: 6, yearly: 0 },
   },
-  pre_update_backup: { core: true, plugins: false, themes: false, profile_id: 1 },
+  pre_update_backup: {
+    core: true,
+    plugins: false,
+    themes: false,
+    profile_id: 1,
+    max_age_minutes: 60,
+    wait_seconds: 120,
+    block_on_failure: false,
+  },
 };
 
 function makeBackups(): Backup[] {
@@ -327,11 +365,24 @@ function makeBackups(): Backup[] {
       volume_count: Math.max(1, Math.ceil(size / (256 * 1024 * 1024))),
       encrypted: profile.encryption.enabled,
       protected: i === 2 || i === 20,
-      parent_id: type === 'differential' ? null : null,
+      parent_id: type === 'differential' ? (out.find((b) => b.type === 'full')?.id ?? null) : null,
       wp_version: '6.8.2',
       site_url: 'https://example.com',
       verified_at: status === 'verified' ? iso(created + 20 * MIN) : null,
       restore_tested_at: i === 4 ? iso(created + 2 * DAY) : null,
+      restore_test:
+        i === 4
+          ? {
+              status: 'partial',
+              seconds: 94,
+              tested_at: iso(created + 2 * DAY),
+              checks: [
+                { name: 'Archive integrity', status: 'passed', detail: '3 volumes, SHA-256 ok' },
+                { name: 'Extract sample files', status: 'passed', detail: '250 files extracted to temp directory' },
+                { name: 'Database import', status: 'skipped', detail: 'No CREATE DATABASE privilege for the scratch database' },
+              ],
+            }
+          : null,
       locations: profile.storage_target_ids.map((tid) => ({
         target_id: tid,
         name: targets.find((t) => t.id === tid)?.name ?? `#${tid}`,
@@ -589,6 +640,7 @@ function finishJob(job: Job, profile: Profile | undefined): void {
       site_url: 'https://example.com',
       verified_at: null,
       restore_tested_at: null,
+      restore_test: null,
       locations: profile.storage_target_ids.map((tid) => ({
         target_id: tid,
         name: targets.find((t) => t.id === tid)?.name ?? '',
@@ -971,7 +1023,7 @@ export function handle(req: MockRequest): MockResponse {
   }
   if (
     (m = path.match(
-      /^backups\/([0-9a-f-]+)(?:\/(verify|protect|files|compare|download|restore\/prepare|restore))?$/,
+      /^backups\/([0-9a-f-]+)(?:\/(verify|protect|files|compare|download|restore\/prepare|restore-test|restore))?$/,
     ))
   ) {
     const b = backups.find((x) => x.id === m![1]);
@@ -1055,6 +1107,29 @@ export function handle(req: MockRequest): MockResponse {
           ],
         },
       };
+    }
+    if (action === 'restore-test' && method === 'POST') {
+      const res: RestoreTestResult = {
+        status: b.status === 'corrupt' ? 'failed' : 'passed',
+        seconds: 62 + Math.floor(rand() * 60),
+        tested_at: iso(Date.now()),
+        checks:
+          b.status === 'corrupt'
+            ? [
+                { name: 'Archive integrity', status: 'failed', detail: 'Volume 2: SHA-256 mismatch' },
+                { name: 'Extract sample files', status: 'skipped', detail: 'Skipped after failed integrity check' },
+                { name: 'Database import', status: 'skipped', detail: 'Skipped after failed integrity check' },
+              ]
+            : [
+                { name: 'Archive integrity', status: 'passed', detail: '3 volumes, SHA-256 ok' },
+                { name: 'Extract sample files', status: 'passed', detail: '250 files extracted to temp directory' },
+                { name: 'Database import', status: 'passed', detail: '14 tables imported into scratch database' },
+              ],
+      };
+      b.restore_test = res;
+      b.restore_tested_at = res.tested_at;
+      audit.unshift({ id: nextAuditId++, time: res.tested_at, user_id: 1, user: 'admin', ip: '127.0.0.1', action: 'restore_tested', object_type: 'backup', object_id: b.id, context: { status: res.status } });
+      return { status: 200, body: res };
     }
     if (action === 'restore' && method === 'POST') {
       return wpError(501, 'swbi_use_wizard', 'Restore runs only in the standalone restore wizard.');
@@ -1170,6 +1245,18 @@ export function handle(req: MockRequest): MockResponse {
     }
   }
 
+  // audit
+  if (method === 'GET' && path === 'audit') {
+    let list = audit;
+    const a = query.get('action');
+    if (a) list = list.filter((e) => e.action === a);
+    const ot = query.get('object_type');
+    if (ot) list = list.filter((e) => e.object_type === ot);
+    const uid = query.get('user_id');
+    if (uid) list = list.filter((e) => e.user_id === Number(uid));
+    return { status: 200, body: paginate(list, query, 20) };
+  }
+
   // encryption keys
   let km: RegExpMatchArray | null;
   if (path === 'encryption-keys') {
@@ -1209,15 +1296,19 @@ export function handle(req: MockRequest): MockResponse {
   if (path === 'settings') {
     if (method === 'GET') return { status: 200, body: settings };
     if (method === 'PUT') {
-      if (typeof body.staging_dir !== 'string' || body.staging_dir.trim() === '')
+      if (
+        'staging_dir' in body &&
+        (typeof body.staging_dir !== 'string' || body.staging_dir.trim() === '')
+      )
         return wpError(400, 'swbi_invalid_param', 'Invalid parameter(s): staging_dir', {
           staging_dir: 'Required',
         });
-      if (num((body.limits as Settings['limits'] | undefined)?.memory_mb) < 32)
+      const limits = body.limits as Settings['limits'] | undefined;
+      if (limits && num(limits.memory_mb) < 32)
         return wpError(400, 'swbi_invalid_param', 'Invalid parameter(s): limits.memory_mb', {
           'limits.memory_mb': 'Must be at least 32',
         });
-      settings = body as unknown as Settings;
+      settings = { ...settings, ...(body as unknown as Partial<Settings>) };
       return { status: 200, body: settings };
     }
   }
