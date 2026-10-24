@@ -4,7 +4,8 @@ import { useI18n } from 'vue-i18n';
 
 export type ChipKind =
   'success' | 'warning' | 'danger' | 'info' | 'neutral' | 'running' | 'primary';
-export type ChipDomain = 'job' | 'backup' | 'health' | 'schedule' | 'location' | 'upload';
+export type ChipDomain =
+  'job' | 'backup' | 'health' | 'schedule' | 'location' | 'upload' | 'transfer';
 
 interface Meta {
   kind: ChipKind;
@@ -52,6 +53,13 @@ const MAP: Record<ChipDomain, Record<string, Meta>> = {
     uploading: { kind: 'running', icon: 'r_cloud_upload' },
     verified: { kind: 'success', icon: 'r_verified' },
     failed: { kind: 'danger', icon: 'r_error' },
+  },
+  transfer: {
+    queued: { kind: 'neutral', icon: 'r_hourglass_empty' },
+    running: { kind: 'running', icon: 'r_sync' },
+    completed: { kind: 'success', icon: 'r_verified' },
+    failed: { kind: 'danger', icon: 'r_error' },
+    cancelled: { kind: 'neutral', icon: 'r_cancel' },
   },
 };
 

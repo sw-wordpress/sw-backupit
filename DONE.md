@@ -49,3 +49,14 @@ See `docs/implementation-plan.md` and `docs/architecture.md`: NDJSON index (no p
 - New: complete recovery package as one ZIP (REST `GET /backups/{id}/package`, `wp sw-backupit backup package`, SPA download menu) and
   selective database restore (`--tables`).
 
+
+## Run destination and backup transfers
+- Dashboard quick action: second select for the destination of a single run (as in the profile, local staging only, or one storage
+  target); REST `POST /profiles/{id}/run` with `storage_target_id`, the profile is unchanged.
+- Copy/move of stored backups between storage targets: core `Storage/BackupTransfer` (resumable per file, checksums verified at the source
+  and on the destination, manifest last, encrypted backups stay encrypted), WordPress `Runner/TransferService` (background ticks via
+  WP-Cron/system cron, worker lock, retries of temporary storage errors, cancel with cleanup, chain bases copied along and never moved,
+  move removes the source copy only after verification and refuses immutable/locked sources), REST `POST /backups/{id}/transfer`,
+  `GET /transfers`, `POST /transfers/{id}/cancel`, `wp sw-backupit backup transfer`, SPA dialog and transfer progress panel.
+- Fix: deleting a backup in the UI/REST removed only the local copy and the catalog entry; it now deletes every storage target copy, and
+  refuses (409) without touching any copy when one location is immutable or within its lock period.

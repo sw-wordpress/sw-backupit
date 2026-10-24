@@ -30,7 +30,9 @@ export function useRunProfile() {
 
   return {
     busyId,
-    runProfile: (id: number) => start(id, () => useApi().profiles.run(id)),
+    /** `storageTargetId`: destination for this run only (0 = local staging only). */
+    runProfile: (id: number, storageTargetId?: number) =>
+      start(id, () => useApi().profiles.run(id, storageTargetId)),
     runSchedule: (id: number) => start(id, () => useApi().schedules.run(id)),
   };
 }

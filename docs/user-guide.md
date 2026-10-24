@@ -19,7 +19,8 @@ The interface, messages, notifications and the restore wizard are available in E
 ## Backup profiles
 A profile defines what is backed up: type (Full, Files only, Database only, Incremental, Differential), directories/patterns to include or
 exclude, database tables, compression, volume size, resource limits, storage targets, retention and notifications. A running job always uses
-a snapshot of the profile as it was when the job started. *Run now* starts a manual backup; progress, phase and logs are shown live. Jobs can be
+a snapshot of the profile as it was when the job started. *Run now* starts a manual backup; progress, phase and logs are shown live. The dashboard's quick action can store a single run on
+another storage target (or only locally) without changing the profile. Jobs can be
 paused, resumed, cancelled and (when failed) retried; they continue from their checkpoints. Only one backup runs at a time.
 
 * **Incremental** stores only files changed since the previous backup, **Differential** only files changed since the last full backup. Without a base
@@ -65,7 +66,7 @@ notifications are de-duplicated within the configured window.
 The list shows all backups with size, files, status and replication state. *Verify* checks checksums, *Browse* the file index, *Compare* shows
 differences to the current installation (only in backup / only local / modified / identical / not comparable, metadata or SHA-256), *Download*
 single files (authorised, never public) or the *complete recovery package* – one ZIP with the backup, every base backup it needs and the
-standalone restore application (also `wp sw-backupit backup package <id>`); keep it together with the encryption key for disaster recovery, *Protect* against deletion, *Test restore* runs an isolated restore (temp directory + scratch database)
+standalone restore application (also `wp sw-backupit backup package <id>`); keep it together with the encryption key for disaster recovery, *Copy / move* stores the backup on another storage target (the files are copied as stored, verified on the target, missing base backups of the chain are copied along; *move* removes the source copy only after verification and is refused for immutable or locked sources; progress is shown above the backup list, also `wp sw-backupit backup transfer`), *Protect* against deletion, *Test restore* runs an isolated restore (temp directory + scratch database)
 and documents the result. Deleting needs confirmation. A regular background check verifies stored backups and warns about damaged ones.
 
 ## Restore (standalone)

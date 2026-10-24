@@ -16,7 +16,8 @@ caught, logged and – except for explicit vetoes – ignored.
 
 Payloads are read-only arrays (`job_id`, `backup_id`, `step`, …). Additional WordPress actions for audit purposes:
 `swbi_backup_downloaded`, `swbi_backup_deleted`, `swbi_settings_updated`, `swbi_storage_target_saved`, `swbi_encryption_key_created`,
-`swbi_encryption_key_deleted`, `swbi_restore_prepared`, `swbi_backups_imported`.
+`swbi_encryption_key_deleted`, `swbi_restore_prepared`, `swbi_backups_imported`, `swbi_backup_transfer_started` (backup id, mode, target id),
+`swbi_backup_transferred` (backup id, mode, target id), `swbi_backup_transfer_failed` (backup id, message).
 
 ## Failure policy
 

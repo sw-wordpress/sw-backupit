@@ -23,6 +23,8 @@ final class AuditLogger {
 		'swbi_backup_deleted'         => array( 'backup', 0 ),
 		'swbi_backup_protected'       => array( 'backup', 0 ),
 		'swbi_backup_verified'        => array( 'backup', 0 ),
+		'swbi_backup_transfer_started' => array( 'backup', 0 ),
+		'swbi_backup_transferred'     => array( 'backup', 0 ),
 		'swbi_restore_prepared'       => array( 'backup', 0 ),
 		'swbi_restore_tested'         => array( 'backup', 0 ),
 		'swbi_profile_saved'          => array( 'profile', 0 ),

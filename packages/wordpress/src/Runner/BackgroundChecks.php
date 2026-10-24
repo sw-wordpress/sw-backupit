@@ -67,7 +67,7 @@ final class BackgroundChecks {
 	 */
 	public static function has_local_data( string $backup_id ): bool {
 		$dir = Settings::staging_dir() . '/' . $backup_id;
-		if ( is_file( $dir . '/.local-copy-removed' ) ) {
+		if ( is_file( $dir . '/' . \SWBackupIt\Core\Backup\BackupLayout::LOCAL_COPY_REMOVED ) ) {
 			return false;
 		}
 		try {

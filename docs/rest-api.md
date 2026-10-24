@@ -78,7 +78,8 @@ administrator role receives them (also after schema updates), and `swbi_download
   "created_at": "...", "updated_at": "..."
 }
 ```
-`POST /profiles/{id}/run` → `201` + Job. `DELETE` requires query `?confirm=true`.
+`POST /profiles/{id}/run` → `201` + Job. Optional body `{ "storage_target_id": <id> }` stores this run on that storage target instead of
+the profile's targets (`0` = keep it in the local staging directory only); the profile itself is not changed. `DELETE` requires query `?confirm=true`.
 
 ### Schedules – `GET|POST /schedules`, `GET|PUT|DELETE /schedules/{id}`, `POST /schedules/{id}/run`
 ```json
@@ -195,6 +196,15 @@ Weekly/monthly schedules additionally use `weekday` (0 = Sunday … 6) and `mont
 * `POST /backups/{id}/compare` body `{ "mode": "metadata|sha256" }` → `{ only_in_backup, only_local, modified, identical, incomparable, samples: { <category>: [path…] } }` (synchronous; use the CLI for very large sites).
 * `POST /backups/{id}/restore/prepare` → `{ restore_url, token, token_expires_at, target_path, warnings[] }`. **The token is shown once.** The restore itself runs in the standalone web wizard behind `restore_url` (or the restore CLI); `POST /backups/{id}/restore` always answers `501 swbi_use_wizard`.
 * `POST /backups/{id}/protect` body `{ "protected": true|false }` returns the Backup. `DELETE /backups/{id}?confirm=<id>` needs the exact id; protected backups answer `409`.
+* `POST /backups/{id}/transfer` (`swbi_manage_storage`; with `move` additionally `swbi_delete`) body
+  `{ "target_id": <id>, "source_id": <id>|0|null, "move": false }` → `202` + Transfer. Copies the stored files (encrypted backups stay
+  encrypted) from the source (`0` = local staging, `null` = local copy when available, else a verified storage target) to the target,
+  verifies every file there and uploads the manifest last. Missing base backups of the chain are copied first (never moved). `move`
+  removes the source copy only after verification; immutable sources or sources within their lock period are refused (`400`).
+  `409` when the backup is already stored on the target or already being transferred. Runs in the background (WP-Cron, system cron).
+* `GET /transfers` → `[Transfer]` (open transfers and the 20 newest finished ones). Transfer: `{ id, backup_id, mode: copy|move,
+  status: queued|running|completed|failed|cancelled, error, source_id, source_name, target_id, target_name, backups[], bytes_total,
+  bytes_done, created_at, updated_at }`. `POST /transfers/{id}/cancel` stops it and removes the incomplete copy on the target.
 * Backup `status`: `complete | verified | corrupt`.
 
 ## Storage targets

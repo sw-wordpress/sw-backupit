@@ -69,14 +69,7 @@ final class FinalizeStep implements BackupStepInterface
     /** Keeps only the manifest locally; the data lives on the verified remote targets. */
     private function deleteLocalCopy(BackupContext $context, Manifest $manifest): void
     {
-        foreach ($manifest->volumes() as $volume) {
-            @unlink($context->layout->volumesDirectory() . '/' . $volume->name);
-        }
-        foreach ($manifest->databaseParts() as $part) {
-            @unlink($context->layout->databaseDirectory() . '/' . $part['name']);
-        }
-        @unlink($context->layout->root() . '/' . $manifest->indexFileName());
-        file_put_contents($context->layout->root() . '/.local-copy-removed', "Data files were removed after verified upload; restore from a storage target.\n");
+        $context->layout->removeData($manifest);
         $context->logger->notice('Local copy removed after verified upload (manifest kept).');
     }
 }

@@ -15,6 +15,7 @@ use SWBackupIt\Core\Exception\SwbiException;
 use SWBackupIt\Core\Retention\BackupCatalogInterface;
 use SWBackupIt\Core\Retention\BackupRecord;
 use SWBackupIt\Core\Storage\StorageFactory;
+use SWBackupIt\WordPress\Runner\TransferService;
 use SWBackupIt\WordPress\Support\Settings;
 use SWBackupIt\WordPress\Support\Time;
 
@@ -57,28 +58,33 @@ final class WpBackupCatalog implements BackupCatalogInterface {
 	 * @throws SwbiException When a location cannot be cleaned.
 	 */
 	public function delete( string $backupId ): void {
+		$targets = array();
+		$created = (string) ( $this->backups->find_row( $backupId )['created_at'] ?? '' );
+		// Check every location first: a retained copy must not leave the other targets half deleted.
 		foreach ( $this->backups->locations( $backupId ) as $location ) {
-			$target_id = (int) $location['target_id'];
-			if ( 0 === $target_id ) {
-				continue;
-			}
-			$target = $this->targets->find( $target_id );
+			$target = 0 === (int) $location['target_id'] ? null : $this->targets->find( (int) $location['target_id'] );
 			if ( null === $target ) {
 				continue;
 			}
-			$lock_days = (int) ( $target->config['lock_days'] ?? 0 );
-			$created   = Time::from_db( (string) ( $this->backups->find_row( $backupId )['created_at'] ?? '' ) );
-			if ( $lock_days > 0 && null !== $created && $created > Time::now()->modify( '-' . $lock_days . ' days' ) ) {
-				throw new SwbiException( sprintf( 'Storage target "%s" retains backups for %d days; the backup is kept.', $target->name, $lock_days ) );
+			$blocker = TransferService::removal_blocker( $target, $created );
+			if ( 'locked' === $blocker ) {
+				/* translators: 1: storage target name, 2: number of days */
+				throw new SwbiException( sprintf( __( 'Storage target "%1$s" retains backups for %2$d days; the backup is kept.', 'sw-backupit' ), $target->name, (int) $target->config['lock_days'] ) );
 			}
-			if ( $target->immutable ) {
-				throw new SwbiException( sprintf( 'Storage target "%s" is immutable; the backup copy is retained.', $target->name ) );
+			if ( 'immutable' === $blocker ) {
+				/* translators: %s: storage target name */
+				throw new SwbiException( sprintf( __( 'Storage target "%s" is immutable; the backup copy is retained.', 'sw-backupit' ), $target->name ) );
 			}
+			$targets[] = $target;
+		}
+		foreach ( $targets as $target ) {
 			try {
 				( new StorageFactory() )->create( $target )->deleteDirectory( $backupId );
 			} catch ( \Throwable $throwable ) {
-				throw new SwbiException( sprintf( 'Storage target "%s" could not be cleaned; the backup is kept.', $target->name ), array(), false, $throwable );
+				/* translators: %s: storage target name */
+				throw new SwbiException( sprintf( __( 'Storage target "%s" could not be cleaned; the backup is kept.', 'sw-backupit' ), $target->name ), array(), false, $throwable );
 			}
+			$this->backups->remove_location( $backupId, $target->id );
 		}
 		( new BackupLayout( Settings::staging_dir(), $backupId ) )->removeAll();
 		$this->backups->delete( $backupId );

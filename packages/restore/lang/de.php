@@ -4,6 +4,7 @@
 
 return array (
   'A backup file failed verification.' => 'Eine Backup-Datei hat die Überprüfung nicht bestanden.',
+  'A copied file failed verification on the destination.' => 'Eine kopierte Datei hat die Prüfung am Ziel nicht bestanden.',
   'A database connection is required to restore the database.' => 'Zum Wiederherstellen der Datenbank ist eine Datenbankverbindung erforderlich.',
   'A database export was requested but no database connection is configured.' => 'Ein Datenbankexport wurde angefordert, aber es ist keine Datenbankverbindung konfiguriert.',
   'A directory exists where a file must be restored.' => 'An der Stelle, an der eine Datei wiederhergestellt werden muss, existiert ein Verzeichnis.',
@@ -12,6 +13,7 @@ return array (
   'A file exceeds the configured per-file size limit.' => 'Eine Datei überschreitet das konfigurierte Größenlimit pro Datei.',
   'A file exists where a directory must be created.' => 'An der Stelle, an der ein Verzeichnis erstellt werden muss, existiert eine Datei.',
   'A file of the recovery package cannot be read.' => 'Eine Datei des Recovery-Pakets kann nicht gelesen werden.',
+  'A file of the source copy failed verification.' => 'Eine Datei der Quellkopie hat die Prüfung nicht bestanden.',
   'A listener vetoed the operation.' => 'Ein Listener hat gegen den Vorgang ein Veto eingelegt.',
   'A local storage target needs an absolute path without "..".' => 'Ein lokales Speicherziel benötigt einen absoluten Pfad ohne "..".',
   'A path component is not a directory.' => 'Eine Pfadkomponente ist kein Verzeichnis.',
@@ -202,6 +204,7 @@ return array (
   'The backup contains more entries than the configured limit.' => 'Das Backup enthält mehr Einträge als das konfigurierte Limit.',
   'The backup did not pass verification. Nothing was changed.' => 'Das Backup hat die Überprüfung nicht bestanden. Es wurde nichts geändert.',
   'The backup exceeds the configured restore size limit.' => 'Das Backup überschreitet das konfigurierte Größenlimit für die Wiederherstellung.',
+  'The backup has no source to copy from.' => 'Für das Backup gibt es keine Quelle zum Kopieren.',
   'The backup passed verification.' => 'Das Backup hat die Überprüfung bestanden.',
   'The backup was not found in the configured backups directory.' => 'Das Backup wurde im konfigurierten Backup-Verzeichnis nicht gefunden.',
   'The backups directory does not exist.' => 'Das Backup-Verzeichnis existiert nicht.',
@@ -224,6 +227,8 @@ return array (
   'The local file changed while it was being uploaded.' => 'Die lokale Datei hat sich während des Uploads geändert.',
   'The local file to upload does not exist.' => 'Die hochzuladende lokale Datei existiert nicht.',
   'The local storage directory cannot be created.' => 'Das lokale Speicherverzeichnis kann nicht erstellt werden.',
+  'The manifest could not be verified on the destination.' => 'Das Manifest konnte am Ziel nicht geprüft werden.',
+  'The manifest does not belong to the backup.' => 'Das Manifest gehört nicht zu diesem Backup.',
   'The passphrase must be at least 8 characters long.' => 'Die Passphrase muss mindestens 8 Zeichen lang sein.',
   'The port is invalid.' => 'Der Port ist ungültig.',
   'The restore FAILED. It can be resumed: reload this page to continue.' => 'Die Wiederherstellung ist FEHLGESCHLAGEN. Sie kann fortgesetzt werden: Laden Sie diese Seite neu, um fortzufahren.',

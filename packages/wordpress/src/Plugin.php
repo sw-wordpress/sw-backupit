@@ -51,6 +51,7 @@ final class Plugin {
 		add_action( CronManager::HOOK_RUN_JOB, array( $this, 'cron_run_job' ) );
 		add_action( CronManager::HOOK_WATCH, array( $this, 'cron_watch' ) );
 		add_action( CronManager::HOOK_MAINTAIN, array( $this, 'cron_maintain' ) );
+		add_action( Runner\TransferService::HOOK, array( $this, 'cron_run_transfer' ) );
 		add_action( 'init', array( $this, 'ensure_cron' ), 20 );
 
 		if ( is_admin() ) {
@@ -130,6 +131,10 @@ final class Plugin {
 		Services::instance()->job_service()->run_in_cron( $job_id );
 	}
 
+	public function cron_run_transfer(): void {
+		Services::instance()->transfers()->run_in_cron();
+	}
+
 	public function cron_watch(): void {
 		\SWBackupIt\WordPress\Support\Options::update( CronManager::TICK_OPTION, time(), false );
 		// In "system" cron mode the system cron (`wp sw-backupit schedule run-due`) owns the schedules; starting them here
@@ -150,6 +155,11 @@ final class Plugin {
 			( new \SWBackupIt\WordPress\Runner\HealthMonitor() )->notify();
 		}
 		( new Runner\JobWatchdog() )->run();
+		// A lost transfer event (crashed worker) is queued again; the worker continues from its last checkpoint.
+		$transfers = Services::instance()->transfers();
+		if ( $transfers->has_pending() ) {
+			$transfers->dispatch();
+		}
 	}
 
 	/** Runs the daily maintenance when the last run is more than a day ago (system cron setups without WP-Cron). */

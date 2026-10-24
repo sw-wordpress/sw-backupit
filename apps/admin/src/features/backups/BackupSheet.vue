@@ -15,6 +15,7 @@ import BackupFileBrowser from './BackupFileBrowser.vue';
 import CompareDialog from './CompareDialog.vue';
 import RestoreDialog from './RestoreDialog.vue';
 import RestoreTestPanel from './RestoreTestPanel.vue';
+import TransferDialog from './TransferDialog.vue';
 
 const open = defineModel<boolean>({ required: true });
 const props = defineProps<{ backupId: string }>();
@@ -34,6 +35,7 @@ const verifyResult = ref<VerifyResult | null>(null);
 const protecting = ref(false);
 const compareOpen = ref(false);
 const restoreOpen = ref(false);
+const transferOpen = ref(false);
 const deleteOpen = ref(false);
 const deleting = ref(false);
 
@@ -219,6 +221,14 @@ const verifyOk = computed(
           icon="r_compare_arrows"
           :label="t('backups.compare.open')"
           @click="compareOpen = true"
+        />
+        <q-btn
+          v-if="can('swbi_manage_storage')"
+          outline
+          no-caps
+          icon="r_drive_file_move"
+          :label="t('backups.transfer.open')"
+          @click="transferOpen = true"
         />
         <q-btn
           v-if="can('swbi_restore')"
@@ -410,6 +420,15 @@ const verifyOk = computed(
 
     <CompareDialog v-if="backup" v-model="compareOpen" :backup-id="backup.id" />
     <RestoreDialog v-if="backup" v-model="restoreOpen" :backup="backup" />
+    <TransferDialog
+      v-if="backup"
+      v-model="transferOpen"
+      :backup="backup"
+      @changed="
+        detail.load();
+        emit('changed');
+      "
+    />
     <ConfirmDialog
       v-if="backup"
       v-model="deleteOpen"

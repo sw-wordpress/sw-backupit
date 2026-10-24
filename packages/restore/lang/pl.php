@@ -4,6 +4,7 @@
 
 return array (
   'A backup file failed verification.' => 'Plik kopii zapasowej nie przeszedł weryfikacji.',
+  'A copied file failed verification on the destination.' => 'Skopiowany plik nie przeszedł weryfikacji w miejscu docelowym.',
   'A database connection is required to restore the database.' => 'Do przywrócenia bazy danych wymagane jest połączenie z bazą danych.',
   'A database export was requested but no database connection is configured.' => 'Zażądano eksportu bazy danych, ale nie skonfigurowano połączenia z bazą danych.',
   'A directory exists where a file must be restored.' => 'W miejscu, w którym należy przywrócić plik, istnieje katalog.',
@@ -12,6 +13,7 @@ return array (
   'A file exceeds the configured per-file size limit.' => 'Plik przekracza skonfigurowany limit rozmiaru pojedynczego pliku.',
   'A file exists where a directory must be created.' => 'W miejscu, w którym należy utworzyć katalog, istnieje plik.',
   'A file of the recovery package cannot be read.' => 'Nie można odczytać pliku pakietu odzyskiwania.',
+  'A file of the source copy failed verification.' => 'Plik kopii źródłowej nie przeszedł weryfikacji.',
   'A listener vetoed the operation.' => 'Nasłuchiwacz zawetował operację.',
   'A local storage target needs an absolute path without "..".' => 'Lokalne miejsce docelowe wymaga ścieżki bezwzględnej bez "..".',
   'A path component is not a directory.' => 'Element ścieżki nie jest katalogiem.',
@@ -202,6 +204,7 @@ return array (
   'The backup contains more entries than the configured limit.' => 'Kopia zapasowa zawiera więcej wpisów niż skonfigurowany limit.',
   'The backup did not pass verification. Nothing was changed.' => 'Kopia zapasowa nie przeszła weryfikacji. Nic nie zostało zmienione.',
   'The backup exceeds the configured restore size limit.' => 'Kopia zapasowa przekracza skonfigurowany limit rozmiaru przywracania.',
+  'The backup has no source to copy from.' => 'Brak źródła, z którego można skopiować kopię zapasową.',
   'The backup passed verification.' => 'Kopia zapasowa przeszła weryfikację.',
   'The backup was not found in the configured backups directory.' => 'Nie znaleziono kopii zapasowej w skonfigurowanym katalogu kopii zapasowych.',
   'The backups directory does not exist.' => 'Katalog kopii zapasowych nie istnieje.',
@@ -224,6 +227,8 @@ return array (
   'The local file changed while it was being uploaded.' => 'Plik lokalny zmienił się podczas przesyłania.',
   'The local file to upload does not exist.' => 'Plik lokalny do przesłania nie istnieje.',
   'The local storage directory cannot be created.' => 'Nie można utworzyć lokalnego katalogu miejsca docelowego.',
+  'The manifest could not be verified on the destination.' => 'Nie udało się zweryfikować manifestu w miejscu docelowym.',
+  'The manifest does not belong to the backup.' => 'Manifest nie należy do tej kopii zapasowej.',
   'The passphrase must be at least 8 characters long.' => 'Hasło musi mieć co najmniej 8 znaków.',
   'The port is invalid.' => 'Port jest nieprawidłowy.',
   'The restore FAILED. It can be resumed: reload this page to continue.' => 'Przywracanie NIE POWIODŁO SIĘ. Można je wznowić: odśwież tę stronę, aby kontynuować.',

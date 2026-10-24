@@ -10,6 +10,7 @@ declare(strict_types=1);
 namespace SWBackupIt\WordPress\Rest;
 
 use SWBackupIt\Core\Exception\ConfigurationException;
+use SWBackupIt\WordPress\Runner\JobService;
 use SWBackupIt\WordPress\Support\Capabilities;
 use SWBackupIt\WordPress\Support\DefaultProfiles;
 
@@ -85,7 +86,14 @@ final class ProfilesController extends BaseController {
 				'methods'             => \WP_REST_Server::CREATABLE,
 				'callback'            => array( $this, 'run' ),
 				'permission_callback' => $this->can( Capabilities::RUN ),
-				'args'                => $id_args,
+				'args'                => $id_args + array(
+					'storage_target_id' => array(
+						'description' => 'Destination for this run instead of the profile targets (0 = local staging only).',
+						'type'        => array( 'integer', 'null' ),
+						'minimum'     => 0,
+						'default'     => null,
+					),
+				),
 			)
 		);
 	}
@@ -156,6 +164,13 @@ final class ProfilesController extends BaseController {
 		$profile = $this->services()->profiles()->find( (int) $request['id'] );
 		if ( null === $profile ) {
 			return $this->error( 'swbi_not_found', __( 'Profile not found.', 'sw-backupit' ), 404 );
+		}
+		$target_id = $request['storage_target_id'];
+		if ( null !== $target_id ) {
+			if ( 0 !== (int) $target_id && null === $this->services()->storage_targets()->find( (int) $target_id ) ) {
+				return $this->error( 'swbi_invalid_param', __( 'The storage target does not exist.', 'sw-backupit' ), 400 );
+			}
+			$profile = JobService::with_storage_target( $profile, (int) $target_id );
 		}
 		try {
 			$job = $this->services()->job_service()->start( $profile, 'manual' );

@@ -41,6 +41,19 @@ final class JobService {
 	}
 
 	/**
+	 * The profile with a different destination for one run ("run now" with another storage target).
+	 *
+	 * @param BackupProfile $profile   Profile.
+	 * @param int           $target_id Storage target id, 0 = keep the backup only in the local staging directory.
+	 */
+	public static function with_storage_target( BackupProfile $profile, int $target_id ): BackupProfile {
+		$data                       = $profile->toArray();
+		$data['storage_target_ids'] = 0 === $target_id ? array() : array( $target_id );
+		$data['success_policy']     = 0 === $target_id ? 'local_only' : 'all';
+		return BackupProfile::fromArray( $data );
+	}
+
+	/**
 	 * Creates a job with an immutable profile snapshot and queues it.
 	 *
 	 * The "nothing in progress" check and the insert run under a database lock (GET_LOCK), so two concurrent requests

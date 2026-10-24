@@ -32,6 +32,7 @@ final class CoreMessages {
 	public static function catalog(): array {
 		return array(
 			__( 'A backup file failed verification.', 'sw-backupit' ),
+			__( 'A copied file failed verification on the destination.', 'sw-backupit' ),
 			__( 'A database connection is required to restore the database.', 'sw-backupit' ),
 			__( 'A database export was requested but no database connection is configured.', 'sw-backupit' ),
 			__( 'A directory exists where a file must be restored.', 'sw-backupit' ),
@@ -40,6 +41,7 @@ final class CoreMessages {
 			__( 'A file exceeds the configured per-file size limit.', 'sw-backupit' ),
 			__( 'A file exists where a directory must be created.', 'sw-backupit' ),
 			__( 'A file of the recovery package cannot be read.', 'sw-backupit' ),
+			__( 'A file of the source copy failed verification.', 'sw-backupit' ),
 			__( 'A listener vetoed the operation.', 'sw-backupit' ),
 			__( 'A local storage target needs an absolute path without "..".', 'sw-backupit' ),
 			__( 'A path component is not a directory.', 'sw-backupit' ),
@@ -170,6 +172,7 @@ final class CoreMessages {
 			__( 'The WordPress options table is readable (siteurl present).', 'sw-backupit' ),
 			__( 'The backup contains more entries than the configured limit.', 'sw-backupit' ),
 			__( 'The backup exceeds the configured restore size limit.', 'sw-backupit' ),
+			__( 'The backup has no source to copy from.', 'sw-backupit' ),
 			__( 'The backup was not found in the configured backups directory.', 'sw-backupit' ),
 			__( 'The backups directory does not exist.', 'sw-backupit' ),
 			__( 'The base backup is encrypted but no key store is available.', 'sw-backupit' ),
@@ -191,6 +194,8 @@ final class CoreMessages {
 			__( 'The local file changed while it was being uploaded.', 'sw-backupit' ),
 			__( 'The local file to upload does not exist.', 'sw-backupit' ),
 			__( 'The local storage directory cannot be created.', 'sw-backupit' ),
+			__( 'The manifest could not be verified on the destination.', 'sw-backupit' ),
+			__( 'The manifest does not belong to the backup.', 'sw-backupit' ),
 			__( 'The passphrase must be at least 8 characters long.', 'sw-backupit' ),
 			__( 'The port is invalid.', 'sw-backupit' ),
 			__( 'The restore application directory does not exist.', 'sw-backupit' ),

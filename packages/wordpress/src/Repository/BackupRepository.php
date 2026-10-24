@@ -92,6 +92,17 @@ final class BackupRepository {
 		);
 	}
 
+	public function remove_location( string $backup_id, int $target_id ): void {
+		global $wpdb;
+		$wpdb->delete(
+			Schema::table( 'backup_locations' ),
+			array(
+				'backup_id' => $backup_id,
+				'target_id' => $target_id,
+			)
+		); // phpcs:ignore WordPress.DB.DirectDatabaseQuery
+	}
+
 	/**
 	 * @return array<string, mixed>|null
 	 */

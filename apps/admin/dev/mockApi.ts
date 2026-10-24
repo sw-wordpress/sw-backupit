@@ -4,6 +4,7 @@
  * end up in the production bundle.
  */
 import type {
+  Transfer,
   ArchiveEntry,
   AuditEntry,
   RestoreTestResult,
@@ -407,6 +408,7 @@ function makeBackups(): Backup[] {
   return out;
 }
 let backups: Backup[] = makeBackups();
+const transfers: Transfer[] = [];
 
 function makeFinishedJobs(): Job[] {
   const jobs: Job[] = [];
@@ -1036,7 +1038,7 @@ export function handle(req: MockRequest): MockResponse {
   }
   if (
     (m = path.match(
-      /^backups\/([0-9a-f-]+)(?:\/(verify|protect|files|compare|download|restore\/prepare|restore-test|restore))?$/,
+      /^backups\/([0-9a-f-]+)(?:\/(verify|protect|files|compare|download|restore\/prepare|restore-test|restore|transfer))?$/,
     ))
   ) {
     const b = backups.find((x) => x.id === m![1]);
@@ -1105,6 +1107,39 @@ export function handle(req: MockRequest): MockResponse {
           },
         },
       };
+    }
+    if (action === 'transfer' && method === 'POST') {
+      const targetId = Number(body.target_id);
+      const target = targets.find((x) => x.id === targetId);
+      if (!target) return wpError(400, 'swbi_error', 'The storage target does not exist.');
+      if (b.locations.some((l) => l.target_id === targetId && l.status === 'verified'))
+        return wpError(
+          409,
+          'swbi_conflict',
+          'The backup is already stored on this storage target.',
+        );
+      const sourceId =
+        body.source_id === null || body.source_id === undefined
+          ? (b.locations[0]?.target_id ?? 0)
+          : Number(body.source_id);
+      const tr: Transfer = {
+        id: uuid().replace(/-/g, '').slice(0, 12),
+        backup_id: b.id,
+        mode: body.move ? 'move' : 'copy',
+        status: 'running',
+        error: null,
+        source_id: sourceId,
+        source_name: b.locations.find((l) => l.target_id === sourceId)?.name ?? 'Local staging',
+        target_id: targetId,
+        target_name: target.name,
+        backups: [b.id],
+        bytes_total: b.size_bytes,
+        bytes_done: 0,
+        created_at: iso(Date.now()),
+        updated_at: iso(Date.now()),
+      };
+      transfers.unshift(tr);
+      return { status: 202, body: tr };
     }
     if (action === 'restore/prepare' && method === 'POST') {
       return {
@@ -1286,6 +1321,37 @@ export function handle(req: MockRequest): MockResponse {
       const ids = Array.isArray(body.backup_ids) ? body.backup_ids : [];
       return { status: 200, body: { imported: ids.length } };
     }
+  }
+
+  // transfers (progress advances on every poll)
+  if (method === 'GET' && path === 'transfers') {
+    for (const tr of transfers) {
+      if (tr.status !== 'running') continue;
+      tr.bytes_done = Math.min(tr.bytes_total, tr.bytes_done + Math.ceil(tr.bytes_total / 6));
+      tr.updated_at = iso(Date.now());
+      if (tr.bytes_done >= tr.bytes_total) {
+        tr.status = 'completed';
+        const b = backups.find((x) => x.id === tr.backup_id);
+        if (b) {
+          b.locations = b.locations.filter(
+            (l) => !(tr.mode === 'move' && l.target_id === tr.source_id),
+          );
+          b.locations.push({
+            target_id: tr.target_id,
+            name: tr.target_name,
+            status: 'verified',
+            verified_at: iso(Date.now()),
+          });
+        }
+      }
+    }
+    return { status: 200, body: transfers };
+  }
+  if ((m = path.match(/^transfers\/([a-f0-9]{12})\/cancel$/)) && method === 'POST') {
+    const tr = transfers.find((x) => x.id === m![1] && x.status === 'running');
+    if (!tr) return wpError(404, 'swbi_not_found', 'No running transfer with this id.');
+    tr.status = 'cancelled';
+    return { status: 200, body: { cancelled: true } };
   }
 
   // audit

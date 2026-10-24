@@ -24,6 +24,8 @@ Open and future work. Everything else is listed in `DONE.md`. See `docs/implemen
 - [ ] Tables without primary key are exported in physical order with LIMIT/OFFSET (unstable under concurrent writes); MyISAM tables can
   repeat a single statement after a crash during import.
 - [ ] Staging Directory per default in wp-content/uploads/sw-backupit and with a Deny from all .htaccess and an index.html, which is empty
+- [ ] **Transfer notifications** – copy/move failures are logged, shown in the backup list and fired as `swbi_backup_transfer_failed`, but
+  no e-mail is sent; transfers run one after another (no parallel uploads) and a large single file restarts after a crash (S3: per part).
 
 ## Ideas
 - [ ] Per-site backups on multisite; WebDAV/FTP adapters as optional Composer packages; restore test scheduling UI polish.

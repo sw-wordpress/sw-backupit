@@ -48,6 +48,7 @@ final class CronManager {
 		wp_clear_scheduled_hook( self::HOOK_WATCH );
 		wp_clear_scheduled_hook( self::HOOK_MAINTAIN );
 		wp_clear_scheduled_hook( self::HOOK_RUN_JOB );
+		wp_clear_scheduled_hook( TransferService::HOOK );
 	}
 
 	/** Queues a background execution of a job (deduplicated) and nudges WP-Cron. */

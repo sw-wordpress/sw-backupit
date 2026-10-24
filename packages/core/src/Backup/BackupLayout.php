@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace SWBackupIt\Core\Backup;
 
+use SWBackupIt\Core\Manifest\Manifest;
 use SWBackupIt\Core\Scanner\FileScanner;
 use SWBackupIt\Core\Support\AtomicFile;
 use SWBackupIt\Core\Support\Uuid;
@@ -19,6 +20,9 @@ use SWBackupIt\Core\Support\Uuid;
  */
 final class BackupLayout
 {
+    /** Marker file: the data files were removed on purpose, a verified copy lives on a storage target. */
+    public const LOCAL_COPY_REMOVED = '.local-copy-removed';
+
     public function __construct(private readonly string $stagingRoot, private readonly string $backupId)
     {
     }
@@ -106,5 +110,21 @@ final class BackupLayout
     public function removeAll(): void
     {
         AtomicFile::removeTree($this->root());
+    }
+
+    /**
+     * Removes the data files and keeps the manifest plus a marker: the backup stays in the catalog, its data lives on
+     * verified storage targets (delete-after-upload, move to another target).
+     */
+    public function removeData(Manifest $manifest): void
+    {
+        foreach ($manifest->volumes() as $volume) {
+            @unlink($this->volumesDirectory() . '/' . $volume->name);
+        }
+        foreach ($manifest->databaseParts() as $part) {
+            @unlink($this->databaseDirectory() . '/' . $part['name']);
+        }
+        @unlink($this->root() . '/' . $manifest->indexFileName());
+        file_put_contents($this->root() . '/' . self::LOCAL_COPY_REMOVED, "Data files were removed after verified upload; restore from a storage target.\n");
     }
 }

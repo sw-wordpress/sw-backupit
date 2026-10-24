@@ -31,6 +31,39 @@ const selectedProfile = ref<number | null>(null);
 const profileOptions = computed(() =>
   lookups.profiles.map((p) => ({ label: p.name, value: p.id })),
 );
+/** -1 = the profile's own storage targets, 0 = local staging only, else one storage target for this run. */
+const PROFILE_TARGETS = -1;
+const selectedTarget = ref<number>(PROFILE_TARGETS);
+const targetOptions = computed(() => {
+  const profile = lookups.profiles.find((p) => p.id === selectedProfile.value);
+  const names = (profile?.storage_target_ids ?? [])
+    .map((id) => lookups.targets.find((target) => target.id === id)?.name ?? `#${id}`)
+    .join(', ');
+  return [
+    {
+      label: t('dashboard.targetProfile'),
+      caption: names === '' ? t('dashboard.targetLocal') : names,
+      value: PROFILE_TARGETS,
+    },
+    { label: t('dashboard.targetLocal'), caption: t('dashboard.targetLocalHint'), value: 0 },
+    ...lookups.targets.map((target) => ({
+      label: target.name,
+      caption: t(`storage.types.${target.type}`),
+      value: target.id,
+    })),
+  ];
+});
+watch(selectedProfile, () => {
+  selectedTarget.value = PROFILE_TARGETS;
+});
+
+function runSelected(): void {
+  if (selectedProfile.value === null) return;
+  void runProfile(
+    selectedProfile.value,
+    selectedTarget.value === PROFILE_TARGETS ? undefined : selectedTarget.value,
+  );
+}
 
 onMounted(async () => {
   try {
@@ -38,6 +71,11 @@ onMounted(async () => {
     selectedProfile.value = lookups.profiles[0]?.id ?? null;
   } catch {
     /* quick actions simply stay empty; the health card shows its own error state */
+  }
+  try {
+    await lookups.loadTargets(true);
+  } catch {
+    /* without the target list only "as in the profile" and "local only" are offered */
   }
 });
 // A job finishing changes the numbers on this page.
@@ -235,6 +273,25 @@ const cronWarn = computed(
                 :label="t('dashboard.profileToRun')"
                 :disable="profileOptions.length === 0"
               />
+              <q-select
+                v-model="selectedTarget"
+                outlined
+                dense
+                emit-value
+                map-options
+                :options="targetOptions"
+                :label="t('dashboard.targetToUse')"
+                :disable="selectedProfile === null"
+              >
+                <template #option="scope">
+                  <q-item v-bind="scope.itemProps">
+                    <q-item-section>
+                      <q-item-label>{{ scope.opt.label }}</q-item-label>
+                      <q-item-label caption>{{ scope.opt.caption }}</q-item-label>
+                    </q-item-section>
+                  </q-item>
+                </template>
+              </q-select>
               <q-btn
                 unelevated
                 no-caps
@@ -243,7 +300,7 @@ const cronWarn = computed(
                 :label="t('profiles.runNow')"
                 :disable="selectedProfile === null"
                 :loading="busyId !== null && busyId === selectedProfile"
-                @click="selectedProfile !== null && runProfile(selectedProfile)"
+                @click="runSelected"
               />
               <router-link v-if="profileOptions.length === 0" to="/profiles">{{
                 t('profiles.create')

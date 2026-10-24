@@ -249,6 +249,35 @@ export interface Backup {
   locations: BackupLocation[];
 }
 
+export type TransferStatus = 'queued' | 'running' | 'completed' | 'failed' | 'cancelled';
+
+/** Copy/move of a backup (and missing base backups) to another storage target. */
+export interface Transfer {
+  id: string;
+  backup_id: string;
+  mode: 'copy' | 'move';
+  status: TransferStatus;
+  error: string | null;
+  /** 0 = local staging. */
+  source_id: number;
+  source_name: string;
+  target_id: number;
+  target_name: string;
+  /** Backups transferred, base backups first. */
+  backups: string[];
+  bytes_total: number;
+  bytes_done: number;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface TransferInput {
+  target_id: number;
+  /** null = local copy when available, else a verified storage target. */
+  source_id: number | null;
+  move: boolean;
+}
+
 export interface BackupFilters {
   profile_id?: number;
   type?: BackupType;

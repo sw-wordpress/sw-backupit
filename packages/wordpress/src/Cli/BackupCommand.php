@@ -174,6 +174,73 @@ final class BackupCommand {
 	}
 
 	/**
+	 * Copies or moves a backup to another storage target and waits until it is verified there.
+	 *
+	 * Missing base backups of an incremental/differential chain are copied as well. A move removes the source copy only
+	 * after the copy on the destination is verified.
+	 *
+	 * ## OPTIONS
+	 *
+	 * <id>
+	 * : Backup id.
+	 *
+	 * --to=<target>
+	 * : Destination storage target id.
+	 *
+	 * [--from=<source>]
+	 * : Source: a storage target id or "local". Default: the local copy when available, else a verified storage target.
+	 *
+	 * [--move]
+	 * : Remove the source copy after the destination copy is verified.
+	 *
+	 * [--background]
+	 * : Only queue the transfer (WP-Cron or `schedule run-due` executes it).
+	 *
+	 * @param array<int, string>   $args       Positional arguments.
+	 * @param array<string, mixed> $assoc_args Associative arguments.
+	 */
+	public function transfer( array $args, array $assoc_args ): void {
+		$service = Services::instance()->transfers();
+		$from    = $assoc_args['from'] ?? null;
+		try {
+			$transfer = $service->start(
+				(string) ( $args[0] ?? '' ),
+				(int) ( $assoc_args['to'] ?? 0 ),
+				null === $from ? null : ( 'local' === $from ? 0 : (int) $from ),
+				isset( $assoc_args['move'] )
+			);
+		} catch ( SwbiException $exception ) {
+			\WP_CLI::error( $exception->getMessage() );
+		}
+		if ( isset( $assoc_args['background'] ) ) {
+			\WP_CLI::success( 'Transfer ' . $transfer['id'] . ' queued.' );
+			return;
+		}
+		do {
+			$more    = $service->tick();
+			$current = null;
+			foreach ( $service->all() as $item ) {
+				if ( $item['id'] === $transfer['id'] ) {
+					$current = $item;
+				}
+			}
+			if ( null === $current ) {
+				\WP_CLI::error( 'The transfer disappeared.' );
+			}
+			\WP_CLI::log( sprintf( '%s: %s / %s', $current['status'], size_format( (float) $current['bytes_done'] ), size_format( (float) $current['bytes_total'] ) ) );
+			if ( $more && 'running' === $current['status'] && null !== $current['error'] ) {
+				sleep( 10 ); // phpcs:ignore WordPress.WP.AlternativeFunctions -- waits before retrying a temporary storage error.
+			} elseif ( $more && $service->was_busy() ) {
+				sleep( 2 ); // phpcs:ignore WordPress.WP.AlternativeFunctions -- another worker holds the transfer lock.
+			}
+		} while ( in_array( $current['status'], array( 'queued', 'running' ), true ) );
+		if ( 'completed' !== $current['status'] ) {
+			\WP_CLI::error( sprintf( 'Transfer ended with status %s: %s', $current['status'], (string) $current['error'] ) );
+		}
+		\WP_CLI::success( sprintf( 'Backup %s %s to %s.', $current['backup_id'], 'move' === $current['mode'] ? 'moved' : 'copied', $current['target_name'] ) );
+	}
+
+	/**
 	 * Compares a backup with the files of this installation (nothing is changed).
 	 *
 	 * ## OPTIONS

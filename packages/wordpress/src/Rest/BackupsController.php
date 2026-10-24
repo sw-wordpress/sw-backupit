@@ -9,7 +9,6 @@ declare(strict_types=1);
 
 namespace SWBackupIt\WordPress\Rest;
 
-use SWBackupIt\Core\Backup\BackupLayout;
 use SWBackupIt\Core\Exception\SwbiException;
 use SWBackupIt\Restore\Backup\BackupSet;
 use SWBackupIt\Restore\Files\Comparator;
@@ -151,6 +150,49 @@ final class BackupsController extends BaseController {
 		);
 		register_rest_route(
 			self::NAMESPACE,
+			'/backups/(?P<id>[0-9a-f-]{36})/transfer',
+			array(
+				'methods'             => \WP_REST_Server::CREATABLE,
+				'callback'            => array( $this, 'transfer' ),
+				'permission_callback' => $this->can( Capabilities::MANAGE_STORAGE ),
+				'args'                => $id + array(
+					'target_id' => array(
+						'type'     => 'integer',
+						'required' => true,
+						'minimum'  => 1,
+					),
+					'source_id' => array(
+						'type'    => array( 'integer', 'null' ),
+						'minimum' => 0,
+						'default' => null,
+					),
+					'move'      => array(
+						'type'    => 'boolean',
+						'default' => false,
+					),
+				),
+			)
+		);
+		register_rest_route(
+			self::NAMESPACE,
+			'/transfers',
+			array(
+				'methods'             => \WP_REST_Server::READABLE,
+				'callback'            => fn () => new \WP_REST_Response( $this->services()->transfers()->all() ),
+				'permission_callback' => $this->can( Capabilities::VIEW ),
+			)
+		);
+		register_rest_route(
+			self::NAMESPACE,
+			'/transfers/(?P<transfer>[a-f0-9]{12})/cancel',
+			array(
+				'methods'             => \WP_REST_Server::CREATABLE,
+				'callback'            => array( $this, 'cancel_transfer' ),
+				'permission_callback' => $this->can( Capabilities::MANAGE_STORAGE ),
+			)
+		);
+		register_rest_route(
+			self::NAMESPACE,
 			'/backups/(?P<id>[0-9a-f-]{36})/compare',
 			array(
 				'methods'             => \WP_REST_Server::CREATABLE,
@@ -189,6 +231,29 @@ final class BackupsController extends BaseController {
 				'args'                => $id,
 			)
 		);
+	}
+
+	/**
+	 * Queues a copy (or move) of the backup to another storage target.
+	 */
+	public function transfer( \WP_REST_Request $request ) {
+		$move = rest_sanitize_boolean( $request['move'] );
+		if ( $move && ! current_user_can( Capabilities::DELETE ) ) {
+			return $this->error( 'swbi_forbidden', __( 'Moving a backup removes the source copy and needs the permission to delete backups.', 'sw-backupit' ), 403 );
+		}
+		$source = $request['source_id'];
+		try {
+			$transfer = $this->services()->transfers()->start( (string) $request['id'], (int) $request['target_id'], null === $source ? null : (int) $source, $move );
+		} catch ( \Throwable $throwable ) {
+			return $this->from_exception( $throwable );
+		}
+		return new \WP_REST_Response( $this->services()->transfers()->to_rest( $transfer ), 202 );
+	}
+
+	public function cancel_transfer( \WP_REST_Request $request ) {
+		return $this->services()->transfers()->cancel( (string) $request['transfer'] )
+			? new \WP_REST_Response( array( 'cancelled' => true ) )
+			: $this->error( 'swbi_not_found', __( 'No running transfer with this id.', 'sw-backupit' ), 404 );
 	}
 
 	/**
@@ -287,8 +352,13 @@ final class BackupsController extends BaseController {
 		if ( (bool) $row['protected'] ) {
 			return $this->error( 'swbi_conflict', __( 'The backup is protected. Remove the protection first.', 'sw-backupit' ), 409 );
 		}
-		( new BackupLayout( Settings::staging_dir(), $id ) )->removeAll();
-		$this->services()->backups()->delete( $id );
+		try {
+			// Every copy: local staging and all storage targets (a backup that only disappears from the catalog would
+			// leave unmanaged copies behind).
+			$this->services()->catalog()->delete( $id );
+		} catch ( SwbiException $exception ) {
+			return $this->error( 'swbi_conflict', $exception->getMessage(), 409 );
+		}
 		do_action( 'swbi_backup_deleted', $id );
 		return new \WP_REST_Response( array( 'deleted' => true ) );
 	}

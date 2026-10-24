@@ -105,6 +105,8 @@ final class ScheduleCommand {
 		\SWBackupIt\WordPress\Support\Options::update( \SWBackupIt\WordPress\Runner\CronManager::TICK_OPTION, time(), false );
 		\SWBackupIt\WordPress\Plugin::instance()->background_upkeep();
 		\SWBackupIt\WordPress\Plugin::instance()->maintain_if_due();
+		// Copy/move transfers continue here as well (WP-Cron may be disabled in system cron mode).
+		Services::instance()->transfers()->tick();
 		\WP_CLI::success( sprintf( '%d schedule(s) started.', count( $started ) ) );
 	}
 }

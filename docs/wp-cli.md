@@ -14,6 +14,8 @@ wp sw-backupit backup status <job-id|backup-id>
 wp sw-backupit backup verify <backup-id> [--deep]
 wp sw-backupit backup compare <backup-id> [--mode=metadata|sha256] [--format=json]
 wp sw-backupit backup package <backup-id> [--output=<file.zip>]                    # complete recovery package: backup + chain + restore app
+wp sw-backupit backup transfer <backup-id> --to=<target-id> [--from=<target-id|local>] [--move] [--background]
+                                                                                   # copy/move to another storage target (verified)
 wp sw-backupit backup test-restore <backup-id>                                    # isolated test restore (temp dir + scratch database)
 wp sw-backupit backup restore <backup-id> --confirm-target=<ABSPATH> [--no-database] \
         [--confirm-database=<db name>] [--overwrite=always|never|if_different] [--key=…]   # destructive, needs confirmations

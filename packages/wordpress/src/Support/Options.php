@@ -21,6 +21,22 @@ final class Options {
 		return is_multisite() ? get_site_option( $name, $default ) : get_option( $name, $default );
 	}
 
+	/**
+	 * Reads the value from the database, bypassing the object cache (state shared with concurrent workers).
+	 *
+	 * @param string $name    Option name.
+	 * @param mixed  $default Value when the option does not exist.
+	 * @return mixed
+	 */
+	public static function get_fresh( string $name, mixed $default = false ): mixed {
+		if ( is_multisite() ) {
+			wp_cache_delete( get_current_network_id() . ':' . $name, 'site-options' );
+		} else {
+			wp_cache_delete( $name, 'options' );
+		}
+		return self::get( $name, $default );
+	}
+
 	public static function update( string $name, mixed $value, bool $autoload = false ): bool {
 		return is_multisite() ? update_site_option( $name, $value ) : update_option( $name, $value, $autoload );
 	}

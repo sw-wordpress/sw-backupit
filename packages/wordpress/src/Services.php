@@ -27,6 +27,7 @@ use SWBackupIt\WordPress\Runner\HookBridge;
 use SWBackupIt\WordPress\Runner\JobService;
 use SWBackupIt\WordPress\Runner\LifecycleListener;
 use SWBackupIt\WordPress\Runner\ScheduleRunner;
+use SWBackupIt\WordPress\Runner\TransferService;
 use SWBackupIt\WordPress\Runner\WpSourceInfoProvider;
 use SWBackupIt\WordPress\Support\Notifier;
 use SWBackupIt\WordPress\Support\Settings;
@@ -138,6 +139,10 @@ final class Services {
 
 	public function job_service(): JobService {
 		return $this->get( JobService::class, fn () => new JobService( $this->runner(), $this->jobs(), $this->cron(), $this->schedules() ) );
+	}
+
+	public function transfers(): TransferService {
+		return $this->get( TransferService::class, fn () => new TransferService( $this->backups(), $this->storage_targets() ) );
 	}
 
 	public function schedule_runner(): ScheduleRunner {

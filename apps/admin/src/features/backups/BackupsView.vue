@@ -14,6 +14,7 @@ import { useFormat } from '@/composables/useFormat';
 import { useLookupsStore } from '@/stores/lookups';
 import type { BackupFilters, BackupStatus, BackupType } from '@/types/api';
 import BackupSheet from './BackupSheet.vue';
+import { useTransfers } from './useTransfers';
 
 const props = defineProps<{ id?: string }>();
 const { t } = useI18n();
@@ -22,6 +23,18 @@ const api = useApi();
 const route = useRoute();
 const router = useRouter();
 const lookups = useLookupsStore();
+
+const transferList = useTransfers(() => void list.load());
+const DAY_MS = 86_400_000;
+/** Running transfers and failures of the last day. */
+const visibleTransfers = computed(() =>
+  transferList.transfers.value.filter(
+    (tr) =>
+      tr.status === 'queued' ||
+      tr.status === 'running' ||
+      (tr.status === 'failed' && Date.now() - new Date(tr.updated_at).getTime() < DAY_MS),
+  ),
+);
 
 const profileId = ref<number | null>(null);
 const type = ref<BackupType | null>(null);
@@ -65,6 +78,7 @@ onBeforeUnmount(() => {
 });
 
 onMounted(async () => {
+  void transferList.load();
   try {
     await lookups.loadProfiles();
   } catch {
@@ -124,6 +138,45 @@ function openRow(id: string): void {
         @click="list.load()"
       />
     </PageHeader>
+
+    <SwbiCard
+      v-if="visibleTransfers.length > 0"
+      :title="t('backups.transfer.listTitle')"
+      icon="r_drive_file_move"
+      class="swbi-transfers"
+    >
+      <ul class="swbi-transfers__list" aria-live="polite">
+        <li v-for="tr in visibleTransfers" :key="tr.id">
+          <div class="swbi-transfers__head">
+            <StatusChip domain="transfer" :status="tr.status" dense />
+            <router-link
+              :to="{ name: 'backups', params: { id: tr.backup_id } }"
+              class="swbi-mono"
+              >{{ fmt.shortId(tr.backup_id) }}</router-link
+            >
+            <span>{{
+              t(`backups.transfer.summary.${tr.mode}`, {
+                source: tr.source_name,
+                target: tr.target_name,
+              })
+            }}</span>
+          </div>
+          <q-linear-progress
+            v-if="tr.status !== 'failed'"
+            :value="tr.bytes_total > 0 ? tr.bytes_done / tr.bytes_total : 0"
+            :indeterminate="tr.status === 'queued'"
+            rounded
+            size="8px"
+            color="primary"
+            :aria-label="t('backups.transfer.progress')"
+          />
+          <span v-if="tr.status !== 'failed'" class="swbi-muted swbi-transfers__bytes"
+            >{{ fmt.bytes(tr.bytes_done) }} / {{ fmt.bytes(tr.bytes_total) }}</span
+          >
+          <span v-else class="swbi-transfers__error" role="alert">{{ tr.error }}</span>
+        </li>
+      </ul>
+    </SwbiCard>
 
     <SwbiCard :padding="false">
       <form class="swbi-filters" role="search" :aria-label="t('backups.filters')" @submit.prevent>
@@ -318,13 +371,42 @@ function openRow(id: string): void {
       v-if="id"
       v-model="sheetOpen"
       :backup-id="id"
-      @changed="list.load()"
+      @changed="
+        list.load();
+        transferList.load();
+      "
       @deleted="list.load()"
     />
   </div>
 </template>
 
 <style scoped>
+.swbi-transfers {
+  margin-bottom: 16px;
+}
+.swbi-transfers__list {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+.swbi-transfers__list li {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.swbi-transfers__head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+}
+.swbi-transfers__bytes {
+  font-size: 13px;
+}
+.swbi-transfers__error {
+  color: var(--swbi-danger-text);
+  font-size: 14px;
+}
 .swbi-chain {
   display: inline-flex;
   align-items: center;

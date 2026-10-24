@@ -28,6 +28,8 @@ import type {
   StorageTarget,
   StorageTargetInput,
   StorageTestResult,
+  Transfer,
+  TransferInput,
   VerifyResult,
 } from '@/types/api';
 
@@ -50,7 +52,12 @@ export function createApi(client: ApiClient) {
       update: (id: number, input: ProfileInput) => client.put<Profile>(`profiles/${id}`, input),
       remove: (id: number) => client.delete<void>(`profiles/${id}`, { confirm: true }),
       duplicate: (id: number) => client.post<Profile>(`profiles/${id}/duplicate`),
-      run: (id: number) => client.post<Job>(`profiles/${id}/run`),
+      /** `storageTargetId`: destination for this run only (0 = local staging only, undefined = profile targets). */
+      run: (id: number, storageTargetId?: number) =>
+        client.post<Job>(
+          `profiles/${id}/run`,
+          storageTargetId === undefined ? undefined : { storage_target_id: storageTargetId },
+        ),
     },
     schedules: {
       list: (q: PageQuery = {}) => client.get<Paginated<Schedule>>('schedules', q as Query),
@@ -95,6 +102,12 @@ export function createApi(client: ApiClient) {
       packageUrl: (id: string) => client.authenticatedUrl(`backups/${id}/package`),
       restorePrepare: (id: string) =>
         client.post<RestorePrepareResult>(`backups/${id}/restore/prepare`),
+      transfer: (id: string, input: TransferInput) =>
+        client.post<Transfer>(`backups/${id}/transfer`, input),
+    },
+    transfers: {
+      list: (signal?: AbortSignal) => client.get<Transfer[]>('transfers', undefined, signal),
+      cancel: (id: string) => client.post<{ cancelled: boolean }>(`transfers/${id}/cancel`),
     },
     storage: {
       list: (q: PageQuery = {}) =>
