@@ -38,6 +38,7 @@ final class Plugin {
 		}
 		$this->booted = true;
 
+		( new Support\AuditLogger() )->register();
 		add_action( 'init', array( $this, 'load_textdomain' ) );
 		add_action( 'plugins_loaded', array( $this, 'maybe_migrate' ), 5 );
 		add_action( 'rest_api_init', array( $this, 'register_rest' ) );
@@ -92,6 +93,7 @@ final class Plugin {
 			new BackupsController(),
 			new StorageTargetsController(),
 			new EncryptionKeysController(),
+			new Rest\AuditController(),
 			new SettingsController(),
 		) as $controller ) {
 			$controller->register_routes();
@@ -113,6 +115,7 @@ final class Plugin {
 
 	public function cron_maintain(): void {
 		WpdbJobEventStore::purge_older_than( (int) Settings::all()['logging']['retention_days'] );
+		Support\AuditLogger::purge_older_than( (int) ( Settings::all()['logging']['audit_retention_days'] ?? 365 ) );
 		( new \SWBackupIt\WordPress\Runner\RestorePreparer() )->cleanup_old();
 		( new \SWBackupIt\WordPress\Runner\HealthMonitor() )->notify();
 	}

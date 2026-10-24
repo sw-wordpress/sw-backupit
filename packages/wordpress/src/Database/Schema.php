@@ -12,7 +12,7 @@ namespace SWBackupIt\WordPress\Database;
 final class Schema {
 
 	public const VERSION_OPTION = 'swbi_db_version';
-	public const CURRENT        = 1;
+	public const CURRENT        = 2;
 
 	public static function table( string $name ): string {
 		global $wpdb;
@@ -24,7 +24,7 @@ final class Schema {
 	 * @return list<string> Short table names.
 	 */
 	public static function tables(): array {
-		return array( 'profiles', 'schedules', 'jobs', 'backups', 'backup_locations', 'storage_targets', 'job_events' );
+		return array( 'profiles', 'schedules', 'jobs', 'backups', 'backup_locations', 'storage_targets', 'job_events', 'audit' );
 	}
 
 	/** Runs pending migrations. Safe to call repeatedly. */
@@ -36,11 +36,39 @@ final class Schema {
 		if ( $installed < 1 ) {
 			self::migrate_to_1();
 		}
+		if ( $installed < 2 ) {
+			self::migrate_to_2();
+		}
 		\SWBackupIt\WordPress\Support\Options::update( self::VERSION_OPTION, self::CURRENT, true );
 	}
 
 	public static function needs_migration(): bool {
 		return (int) \SWBackupIt\WordPress\Support\Options::get( self::VERSION_OPTION, 0 ) < self::CURRENT;
+	}
+
+	/** Version 2: append-only audit log (who did what, PLAN.md §22). */
+	private static function migrate_to_2(): void {
+		global $wpdb;
+		require_once ABSPATH . 'wp-admin/includes/upgrade.php';
+		$charset = $wpdb->get_charset_collate();
+		$p       = $wpdb->base_prefix . 'swbi_';
+		dbDelta(
+			"CREATE TABLE {$p}audit (
+  id bigint(20) unsigned NOT NULL AUTO_INCREMENT,
+  created_at datetime NOT NULL,
+  user_id bigint(20) unsigned NOT NULL DEFAULT 0,
+  user_login varchar(60) NOT NULL DEFAULT '',
+  ip varchar(45) NOT NULL DEFAULT '',
+  action varchar(60) NOT NULL,
+  object_type varchar(30) NOT NULL DEFAULT '',
+  object_id varchar(64) NOT NULL DEFAULT '',
+  context longtext NULL,
+  PRIMARY KEY  (id),
+  KEY created_at (created_at),
+  KEY action_created (action,created_at),
+  KEY user_id (user_id)
+) $charset;"
+		);
 	}
 
 	private static function migrate_to_1(): void {

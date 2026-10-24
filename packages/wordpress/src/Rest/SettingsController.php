@@ -40,11 +40,13 @@ final class SettingsController extends BaseController {
 	}
 
 	public function update( \WP_REST_Request $request ) {
+		$before = Settings::all();
 		$result = Settings::update( $this->body( $request ) );
 		if ( is_wp_error( $result ) ) {
 			return $result;
 		}
-		do_action( 'swbi_settings_updated', get_current_user_id() );
+		$changed = array_keys( array_filter( $result, static fn ( $value, $key ): bool => ( $before[ $key ] ?? null ) !== $value, ARRAY_FILTER_USE_BOTH ) );
+		do_action( 'swbi_settings_updated', $changed );
 		return $this->get();
 	}
 }

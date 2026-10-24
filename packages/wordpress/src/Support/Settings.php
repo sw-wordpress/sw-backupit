@@ -34,6 +34,7 @@ final class Settings {
 				'retention_days'     => 30,
 				'max_events_per_job' => 5000,
 				'level'              => 'info',
+				'audit_retention_days' => 365,
 			),
 			'cron'                     => array(
 				'mode'     => 'wp-cron',

@@ -52,7 +52,7 @@ final class RestorePreparer {
 		if ( $set->isEncrypted() ) {
 			$warnings[] = __( 'The backup is encrypted: have the key or passphrase ready.', 'swbackupit' );
 		}
-		do_action( 'swbi_restore_prepared', $backup_id, get_current_user_id() );
+		do_action( 'swbi_restore_prepared', $backup_id );
 		return array(
 			'restore_url'      => trailingslashit( site_url( '/' . $name ) ),
 			'token'            => $token,

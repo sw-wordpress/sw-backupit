@@ -114,7 +114,7 @@ final class StorageTargetsController extends BaseController {
 		} catch ( ConfigurationException $exception ) {
 			return $this->error( 'swbi_invalid_param', $exception->getMessage(), 400 );
 		}
-		do_action( 'swbi_storage_target_saved', $saved, get_current_user_id() );
+		do_action( 'swbi_storage_target_saved', $saved );
 		return new \WP_REST_Response( $this->services()->storage_targets()->to_rest( (array) $this->services()->storage_targets()->find_row( $saved ) ), $status );
 	}
 
@@ -125,7 +125,11 @@ final class StorageTargetsController extends BaseController {
 				return $this->error( 'swbi_conflict', __( 'The storage target is used by a profile.', 'swbackupit' ), 409 );
 			}
 		}
-		return $this->services()->storage_targets()->delete( $id )
+		$deleted = $this->services()->storage_targets()->delete( $id );
+		if ( $deleted ) {
+			do_action( 'swbi_storage_target_deleted', (string) $id );
+		}
+		return $deleted
 			? new \WP_REST_Response( array( 'deleted' => true ) )
 			: $this->error( 'swbi_not_found', __( 'Storage target not found.', 'swbackupit' ), 404 );
 	}
@@ -233,7 +237,7 @@ final class StorageTargetsController extends BaseController {
 		} catch ( SwbiException $exception ) {
 			return $this->error( 'swbi_storage_error', $exception->getMessage(), 502 );
 		}
-		do_action( 'swbi_backups_imported', $target_id, $imported, get_current_user_id() );
+		do_action( 'swbi_backups_imported', $target_id, 'imported ' . $imported );
 		return new \WP_REST_Response( array( 'imported' => $imported ) );
 	}
 

@@ -254,7 +254,7 @@ final class BackupsController extends BaseController {
 		}
 		( new BackupLayout( Settings::staging_dir(), $id ) )->removeAll();
 		$this->services()->backups()->delete( $id );
-		do_action( 'swbi_backup_deleted', $id, get_current_user_id() );
+		do_action( 'swbi_backup_deleted', $id );
 		return new \WP_REST_Response( array( 'deleted' => true ) );
 	}
 
@@ -270,6 +270,7 @@ final class BackupsController extends BaseController {
 			return $this->error( 'swbi_verify_failed', $exception->getMessage(), 422 );
 		}
 		$this->services()->backups()->mark_verified( $id, $report->isOk() ? 'verified' : 'corrupt' );
+		do_action( 'swbi_backup_verified', $id, $report->isOk() ? 'ok' : 'corrupt' );
 		return new \WP_REST_Response(
 			array(
 				'ok'              => $report->isOk(),
@@ -284,7 +285,9 @@ final class BackupsController extends BaseController {
 		if ( null === $this->services()->backups()->find_row( $id ) ) {
 			return $this->error( 'swbi_not_found', __( 'Backup not found.', 'swbackupit' ), 404 );
 		}
-		$this->services()->backups()->set_protected( $id, rest_sanitize_boolean( $this->body( $request )['protected'] ?? true ) );
+		$protect = rest_sanitize_boolean( $this->body( $request )['protected'] ?? true );
+		$this->services()->backups()->set_protected( $id, $protect );
+		do_action( 'swbi_backup_protected', $id, $protect ? 'protected' : 'unprotected' );
 		return $this->get_backup( $request );
 	}
 
@@ -370,7 +373,7 @@ final class BackupsController extends BaseController {
 		if ( '' === $path || ! is_file( $path ) ) {
 			return $this->error( 'swbi_not_found', __( 'The requested file does not exist.', 'swbackupit' ), 404 );
 		}
-		do_action( 'swbi_backup_downloaded', $id, basename( $path ), get_current_user_id() );
+		do_action( 'swbi_backup_downloaded', $id, basename( $path ) );
 		nocache_headers();
 		header( 'Content-Type: application/octet-stream' );
 		header( 'Content-Length: ' . (string) filesize( $path ) );

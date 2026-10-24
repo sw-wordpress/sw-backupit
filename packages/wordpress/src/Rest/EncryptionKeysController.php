@@ -69,7 +69,7 @@ final class EncryptionKeysController extends BaseController {
 		} catch ( CryptoException $exception ) {
 			return $this->error( 'swbi_invalid_param', $exception->getMessage(), 400 );
 		}
-		do_action( 'swbi_encryption_key_created', $id, get_current_user_id() );
+		do_action( 'swbi_encryption_key_created', $id );
 		return new \WP_REST_Response(
 			array(
 				'id'      => $id,
@@ -87,7 +87,7 @@ final class EncryptionKeysController extends BaseController {
 			}
 		}
 		( new WpKeyProvider() )->delete( (string) $request['id'] );
-		do_action( 'swbi_encryption_key_deleted', (string) $request['id'], get_current_user_id() );
+		do_action( 'swbi_encryption_key_deleted', (string) $request['id'] );
 		return new \WP_REST_Response( array( 'deleted' => true ) );
 	}
 }

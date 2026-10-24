@@ -108,8 +108,8 @@ final class ProfilesController extends BaseController {
 		} catch ( ConfigurationException $exception ) {
 			return $this->error( 'swbi_invalid_param', $exception->getMessage(), 400 );
 		}
-		$response = new \WP_REST_Response( $this->services()->profiles()->to_rest( $profile ), 201 );
-		return $response;
+		do_action( 'swbi_profile_saved', (string) $profile->id );
+		return new \WP_REST_Response( $this->services()->profiles()->to_rest( $profile ), 201 );
 	}
 
 	public function update( \WP_REST_Request $request ) {
@@ -117,6 +117,9 @@ final class ProfilesController extends BaseController {
 			$profile = $this->services()->profiles()->update( (int) $request['id'], $this->sanitize( $this->body( $request ) ) );
 		} catch ( ConfigurationException $exception ) {
 			return $this->error( 'swbi_invalid_param', $exception->getMessage(), 400 );
+		}
+		if ( null !== $profile ) {
+			do_action( 'swbi_profile_saved', (string) $profile->id );
 		}
 		return null === $profile
 			? $this->error( 'swbi_not_found', __( 'Profile not found.', 'swbackupit' ), 404 )
@@ -133,7 +136,10 @@ final class ProfilesController extends BaseController {
 				return $this->error( 'swbi_conflict', __( 'The profile is used by a schedule. Delete the schedule first.', 'swbackupit' ), 409 );
 			}
 		}
-		return $this->services()->profiles()->delete( $id )
+		if ( $this->services()->profiles()->delete( $id ) ) {
+			do_action( 'swbi_profile_deleted', (string) $id );
+		}
+		return null === $this->services()->profiles()->find( $id )
 			? new \WP_REST_Response( array( 'deleted' => true ) )
 			: $this->error( 'swbi_not_found', __( 'Profile not found.', 'swbackupit' ), 404 );
 	}

@@ -48,6 +48,7 @@ final class JobService {
 		$data['limits']['batch_rows']          = min( (int) $data['limits']['batch_rows'], (int) $settings['limits']['batch_rows'] );
 		$job                                   = ( new JobFactory() )->create( BackupProfile::fromArray( $data ), $trigger, $schedule_id );
 		$this->jobs->create( $job );
+		do_action( 'swbi_backup_started', $job->id, $trigger );
 		if ( $dispatch ) {
 			$this->cron->dispatch_job( $job->id );
 		}

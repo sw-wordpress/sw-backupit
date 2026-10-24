@@ -94,6 +94,7 @@ final class SchedulesController extends BaseController {
 			return $data;
 		}
 		$id  = $this->services()->schedules()->create( $data );
+		do_action( 'swbi_schedule_saved', (string) $id );
 		$row = $this->services()->schedules()->find( $id );
 		return new \WP_REST_Response( $this->services()->schedules()->to_rest( (array) $row ), 201 );
 	}
@@ -109,11 +110,16 @@ final class SchedulesController extends BaseController {
 			return $data;
 		}
 		$this->services()->schedules()->update( $id, $data );
+		do_action( 'swbi_schedule_saved', (string) $id );
 		return new \WP_REST_Response( $this->services()->schedules()->to_rest( (array) $this->services()->schedules()->find( $id ) ) );
 	}
 
 	public function delete( \WP_REST_Request $request ) {
-		return $this->services()->schedules()->delete( (int) $request['id'] )
+		$deleted = $this->services()->schedules()->delete( (int) $request['id'] );
+		if ( $deleted ) {
+			do_action( 'swbi_schedule_deleted', (string) (int) $request['id'] );
+		}
+		return $deleted
 			? new \WP_REST_Response( array( 'deleted' => true ) )
 			: $this->error( 'swbi_not_found', __( 'Schedule not found.', 'swbackupit' ), 404 );
 	}
