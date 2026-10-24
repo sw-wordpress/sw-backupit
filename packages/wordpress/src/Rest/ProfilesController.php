@@ -11,6 +11,7 @@ namespace SWBackupIt\WordPress\Rest;
 
 use SWBackupIt\Core\Exception\ConfigurationException;
 use SWBackupIt\WordPress\Support\Capabilities;
+use SWBackupIt\WordPress\Support\DefaultProfiles;
 
 final class ProfilesController extends BaseController {
 
@@ -104,7 +105,7 @@ final class ProfilesController extends BaseController {
 
 	public function create( \WP_REST_Request $request ) {
 		try {
-			$profile = $this->services()->profiles()->create( $this->sanitize( $this->body( $request ) ) );
+			$profile = $this->services()->profiles()->create( DefaultProfiles::apply_creation_defaults( $this->sanitize( $this->body( $request ) ) ) );
 		} catch ( ConfigurationException $exception ) {
 			return $this->error( 'swbi_invalid_param', $exception->getMessage(), 400 );
 		}

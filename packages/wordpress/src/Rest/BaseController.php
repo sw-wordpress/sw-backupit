@@ -38,7 +38,8 @@ abstract class BaseController {
 		if ( array() !== $params ) {
 			$data['params'] = $params;
 		}
-		return new \WP_Error( $code, $message, $data );
+		// Messages produced by the framework independent core are English; translate them when the catalog knows them.
+		return new \WP_Error( $code, \SWBackupIt\WordPress\Support\CoreMessages::translate( $message ), $data );
 	}
 
 	/**

@@ -14,7 +14,7 @@ final class WebSetup
      * @param list<string> $targetRoots Optional allow list for restore targets.
      * @return string The one-time token (show it to the operator once).
      */
-    public static function initialize(string $appDirectory, string $backupsDirectory, int $ttlSeconds = 3600, ?string $stateDirectory = null, array $targetRoots = [], string $suggestedTarget = ''): string
+    public static function initialize(string $appDirectory, string $backupsDirectory, int $ttlSeconds = 3600, ?string $stateDirectory = null, array $targetRoots = [], string $suggestedTarget = '', string $language = ''): string
     {
         $backups = realpath($backupsDirectory);
         if ($backups === false || !is_dir($backups)) {
@@ -34,6 +34,7 @@ final class WebSetup
             'state_dir' => $stateDirectory ?? dirname(rtrim($appDirectory, '/')) . '/.swbi-restore-state-' . substr(hash('sha256', $appDirectory), 0, 10),
             'allowed_target_roots' => $targetRoots,
             'suggested_target' => $suggestedTarget,
+            'language' => $language,
         ];
         $php = "<?php\n// Generated. Contains only a token hash, never the token.\nreturn " . var_export($config, true) . ";\n";
         AtomicFile::write(rtrim($appDirectory, '/') . '/config.php', $php);

@@ -29,3 +29,7 @@ Chronological log of completed work (newest last). Test counts refer to the stat
 
 ## Key architecture decisions
 See `docs/implementation-plan.md` and `docs/architecture.md`: NDJSON index (no pdo_sqlite dependency), volume-granular resume, flags/lease outside the job entity, manifest written after verified artifacts and uploaded last, complete index per delta backup, network-wide data on multisite, restore never inside WordPress, secrets only as hashes/encrypted values.
+
+## Languages and default scope (follow-up)
+- gettext pipeline: `languages/swbackupit.pot` (code + generated core message list), `.po/.mo` for de_DE, fr_FR, pl_PL, it_IT, `bin/i18n.sh pot|update|compile|check`, regional locale fallback, core/restore messages translated at presentation time, standalone wizard with its own translator and generated catalogs, SPA catalogs in en/de/fr/pl/it with Quasar language packs; guards: PHPUnit `I18nTest`, Vitest `i18n-parity.test.ts`; documented in `docs/translations.md`, enforced by `AGENTS.md`/`CONTRIBUTING.md`.
+- Default scope: "everything except cache" (profile seeded on activation, API/SPA creation defaults); second seeded profile "Content update (uploads, themes, plugins)" (incremental).

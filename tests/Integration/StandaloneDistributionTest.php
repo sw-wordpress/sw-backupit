@@ -24,6 +24,7 @@ final class StandaloneDistributionTest extends TestCase
         exec(escapeshellarg($script) . ' ' . escapeshellarg($dist . '/app') . ' 2>&1', $output, $code);
         self::assertSame(0, $code, implode("\n", $output));
         self::assertDirectoryDoesNotExist($dist . '/app/vendor/league', 'distribution must not need flysystem or zipstream');
+        self::assertFileExists($dist . '/app/lang/de.php', 'wizard translations are part of the distribution');
 
         $target = $this->makeTempDir('target');
         $state = $this->makeTempDir('state');

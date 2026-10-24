@@ -9,7 +9,8 @@ Open and future work. Everything else is listed in `DONE.md`. See `docs/implemen
 - [ ] **True incremental database backups** (binlog based) – database is exported completely on every run (as allowed by the spec).
 - [ ] **Selective restore of single sites of a multisite network** (full network backup/restore works).
 - [ ] **Content de-duplication of renamed files** in incremental backups (renamed files are stored again).
-- [ ] **`.pot` / German translation files** for the PHP side (`languages/` is prepared, textdomain `swbackupit`; the SPA ships its own de/en catalogue).
+- [ ] **Native-speaker review** of the machine-assisted translations (de, fr, pl, it); uncertain strings were noted in the translators' reports (e.g. technical terms kept in English).
+- [ ] **Layout from UX Pilot** (design `HzEY5mWiEiBwFKM1yxRL`, page `gAE2YO7pkKAJmGsHDfgW`, "SWBackupIt - Profil erstellen") could not be fetched: no UX Pilot MCP server is connected in this environment. Connect it (https://uxpilot.ai/a/account?tab=mcpApiAccess) or provide an export/screenshots, then apply it to `apps/admin/src/features/profiles/ProfileSheet.vue`.
 - [ ] **Docblocks for all adapter methods** (documented WPCS relaxation in `phpcs-wordpress.xml.dist`; typed signatures carry the contract).
 - [ ] SSE for live progress (REST polling is implemented; SSE was optional).
 - [ ] Database part download count in the backup resource (`database_part_count`) so the UI can offer all parts.

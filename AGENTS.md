@@ -19,3 +19,6 @@ Read `PLAN.md` (product spec) and `CODE-STYLE.md` (binding style/security rules)
 1. Write/adjust interface → implement → tests → `composer test`, `composer stan`, `composer cs` → docs → update `TODO.md`/`DONE.md` → small coherent commit.
 2. Never push or publish. Never run destructive operations on the real WordPress install; tests use temp dirs and a private MariaDB instance (`SWBI_TEST_DB_*` env vars, see `docs/development.md`).
 3. Document unimplemented features explicitly (no fake implementations).
+
+## Translations
+Every change to user-facing text updates all languages (PHP gettext catalogs in `languages/`, SPA catalogs in `apps/admin/src/i18n/`, wizard catalogs are generated). Run `bin/i18n.sh update` and `bin/i18n.sh check`; the PHPUnit test `I18nTest` and the Vitest parity test enforce it. See `docs/translations.md`.

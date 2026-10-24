@@ -55,7 +55,7 @@ final class JobPresenter {
 				),
 				'targets'           => $progress->targets,
 			),
-			'error'          => $job->error,
+			'error'          => null === $job->error ? null : array_merge( $job->error, array( 'message' => \SWBackupIt\WordPress\Support\CoreMessages::translate( $job->error['message'] ) ) ),
 			'warnings_count' => $job->warningsCount,
 			'retry_count'    => $job->retryCount,
 			'next_retry_at'  => $format( $job->nextRetryAt ),

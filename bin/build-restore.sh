@@ -8,7 +8,8 @@ OUT="${1:?output directory required}"
 mkdir -p "$OUT/src/Core" "$OUT/src/Restore" "$OUT/vendor"
 cp -r "$ROOT/packages/core/src/." "$OUT/src/Core/"
 cp -r "$ROOT/packages/restore/src/." "$OUT/src/Restore/"
-mkdir -p "$OUT/bin" && cp "$ROOT/packages/restore/bin/swbackupit-restore" "$OUT/bin/"
+mkdir -p "$OUT/bin" "$OUT/lang" && cp "$ROOT/packages/restore/bin/swbackupit-restore" "$OUT/bin/"
+[ -d "$ROOT/packages/restore/lang" ] && cp "$ROOT/packages/restore/lang/"*.php "$OUT/lang/" || true
 [ -d "$ROOT/packages/restore/public" ] && cp -r "$ROOT/packages/restore/public/." "$OUT/" || true
 
 # Only runtime libraries the restore needs: psr/log (and a tiny PSR-4 autoloader, no Composer).

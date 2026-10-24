@@ -1,14 +1,24 @@
 import type { Profile, ProfileInput } from '@/types/api';
 
+/** Same list as DefaultProfiles::CACHE_EXCLUDES in the plugin: the only things excluded by default are caches. */
+export const CACHE_EXCLUDES = [
+  'wp-content/cache',
+  'wp-content/uploads/cache',
+  'wp-content/et-cache',
+  'wp-content/litespeed',
+  'wp-content/upgrade',
+];
+
+/** New profiles back up EVERYTHING (whole WordPress directory + database) except caches, so a 100 % copy is always available. */
 export function defaultProfileInput(): ProfileInput {
   return {
     name: '',
     description: '',
     type: 'full',
-    include_paths: ['wp-content/uploads', 'wp-content/themes', 'wp-content/plugins'],
-    exclude_paths: ['wp-content/cache'],
+    include_paths: [],
+    exclude_paths: [...CACHE_EXCLUDES],
     include_patterns: [],
-    exclude_patterns: ['**/*.log'],
+    exclude_patterns: [],
     external_paths: [],
     db_tables_include: [],
     db_tables_exclude: [],

@@ -9,6 +9,7 @@
   var finish = document.getElementById('finish');
   var phases = { verify: 5, files: 50, database: 80, migrate: 92, config: 97, done: 100 };
   var failures = 0;
+  var text = function (name, fallback) { return body.getAttribute('data-t-' + name) || fallback; };
 
   function show(text) { status.textContent = text; }
 
@@ -19,20 +20,20 @@
         failures = 0;
         bar.value = phases[data.phase] || bar.value;
         if (data.status === 'continue') {
-          show('Phase: ' + data.phase + ' – files restored: ' + data.files + ' (' + data.bytes + ')');
+          show(text('phase', 'Phase') + ': ' + data.phase + ' – ' + data.files + ' ' + text('files', 'files restored') + ' (' + data.bytes + ')');
           window.setTimeout(tick, 200);
         } else if (data.status === 'completed') {
           bar.value = 100;
-          show('The restore completed successfully. Files restored: ' + data.files + ' (' + data.bytes + ').');
+          show(text('done', 'The restore completed successfully.') + ' ' + data.files + ' (' + data.bytes + ')');
           finish.hidden = false;
         } else {
-          show('The restore FAILED in phase "' + data.phase + '". It can be resumed: reload this page to continue.');
+          show(text('failed', 'The restore FAILED. It can be resumed: reload this page to continue.') + ' [' + data.phase + ']');
           log.textContent = (data.messages || []).join('\n');
         }
       })
       .catch(function () {
         failures += 1;
-        if (failures > 5) { show('Connection lost. Reload this page to resume the restore.'); return; }
+        if (failures > 5) { show(text('lost', 'Connection lost. Reload this page to resume the restore.')); return; }
         window.setTimeout(tick, 1500 * failures);
       });
   }

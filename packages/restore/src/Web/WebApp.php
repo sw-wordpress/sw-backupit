@@ -43,12 +43,13 @@ final class WebApp
 
     public function handle(WebRequest $request): WebResponse
     {
+        Translator::select((string) ($this->config['language'] ?? ''), (string) ($request->server['HTTP_ACCEPT_LANGUAGE'] ?? ''));
         $action = $request->query['a'] ?? '';
         if ($action === 'asset') {
             return $this->asset($request->query['f'] ?? '');
         }
         if (!$this->auth->isEnabled()) {
-            return new WebResponse(403, View::page('Restore unavailable', '<p>The restore application is not initialised, has expired or was locked after use.</p>', null));
+            return new WebResponse(403, View::unavailable());
         }
         $sessionId = $request->cookies[Auth::COOKIE] ?? '';
         $session = $this->auth->session($sessionId);
@@ -60,7 +61,7 @@ final class WebApp
         if ($request->method === 'POST') {
             $csrf = $request->post('csrf', (string) ($request->server['HTTP_X_CSRF_TOKEN'] ?? ''));
             if (!Auth::validCsrf($session, $csrf)) {
-                return new WebResponse(403, View::page('Forbidden', '<p>Invalid or missing security token. Reload the page.</p>', null));
+                return new WebResponse(403, View::page(View::t('Forbidden'), '<p>' . View::e(View::t('Invalid or missing security token. Reload the page.')) . '</p>', null));
             }
         }
         try {
@@ -75,7 +76,7 @@ final class WebApp
                 default => new WebResponse(200, View::dashboard($this->backups(), $session)),
             };
         } catch (SwbiException $exception) {
-            return new WebResponse(400, View::page('Error', '<p class="error">' . View::e($exception->getMessage()) . '</p><p><a href="?">Back</a></p>', $session));
+            return new WebResponse(400, View::error(View::t($exception->getMessage()), $session));
         }
     }
 
@@ -84,8 +85,8 @@ final class WebApp
         $result = $this->auth->login($request->post('token'));
         if (!$result['ok']) {
             $message = $result['retryAfter'] > 0
-                ? sprintf('Too many failed attempts. Try again in %d minutes.', (int) ceil($result['retryAfter'] / 60))
-                : 'The token is not valid.';
+                ? View::t('Too many failed attempts. Try again in %d minutes.', (int) ceil($result['retryAfter'] / 60))
+                : View::t('The token is not valid.');
 
             return new WebResponse($result['retryAfter'] > 0 ? 429 : 401, View::login($message));
         }
@@ -99,7 +100,7 @@ final class WebApp
     {
         $this->auth->destroy($sessionId);
 
-        return new WebResponse(200, View::login('You were signed out.'));
+        return new WebResponse(200, View::login(View::t('You were signed out.')));
     }
 
     /**
@@ -273,7 +274,9 @@ final class WebApp
         $this->auth->lock();
         $removed = $this->removeApplication();
 
-        return new WebResponse(200, View::page('Restore finished', '<p class="ok">The restore completed. The restore application is now locked' . ($removed ? ' and its files were removed.' : '. Please delete the restore directory from your server manually.') . '</p>', null));
+        $text = $removed ? View::t('The restore completed. The restore application is now locked and its files were removed.') : View::t('The restore completed. The restore application is now locked. Please delete the restore directory from your server manually.');
+
+        return new WebResponse(200, View::page(View::t('Restore finished'), '<p class="ok">' . View::e($text) . '</p>', null));
     }
 
     /** Best effort self removal; the lock file already makes the app inert if this fails. */

@@ -7,6 +7,15 @@ location, WP-Cron reliability, overdue schedules, free disk space).
 
 Requirements: PHP 8.2+, WordPress 6.4+, extensions `zip`, `zlib`, `pdo_mysql` (and `sodium` for encryption). No Composer or Node.js on the server.
 
+## Default backup scope
+On activation two profiles are created: **Full backup (everything, without cache)** backs up the complete WordPress directory and the database, excluding only
+cache directories (`wp-content/cache`, `wp-content/uploads/cache`, `wp-content/et-cache`, `wp-content/litespeed`, `wp-content/upgrade`) and the backup staging area, so a 100 %
+copy of the site is always available. **Content update (uploads, themes, plugins)** is an incremental profile that only refreshes those three directories (plus the database).
+New profiles start with the same "everything minus cache" scope. Add schedules for the profiles you want to run automatically.
+
+## Languages
+The interface, messages, notifications and the restore wizard are available in English, German, French, Polish and Italian (follows the WordPress user language; see `translations.md`).
+
 ## Backup profiles
 A profile defines what is backed up: type (Full, Files only, Database only, Incremental, Differential), directories/patterns to include or
 exclude, database tables, compression, volume size, resource limits, storage targets, retention and notifications. A running job always uses

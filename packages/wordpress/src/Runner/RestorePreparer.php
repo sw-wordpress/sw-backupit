@@ -44,7 +44,7 @@ final class RestorePreparer {
 		if ( ! wp_is_writable( dirname( $state ) ) || Settings::is_inside_docroot( dirname( $state ) ) ) {
 			$state = untrailingslashit( $staging ) . '/restore-state-' . $name;
 		}
-		$token    = WebSetup::initialize( $dir, $staging, $ttl, $state, array( untrailingslashit( ABSPATH ) ), untrailingslashit( ABSPATH ) );
+		$token    = WebSetup::initialize( $dir, $staging, $ttl, $state, array( untrailingslashit( ABSPATH ) ), untrailingslashit( ABSPATH ), strtolower( substr( determine_locale(), 0, 2 ) ) );
 		$warnings = array();
 		if ( ! is_ssl() ) {
 			$warnings[] = __( 'This site is not using HTTPS: the restore token and database password would travel unencrypted.', 'swbackupit' );
@@ -84,6 +84,7 @@ final class RestorePreparer {
 		$this->copy_tree( SWBACKUPIT_DIR . 'packages/core/src', $dir . '/src/Core' );
 		$this->copy_tree( SWBACKUPIT_DIR . 'packages/restore/src', $dir . '/src/Restore' );
 		$this->copy_tree( SWBACKUPIT_DIR . 'packages/restore/public', $dir );
+		$this->copy_tree( SWBACKUPIT_DIR . 'packages/restore/lang', $dir . '/lang' );
 		$this->copy_tree( SWBACKUPIT_DIR . 'vendor/psr/log/src', $dir . '/vendor/psr-log' );
 		file_put_contents( // phpcs:ignore WordPress.WP.AlternativeFunctions -- generated file inside a directory we just created.
 			$dir . '/vendor/autoload.php',

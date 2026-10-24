@@ -34,6 +34,7 @@ final class Lifecycle {
 	private static function activate_site(): void {
 		Schema::migrate();
 		Capabilities::grant_defaults();
+		Support\DefaultProfiles::seed_if_empty();
 		( new CronManager() )->ensure_watcher();
 	}
 

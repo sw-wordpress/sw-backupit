@@ -40,6 +40,7 @@ final class Plugin {
 
 		( new Support\AuditLogger() )->register();
 		( new Runner\PreUpdateBackup() )->register();
+		add_filter( 'load_textdomain_mofile', array( $this, 'fallback_mofile' ), 10, 2 );
 		add_action( 'init', array( $this, 'load_textdomain' ) );
 		add_action( 'plugins_loaded', array( $this, 'maybe_migrate' ), 5 );
 		add_action( 'rest_api_init', array( $this, 'register_rest' ) );
@@ -69,6 +70,27 @@ final class Plugin {
 
 	public function load_textdomain(): void {
 		load_plugin_textdomain( 'swbackupit', false, dirname( plugin_basename( SWBACKUPIT_FILE ) ) . '/languages' );
+	}
+
+	/**
+	 * Regional variants (de_AT, de_CH, de_DE_formal, fr_CA, it_CH ...) use the translation of the language we ship.
+	 *
+	 * @param string $mofile Path WordPress is about to load.
+	 * @param string $domain Text domain.
+	 */
+	public function fallback_mofile( string $mofile, string $domain ): string {
+		if ( 'swbackupit' !== $domain || is_readable( $mofile ) ) {
+			return $mofile;
+		}
+		$shipped  = array(
+			'de' => 'de_DE',
+			'fr' => 'fr_FR',
+			'pl' => 'pl_PL',
+			'it' => 'it_IT',
+		);
+		$language = substr( basename( $mofile, '.mo' ), strlen( 'swbackupit-' ), 2 );
+		$fallback = isset( $shipped[ $language ] ) ? dirname( $mofile ) . '/swbackupit-' . $shipped[ $language ] . '.mo' : '';
+		return '' !== $fallback && is_readable( $fallback ) ? $fallback : $mofile;
 	}
 
 	/** Cheap option comparison; migrations themselves are small and idempotent. */

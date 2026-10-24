@@ -38,6 +38,11 @@ export function resetConfigForTests(): void {
 }
 
 /** UI language: German if the WordPress locale starts with `de`, otherwise English. */
-export function resolveUiLocale(locale: string): 'de' | 'en' {
-  return locale.toLowerCase().startsWith('de') ? 'de' : 'en';
+export const UI_LOCALES = ['en', 'de', 'fr', 'pl', 'it'] as const;
+export type UiLocale = (typeof UI_LOCALES)[number];
+
+/** Maps a WordPress locale (de_DE, fr_CA, pl_PL, it_IT_formal ...) to a supported UI language; English is the fallback. */
+export function resolveUiLocale(locale: string): UiLocale {
+  const language = locale.toLowerCase().slice(0, 2);
+  return (UI_LOCALES as readonly string[]).includes(language) ? (language as UiLocale) : 'en';
 }

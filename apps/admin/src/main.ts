@@ -10,6 +10,8 @@ import './styles/app.css';
 import App from './App.vue';
 import { getConfig } from './config';
 import { createAppI18n } from './i18n';
+import { resolveUiLocale } from './config';
+import quasarLang from './i18n/quasarLang';
 import { createAppRouter } from './router';
 
 const MOUNT_ID = 'swbackupit-app';
@@ -47,6 +49,7 @@ function bootstrap(): void {
   app.use(Quasar, {
     plugins: { Notify },
     iconSet,
+    lang: quasarLang(resolveUiLocale(config.locale)),
     // Quasar portals (dialogs, menus, tooltips, notifications) are appended to <body>; give them
     // the root class so the scoped Quasar CSS and our tokens apply there as well.
     config: { globalNodes: { class: 'swbi-root' } },
