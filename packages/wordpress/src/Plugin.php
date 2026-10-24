@@ -103,7 +103,7 @@ final class Plugin {
 	}
 
 	public function cron_watch(): void {
-		update_option( CronManager::TICK_OPTION, time(), false );
+		\SWBackupIt\WordPress\Support\Options::update( CronManager::TICK_OPTION, time(), false );
 		Services::instance()->schedule_runner()->run_due();
 		if ( false === get_transient( 'swbi_health_check' ) ) {
 			set_transient( 'swbi_health_check', 1, 10 * MINUTE_IN_SECONDS );

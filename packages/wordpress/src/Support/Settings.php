@@ -63,7 +63,7 @@ final class Settings {
 	 * @return array<string, mixed>
 	 */
 	public static function all(): array {
-		$stored = get_option( self::OPTION, array() );
+		$stored = \SWBackupIt\WordPress\Support\Options::get( self::OPTION, array() );
 		return self::merge( self::defaults(), is_array( $stored ) ? $stored : array() );
 	}
 
@@ -77,7 +77,7 @@ final class Settings {
 		if ( null !== $error ) {
 			return new \WP_Error( 'swbi_invalid_param', $error, array( 'status' => 400 ) );
 		}
-		update_option( self::OPTION, $merged, false );
+		\SWBackupIt\WordPress\Support\Options::update( self::OPTION, $merged, false );
 		return $merged;
 	}
 
@@ -151,7 +151,7 @@ final class Settings {
 		if ( '' !== $configured ) {
 			return rtrim( $configured, '/' );
 		}
-		$stored = get_option( 'swbi_staging_dir', '' );
+		$stored = \SWBackupIt\WordPress\Support\Options::get( 'swbi_staging_dir', '' );
 		if ( is_string( $stored ) && '' !== $stored ) {
 			return $stored;
 		}
@@ -161,7 +161,7 @@ final class Settings {
 		$dir     = is_dir( $parent ) && wp_is_writable( $parent ) && ! self::is_inside_docroot( $parent )
 			? $outside
 			: untrailingslashit( WP_CONTENT_DIR ) . '/swbackupit-staging-' . $suffix;
-		update_option( 'swbi_staging_dir', $dir, false );
+		\SWBackupIt\WordPress\Support\Options::update( 'swbi_staging_dir', $dir, false );
 		return $dir;
 	}
 

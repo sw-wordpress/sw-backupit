@@ -58,7 +58,7 @@ class PluginTest extends WP_UnitTestCase {
 			$this->assertSame( $name, $wpdb->get_var( $wpdb->prepare( 'SHOW TABLES LIKE %s', $name ) ), $name );
 		}
 		Schema::migrate();
-		$this->assertSame( Schema::CURRENT, (int) get_option( Schema::VERSION_OPTION ) );
+		$this->assertSame( Schema::CURRENT, (int) \SWBackupIt\WordPress\Support\Options::get( Schema::VERSION_OPTION ) );
 	}
 
 	public function test_every_route_requires_authentication_and_capability(): void {

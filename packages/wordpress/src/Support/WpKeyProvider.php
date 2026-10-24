@@ -60,21 +60,21 @@ final class WpKeyProvider implements KeyProviderInterface {
 	public function store( EncryptionKey $key ): string {
 		$stored                = $this->stored();
 		$stored[ $key->keyId ] = Secrets::encrypt( $key->export() );
-		update_option( self::OPTION, $stored, false );
+		\SWBackupIt\WordPress\Support\Options::update( self::OPTION, $stored, false );
 		return $key->export();
 	}
 
 	public function delete( string $key_id ): void {
 		$stored = $this->stored();
 		unset( $stored[ $key_id ] );
-		update_option( self::OPTION, $stored, false );
+		\SWBackupIt\WordPress\Support\Options::update( self::OPTION, $stored, false );
 	}
 
 	/**
 	 * @return array<string, string>
 	 */
 	private function stored(): array {
-		$value = get_option( self::OPTION, array() );
+		$value = \SWBackupIt\WordPress\Support\Options::get( self::OPTION, array() );
 		return is_array( $value ) ? array_filter( $value, 'is_string' ) : array();
 	}
 }

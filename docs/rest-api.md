@@ -197,3 +197,11 @@ Config keys: `local`: `path`; `sftp`: `host, port, username, root, host_fingerpr
 
 ## Error codes
 `swbi_invalid_param` (400, with `data.params`), `swbi_confirmation_required` (400), `swbi_not_found` (404), `swbi_conflict` (409), `swbi_not_implemented`/`swbi_use_wizard` (501), `swbi_storage_error` (502), `swbi_vetoed`/`swbi_integrity`/`swbi_transient`… appear in `job.error.code`.
+
+## Corrections / clarifications
+* `job.error` is `null` or an object `{ "code": "swbi_integrity", "message": "…", "retryable": false }`; `last_failure.error` in the health report is the message string.
+* Backup `status` is `complete | verified | corrupt` (there is no `incomplete` state in the catalog: incomplete backups are never registered).
+* There are no restore jobs: restore runs in the standalone wizard/CLI. `POST /backups/{id}/restore` always returns `501 swbi_use_wizard`.
+* Encryption key ids match `^[A-Za-z0-9._-]{1,64}$`; `DELETE /encryption-keys/{id}` answers `409 swbi_conflict` while a profile uses the key.
+* `part=database` downloads database part number `volume` (1-based); the number of parts equals `database_parts` in the manifest (the backup detail will expose `database_part_count` – until then use 1…n and treat 404 as the end).
+* Rate-limit (429) responses are only produced by the standalone restore wizard (HTML), not by the REST API.

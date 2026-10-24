@@ -92,17 +92,17 @@ final class Notifier {
 
 	private function is_duplicate( string $key ): bool {
 		$minutes = max( 1, (int) ( Settings::all()['notifications']['dedupe_minutes'] ?? 60 ) );
-		$log     = get_option( self::OPTION, array() );
+		$log     = \SWBackupIt\WordPress\Support\Options::get( self::OPTION, array() );
 		$at      = is_array( $log ) ? (int) ( $log[ md5( $key ) ] ?? 0 ) : 0;
 		return $at > time() - $minutes * MINUTE_IN_SECONDS;
 	}
 
 	private function remember( string $key ): void {
-		$log                = get_option( self::OPTION, array() );
+		$log                = \SWBackupIt\WordPress\Support\Options::get( self::OPTION, array() );
 		$log                = is_array( $log ) ? $log : array();
 		$now                = time();
 		$log                = array_filter( $log, static fn ( $at ): bool => is_int( $at ) && $at > $now - DAY_IN_SECONDS );
 		$log[ md5( $key ) ] = $now;
-		update_option( self::OPTION, $log, false );
+		\SWBackupIt\WordPress\Support\Options::update( self::OPTION, $log, false );
 	}
 }

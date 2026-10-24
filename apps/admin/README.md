@@ -2,7 +2,7 @@
 
 Vue 3 (Composition API, `<script setup lang="ts">`) + Quasar (via `@quasar/vite-plugin`, **no Quasar CLI**) + Vite + TypeScript `strict` + Pinia + vue-router (hash history) + vue-i18n. It runs inside the wp-admin page `admin.php?page=swbackupit`.
 
-REST contract: [`docs/rest-api.md`](../../docs/rest-api.md). The TypeScript types in `src/types/api.ts` mirror it 1:1.
+REST contract: [`docs/rest-api.md`](../../docs/rest-api.md) including the authoritative section "Implementation notes". The TypeScript types in `src/types/api.ts` mirror it 1:1.
 
 ## Dev workflow
 
@@ -111,6 +111,16 @@ The dev host page (`index.html`) simulates hostile wp-admin globals (`h1`, `p`, 
 - Secret fields of storage targets are write-only inputs (`autocomplete="new-password"`), sent in `credentials`, wiped after saving/closing, never prefilled; a "credentials set" badge shows presence.
 - Nothing sensitive is stored in localStorage/URL/console. The only localStorage key is `swbi-theme` (manual dark/light choice), wrapped in try/catch.
 - Download links use `_wpnonce` in the query string (anchors cannot send headers) – this is the REST nonce (CSRF token), not a credential.
+
+## Contract-specific behaviour (per "Implementation notes")
+
+- **Job steps.** `job.phase` is a step id (`preflight … notify`, see `PHASES` in `utils/jobs.ts`); the stepper shows all 12 steps, labels in `i18n` under `phases.*`. Unknown ids are shown as delivered.
+- **Job actions.** Pause/resume/cancel/retry (`POST /jobs/{id}/retry` for `failed` jobs), `trigger` and `next_retry_at` (for `retry_waiting`) are displayed. `job.error` may be a string or `{code, message}`.
+- **Schedules.** `weekday` (weekly) and `monthday` (monthly) fields; hourly uses the minute of `time_of_day`.
+- **Backups.** Downloads use `?part=volume|manifest|index|database&volume=N&_wpnonce=`. Restore: only `POST /backups/{id}/restore/prepare`. The one-time `token` is kept in memory only while the dialog is open (copy button, discarded on close), together with the wizard link, expiry and `target_path`. `POST /backups/{id}/restore` is never called (501 by design).
+- **Storage targets.** Exact config/credential keys per type (sftp: `host_fingerprint`, `trust_unknown_host`, `allow_private_network`, `timeout`; s3: `allow_private_network`), write-only credentials, discover items with `error`, import `{backup_ids, download}`, 409 on delete shown in the dialog.
+- **Encryption keys.** Settings > "Encryption keys" (list, create with optional passphrase, secret shown once with a copy button and a required "stored" confirmation, delete with typed confirmation). The profile's encryption tab selects from this list.
+- **Errors.** `message` is always shown; 400/409 on forms render inline with per-field `data.params`; 501 (`swbi_use_wizard`/`swbi_not_implemented`) is an informative toast; 429 a "slow down" warning; 409 on delete (target in use, protected backup) is shown inside the confirmation dialog or toast.
 
 ## Behaviour notes
 

@@ -65,7 +65,7 @@ final class HealthController extends BaseController {
 		}
 
 		$wp_cron_disabled = CronManager::is_wp_cron_disabled();
-		$last_tick        = (int) get_option( CronManager::TICK_OPTION, 0 );
+		$last_tick        = (int) \SWBackupIt\WordPress\Support\Options::get( CronManager::TICK_OPTION, 0 );
 		$cron_notice      = __( 'WP-Cron only runs when your site receives visitors. For reliable schedules use a real system cron job: * * * * * wp swbackupit schedule run-due', 'swbackupit' );
 
 		$backups = $this->services()->backups()->totals();

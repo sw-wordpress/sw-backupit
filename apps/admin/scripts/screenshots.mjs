@@ -108,15 +108,15 @@ const VIEWS = [
         },
     },
     { name: 'settings', hash: '/settings' },
-  {
-    name: 'keys-created',
-    hash: '/settings',
-    action: async (p) => {
-      await p.getByLabel(/^(Schlüssel-ID|Key ID)/).fill('staging-2026');
-      await p.getByRole('button', { name: /Schlüssel erstellen|Create key/ }).click();
-      await p.waitForTimeout(800);
+    {
+        name: 'keys-created',
+        hash: '/settings',
+        action: async (p) => {
+            await p.getByLabel(/^(Schlüssel-ID|Key ID)/).fill('staging-2026');
+            await p.getByRole('button', { name: /Schlüssel erstellen|Create key/ }).click();
+            await p.waitForTimeout(800);
+        },
     },
-  },
 ];
 
 const MODES = [

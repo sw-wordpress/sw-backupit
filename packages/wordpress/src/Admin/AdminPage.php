@@ -19,7 +19,7 @@ final class AdminPage {
 	private string $hook = '';
 
 	public function register(): void {
-		add_action( 'admin_menu', array( $this, 'add_menu' ) );
+		add_action( is_multisite() ? 'network_admin_menu' : 'admin_menu', array( $this, 'add_menu' ) );
 		add_action( 'admin_enqueue_scripts', array( $this, 'enqueue' ) );
 		add_filter( 'script_loader_tag', array( $this, 'module_tag' ), 10, 2 );
 	}
@@ -68,7 +68,7 @@ final class AdminPage {
 			'nonce'        => wp_create_nonce( 'wp_rest' ),
 			'locale'       => determine_locale(),
 			'version'      => SWBACKUPIT_VERSION,
-			'adminUrl'     => esc_url_raw( admin_url( 'admin.php?page=' . self::SLUG ) ),
+			'adminUrl'     => esc_url_raw( is_multisite() ? network_admin_url( 'admin.php?page=' . self::SLUG ) : admin_url( 'admin.php?page=' . self::SLUG ) ),
 			'capabilities' => Capabilities::current_user_caps(),
 			'siteUrl'      => esc_url_raw( site_url() ),
 		);

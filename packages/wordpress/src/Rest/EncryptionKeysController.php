@@ -81,6 +81,11 @@ final class EncryptionKeysController extends BaseController {
 	}
 
 	public function delete( \WP_REST_Request $request ) {
+		foreach ( $this->services()->profiles()->all() as $profile ) {
+			if ( $profile->encryption->enabled && $profile->encryption->keyId === (string) $request['id'] ) {
+				return $this->error( 'swbi_conflict', __( 'The key is used by a profile. Change the profile first.', 'swbackupit' ), 409 );
+			}
+		}
 		( new WpKeyProvider() )->delete( (string) $request['id'] );
 		do_action( 'swbi_encryption_key_deleted', (string) $request['id'], get_current_user_id() );
 		return new \WP_REST_Response( array( 'deleted' => true ) );

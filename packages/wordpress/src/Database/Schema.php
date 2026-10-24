@@ -16,7 +16,8 @@ final class Schema {
 
 	public static function table( string $name ): string {
 		global $wpdb;
-		return $wpdb->prefix . 'swbi_' . $name;
+		// Network wide on multisite (base_prefix), identical to the prefix on single sites.
+		return $wpdb->base_prefix . 'swbi_' . $name;
 	}
 
 	/**
@@ -28,25 +29,25 @@ final class Schema {
 
 	/** Runs pending migrations. Safe to call repeatedly. */
 	public static function migrate(): void {
-		$installed = (int) get_option( self::VERSION_OPTION, 0 );
+		$installed = (int) \SWBackupIt\WordPress\Support\Options::get( self::VERSION_OPTION, 0 );
 		if ( $installed >= self::CURRENT ) {
 			return;
 		}
 		if ( $installed < 1 ) {
 			self::migrate_to_1();
 		}
-		update_option( self::VERSION_OPTION, self::CURRENT, true );
+		\SWBackupIt\WordPress\Support\Options::update( self::VERSION_OPTION, self::CURRENT, true );
 	}
 
 	public static function needs_migration(): bool {
-		return (int) get_option( self::VERSION_OPTION, 0 ) < self::CURRENT;
+		return (int) \SWBackupIt\WordPress\Support\Options::get( self::VERSION_OPTION, 0 ) < self::CURRENT;
 	}
 
 	private static function migrate_to_1(): void {
 		global $wpdb;
 		require_once ABSPATH . 'wp-admin/includes/upgrade.php';
 		$charset = $wpdb->get_charset_collate();
-		$p       = $wpdb->prefix . 'swbi_';
+		$p       = $wpdb->base_prefix . 'swbi_';
 
 		$statements = array(
 			"CREATE TABLE {$p}profiles (

@@ -45,10 +45,10 @@ final class Secrets {
 	}
 
 	private static function key(): string {
-		$stored = get_option( self::OPTION );
+		$stored = \SWBackupIt\WordPress\Support\Options::get( self::OPTION );
 		if ( ! is_string( $stored ) || '' === $stored ) {
 			$stored = base64_encode( random_bytes( 32 ) );
-			update_option( self::OPTION, $stored, false );
+			\SWBackupIt\WordPress\Support\Options::update( self::OPTION, $stored, false );
 		}
 		$raw = (string) base64_decode( $stored, true );
 

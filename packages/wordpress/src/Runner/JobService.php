@@ -56,7 +56,7 @@ final class JobService {
 
 	public function tick( string $job_id, ?float $budget = null ): TickResult {
 		$result = $this->runner->tick( $job_id, $budget );
-		update_option( CronManager::TICK_OPTION, time(), false );
+		\SWBackupIt\WordPress\Support\Options::update( CronManager::TICK_OPTION, time(), false );
 		return $result;
 	}
 

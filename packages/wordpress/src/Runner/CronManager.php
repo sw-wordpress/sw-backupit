@@ -33,6 +33,9 @@ final class CronManager {
 	}
 
 	public function ensure_watcher(): void {
+		if ( is_multisite() && ! is_main_site() ) {
+			return; // One watcher per network, on the main site.
+		}
 		if ( ! wp_next_scheduled( self::HOOK_WATCH ) ) {
 			wp_schedule_event( time() + 30, self::INTERVAL, self::HOOK_WATCH );
 		}
