@@ -2,6 +2,9 @@
 
 Chronological log of completed work (newest last). Test counts refer to the state at the end of each phase.
 
+Admin build tooling: added a plugin-root `make build` entry point with automatic,
+lockfile-based npm dependency installation and the existing typechecked UI build.
+
 ## 2026-10-24 – Phase 1: Core / MVP
 - Analysed `PLAN.md` and `CODE-STYLE.md`; wrote `docs/implementation-plan.md` (ADRs, phases), `AGENTS.md`, `docs/rest-api.md` (REST contract), git repo, monorepo (core / restore / wordpress).
 - Job engine: persistent state machine, lease/lock, checkpoints, pause/cancel/retry with backoff; resumable file scanner (canonical order, NDJSON index instead of SQLite); ZIP64 volumes with chunking of huge files; streaming resumable DB exporter (opt-in consistent snapshot); manifest v1; local verification.

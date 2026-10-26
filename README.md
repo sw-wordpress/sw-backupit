@@ -27,6 +27,14 @@ PHP namespaces (`SWBackupIt`), constants (`SWBACKUPIT_*`), the JavaScript config
 ## Requirements
 PHP 8.2+, WordPress 6.4+, extensions `zip`, `zlib`, `pdo_mysql` (`sodium` for encryption). Build the installable ZIP with `bin/build-zip.sh` (needs Composer, Docker and, for the UI, Node on the *build* machine only).
 
+## Admin UI build
+
+Run `make build` from the plugin directory (requires Make, Node.js >=18.18 and npm).
+Dependencies are installed automatically with `npm ci --include=dev` on the first build
+and whenever `apps/admin/package.json` or its lockfile changes. The existing build
+includes TypeScript checks and writes the compiled admin UI to `assets/admin/`.
+This builds the UI only, not the release ZIP or standalone restore application.
+
 ## Isolated release dependencies
 
 Local ZIP builds and the GitHub release workflow share `bin/build-zip.sh`. It installs
