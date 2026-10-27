@@ -17,7 +17,7 @@ Read `PLAN.md` (product spec) and `CODE-STYLE.md` (binding style/security rules)
 
 ## Workflow
 1. Write/adjust interface → implement → tests → `composer test`, `composer stan`, `composer cs` → docs → update `TODO.md`/`DONE.md` → small coherent commit.
-2. Never push or publish. Never run destructive operations on the real WordPress install; tests use temp dirs and a private MariaDB instance (`SWBI_TEST_DB_*` env vars, see `docs/development.md`).
+2. Never run destructive operations on the real WordPress install; tests use temp dirs and a private MariaDB instance (`SWBI_TEST_DB_*` env vars, see `docs/development.md`).
 3. Document unimplemented features explicitly (no fake implementations).
 
 ## Translations
