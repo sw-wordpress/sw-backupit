@@ -14,3 +14,7 @@
 .phpstan.cache/
 .phpcs-wp.cache
 /tests/wp/vendor/
+
+# Local analysis output
+/coverage/
+/.scannerwork/

@@ -109,7 +109,10 @@ final class BackupRestoreTest extends TestCase
         self::assertSame($expectedDb, $this->dumpDatabase(ConnectionFactory::create($targetDb)));
         $config = (string) file_get_contents($target . '/wp-config.php');
         self::assertStringContainsString("'" . $targetDb->name . "'", $config);
-        self::assertStringContainsString("define( 'DB_PASSWORD', 'swbi' )", $config);
+        self::assertTrue(
+            str_contains($config, "define( 'DB_PASSWORD', " . var_export($targetDb->password, true) . " )"),
+            'Restored wp-config.php must contain the configured target database password.',
+        );
         self::assertSame(hash('sha256', $env['files']['wp-content/uploads/big.dat']), hash_file('sha256', $target . '/wp-content/uploads/big.dat'));
     }
 

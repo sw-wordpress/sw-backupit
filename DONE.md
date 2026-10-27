@@ -63,3 +63,9 @@ See `docs/implementation-plan.md` and `docs/architecture.md`: NDJSON index (no p
   `GET /transfers`, `POST /transfers/{id}/cancel`, `wp sw-backupit backup transfer`, SPA dialog and transfer progress panel.
 - Fix: deleting a backup in the UI/REST removed only the local copy and the catalog entry; it now deletes every storage target copy, and
   refuses (409) without touching any copy when one location is immutable or within its lock period.
+
+## 2026-10-27 – SonarQube CI configuration
+- Prepared PHP/WordPress Clover coverage merging, portable report paths and a SonarQube Cloud workflow following sw-mailgate. Native PHPUnit suites and the admin frontend checks remain separate; release bundles exclude analysis output. Publication and GitHub/SonarQube runtime validation remain pending.
+
+## 2026-10-27 – Configurable restore-test credentials
+- Reproduced the CI E2E failure with a non-default private database password. The restored configuration was correct; the assertion assumed `swbi`. The test now checks the configured target password without printing that password in its assertion failure. Default and custom-credential E2E runs validate the same restore contract.
