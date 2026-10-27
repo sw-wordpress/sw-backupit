@@ -66,3 +66,6 @@ See `docs/implementation-plan.md` and `docs/architecture.md`: NDJSON index (no p
 
 ## 2026-10-27 – SonarQube CI configuration
 - Prepared PHP/WordPress Clover coverage merging, portable report paths and a SonarQube Cloud workflow following sw-mailgate. Native PHPUnit suites and the admin frontend checks remain separate; release bundles exclude analysis output. Publication and GitHub/SonarQube runtime validation remain pending.
+
+## 2026-10-27 – Configurable restore-test credentials
+- Reproduced the CI E2E failure with a non-default private database password. The restored configuration was correct; the assertion assumed `swbi`. The test now checks the configured target password without printing that password in its assertion failure. Default and custom-credential E2E runs validate the same restore contract.
