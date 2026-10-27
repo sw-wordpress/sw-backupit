@@ -1,0 +1,111 @@
+name: Tests and SonarQube
+on:
+  push:
+    branches:
+    - '**'
+  pull_request: null
+permissions:
+  contents: read
+jobs:
+  php:
+    runs-on: ubuntu-latest
+    env:
+      XDEBUG_MODE: coverage
+      SWBI_TEST_DB_HOST: 127.0.0.1
+      SWBI_TEST_DB_PORT: '33077'
+      SWBI_TEST_DB_USER: root
+      SWBI_TEST_DB_PASSWORD: wordpress-test
+    steps:
+    - uses: actions/checkout@v4
+    - uses: shivammathur/setup-php@v2
+      with:
+        php-version: '8.2'
+        extensions: mysqli, pdo_mysql, mbstring, sodium, zip, gd
+        tools: composer:v2
+        coverage: xdebug
+    - run: composer install --prefer-dist --no-interaction --no-progress
+    - run: composer validate --strict
+    - run: composer cs && composer cs:wp && composer stan
+    - name: Install isolated WordPress test dependencies
+      run: composer install --working-dir=tests/wp --prefer-dist --no-interaction --no-progress
+    - name: Unit and integration coverage
+      run: |-
+        mkdir -p coverage
+        vendor/bin/phpunit --testsuite unit,integration --coverage-clover coverage/unit.xml
+    - name: WordPress coverage
+      working-directory: tests/wp
+      run: vendor/bin/phpunit -c phpunit.xml.dist --coverage-clover ../../coverage/wordpress.xml
+    - name: Backup and restore scenarios
+      run: composer test:e2e
+    - name: Merge and normalize Clover paths
+      run: php tests/coverage/merge.php coverage/unit.xml coverage/wordpress.xml
+    - name: Upload Clover coverage
+      uses: actions/upload-artifact@v4
+      with:
+        name: php-coverage
+        path: coverage/clover.xml
+        if-no-files-found: error
+        retention-days: 14
+    services:
+      mariadb:
+        image: mariadb:11.4
+        env:
+          MARIADB_ROOT_PASSWORD: wordpress-test
+          MARIADB_ROOT_HOST: '%'
+          MARIADB_DATABASE: swbi_wp_tests
+        ports:
+        - 33077:3306
+        options: --health-cmd="healthcheck.sh --connect --innodb_initialized" --health-interval=5s --health-timeout=5s --health-retries=20
+  frontend:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: apps/admin
+    steps:
+    - uses: actions/checkout@v4
+    - uses: actions/setup-node@v4
+      with:
+        node-version: '22'
+        cache: npm
+        cache-dependency-path: apps/admin/package-lock.json
+    - run: npm ci
+    - run: npm run lint && npm run typecheck && npm test && npm run build
+  sonarqube:
+    name: SonarQube Cloud
+    needs:
+    - php
+    - frontend
+    if: |-
+      (github.event_name == 'pull_request' &&
+       github.event.pull_request.head.repo.full_name == github.repository) ||
+      (github.event_name == 'push' &&
+       github.ref_name == github.event.repository.default_branch)
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
+    - uses: actions/download-artifact@v4
+      with:
+        name: php-coverage
+        path: coverage
+    - name: Check SonarQube configuration
+      env:
+        SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+        SONAR_ORGANIZATION: ${{ vars.SONAR_ORGANIZATION }}
+      run: |
+        if [ -z "$SONAR_TOKEN" ]; then
+          echo '::error::Set the SONAR_TOKEN repository secret before running SonarQube analysis.'
+          exit 1
+        fi
+        if [ -z "$SONAR_ORGANIZATION" ]; then
+          echo '::error::Set the SONAR_ORGANIZATION repository variable to your SonarQube Cloud organization key.'
+          exit 1
+        fi
+        test -s coverage/clover.xml
+    - name: Analyze code and import coverage
+      uses: SonarSource/sonarqube-scan-action@d209202bc7d53ff1cc128f7f907dac145c9d6ae9
+      with:
+        args: -Dsonar.organization=${{ vars.SONAR_ORGANIZATION }}
+      env:
+        SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}

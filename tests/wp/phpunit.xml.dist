@@ -8,4 +8,11 @@
     <php>
         <const name="WP_RUN_CORE_TESTS" value="0"/>
     </php>
+    <coverage>
+        <include>
+            <directory suffix=".php">../../packages/wordpress/src</directory>
+            <file>../../sw-backupit.php</file>
+            <file>../../uninstall.php</file>
+        </include>
+    </coverage>
 </phpunit>

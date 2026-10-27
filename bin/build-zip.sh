@@ -42,6 +42,9 @@ rsync -a --exclude-from="$UNTRACKED" --exclude-from=- "$ROOT/" "$STAGE/$NAME/" <
 /node_modules
 /apps
 /tests
+/coverage
+/.scannerwork
+/sonar-project.properties
 /dist
 /build
 /bin/test-db.sh
