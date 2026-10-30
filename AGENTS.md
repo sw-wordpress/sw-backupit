@@ -22,3 +22,15 @@ Read `PLAN.md` (product spec) and `CODE-STYLE.md` (binding style/security rules)
 
 ## Translations
 Every change to user-facing text updates all languages (PHP gettext catalogs in `languages/`, SPA catalogs in `apps/admin/src/i18n/`, wizard catalogs are generated). Run `bin/i18n.sh update` and `bin/i18n.sh check`; the PHPUnit test `I18nTest` and the Vitest parity test enforce it. See `docs/translations.md`.
+
+## Dokumentation
+
+- Verfasse Dokumentation möglichst knapp und ohne Wiederholungen, um Tokens zu sparen. Beschränke sie auf nötige Entscheidungen, Sicherheitsdetails und Testhinweise; verlinke vorhandene Dokumentation statt Inhalte zu duplizieren.
+
+## Tests und Coverage
+
+- Jede funktionale Codeänderung (neue Funktionen, Fehlerbehebungen und Refactorings) muss durch passende automatisierte Tests abgedeckt sein; Tests im selben Arbeitsschritt ergänzen oder anpassen.
+- Pflicht ist eine Zeilenabdeckung von **> 80 %** des produktiven Codes je Plugin; genau 80 % reichen nicht. PHP und JavaScript/TypeScript, soweit vorhanden, jeweils prüfen. Bestehende strengere Coverage-Grenzen bleiben verbindlich.
+- Vor Abschluss relevante Tests und Coverage-Prüfungen ausführen und Ergebnisse nennen. Fehlende Coverage-Infrastruktur ergänzen; fehlende Messwerte gelten nicht als erfüllte Vorgabe. Keine produktiven Dateien ausschließen oder Grenzen senken, um die Vorgabe zu umgehen.
+
+Vorhanden: PHPUnit-/WordPress-Coverage und SonarQube; siehe `README.md` (SonarQube) und `sonar-project.properties`.
