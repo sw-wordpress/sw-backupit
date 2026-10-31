@@ -16,6 +16,7 @@
     "format": "prettier --write .",
     "format:check": "prettier --check .",
     "test": "vitest run",
+    "test:coverage": "vitest run --coverage && node scripts/check-coverage.mjs",
     "screenshots": "node scripts/screenshots.mjs"
   },
   "dependencies": {

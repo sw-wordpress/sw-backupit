@@ -61,5 +61,16 @@ export default defineConfig(({ command }) => ({
     include: ['tests/**/*.test.ts'],
     css: false,
     server: { deps: { inline: ['quasar'] } },
+    coverage: {
+      provider: 'v8',
+      // All productive sources, including files no test imports. Only type declarations and
+      // stylesheets are excluded (no executable code). The strict > 80 % gate is enforced by
+      // scripts/check-coverage.mjs, because Vitest thresholds accept exactly 80 %.
+      include: ['src/**/*.{ts,vue}'],
+      exclude: ['src/types/**', 'src/**/*.d.ts'],
+      reporter: ['text-summary', 'json-summary', 'lcov'],
+      reportsDirectory: 'coverage',
+      thresholds: { lines: 80 },
+    },
   },
 }));
