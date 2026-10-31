@@ -58,7 +58,9 @@ describe('app shell', () => {
   it('renders a running job detail and polls it', async () => {
     const list = handle({ method: 'GET', path: 'jobs', query: new URLSearchParams(), body: {} })
       .body as { items: Array<{ id: string; status: string }> };
-    const running = list.items.find((j) => !['completed', 'failed', 'cancelled'].includes(j.status));
+    const running = list.items.find(
+      (j) => !['completed', 'failed', 'cancelled'].includes(j.status),
+    );
     expect(running).toBeDefined();
     const { wrapper } = await mountApp(`/jobs/${running!.id}`);
     await settle(8);
@@ -76,10 +78,13 @@ describe('app shell', () => {
   it('shows the error state when the API fails', async () => {
     installMockFetch(
       () =>
-        new Response(JSON.stringify({ code: 'boom', message: 'Server exploded', data: { status: 500 } }), {
-          status: 500,
-          headers: { 'Content-Type': 'application/json' },
-        }),
+        new Response(
+          JSON.stringify({ code: 'boom', message: 'Server exploded', data: { status: 500 } }),
+          {
+            status: 500,
+            headers: { 'Content-Type': 'application/json' },
+          },
+        ),
     );
     const { wrapper } = await mountApp('/backups');
     expect(document.body.textContent).toContain('Server exploded');
@@ -137,7 +142,11 @@ describe('useNotify', () => {
           return () => h('div');
         },
       }),
-      { global: { plugins: [[Quasar, { plugins: { Notify }, iconSet }], createAppI18n('en_US')] as never[] } },
+      {
+        global: {
+          plugins: [[Quasar, { plugins: { Notify }, iconSet }], createAppI18n('en_US')] as never[],
+        },
+      },
     );
     return api;
   }

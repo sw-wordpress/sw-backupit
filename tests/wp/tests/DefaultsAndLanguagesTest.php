@@ -111,4 +111,19 @@ class DefaultsAndLanguagesTest extends WP_UnitTestCase {
 		$this->assertSame( 'Message that is not in the catalog', CoreMessages::translate( 'Message that is not in the catalog' ) );
 		unload_textdomain( 'sw-backupit' );
 	}
+
+	public function test_every_core_message_is_translated_in_each_shipped_language(): void {
+		unload_textdomain( 'sw-backupit' );
+		$english = CoreMessages::catalog();
+		$this->assertNotEmpty( $english );
+		$this->assertSame( array_values( array_unique( $english ) ), $english, 'catalog entries are unique' );
+		$this->assertContains( 'Unknown backup type.', $english );
+		$dir = dirname( __DIR__, 3 ) . '/languages';
+		foreach ( array( 'de_DE', 'fr_FR', 'it_IT', 'pl_PL' ) as $locale ) {
+			load_textdomain( 'sw-backupit', $dir . '/sw-backupit-' . $locale . '.mo', $locale );
+			$untranslated = array_keys( array_intersect_assoc( $english, CoreMessages::catalog() ) );
+			unload_textdomain( 'sw-backupit' );
+			$this->assertSame( array(), array_map( static fn( int $i ): string => $english[ $i ], $untranslated ), $locale . ' misses core message translations' );
+		}
+	}
 }

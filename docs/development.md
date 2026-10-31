@@ -22,7 +22,7 @@ composer test:e2e    # backup -> wipe -> restore (incl. encryption, storage targ
 composer test:load   # 20,000 files, 300 MB file, concurrent workers, full disk (slow)
 composer test:wp     # WordPress integration tests (single site)
 composer test:wp:ms  # same environment as multisite
-(cd apps/admin && npm run typecheck && npm run lint && npm run test)
+(cd apps/admin && npm run typecheck && npm run lint && npm run test:coverage)
 ```
 `composer check` runs style, analysis and tests. Style warnings for lines longer than 200 characters do not fail the build. Documented lint exceptions live in
 `phpcs.xml.dist` / `phpcs-wordpress.xml.dist` (enum handling of PHPCompatibility 9, docblock requirement relaxed for typed adapter methods, exception messages
@@ -58,8 +58,11 @@ runs this test again after removing the original Composer tree; CI also checks t
 The test workflow uploads merged PHP Clover coverage and analyzes same-repository PRs and pushes to the default branch. Configure the
 `SONAR_TOKEN` Actions secret and `SONAR_ORGANIZATION` Actions variable (organization-level bindings may be reused). Project mapping and
 source paths are in `sonar-project.properties`. Fork PRs run tests without access to the scanner token. Coverage uses the existing
-PHPUnit scopes; unmeasured application code is not excluded from SonarQube. Frontend tests and builds run separately;
-JavaScript/TypeScript coverage is not collected yet. Generated assets and third-party dependencies are not analysis inputs.
+PHPUnit scopes (unit, integration, WordPress and e2e suites, merged); unmeasured application code is not excluded from SonarQube. Generated assets and third-party dependencies are
+not analysis inputs. The admin UI's `npm run test:coverage` measures every file in `apps/admin/src` (except type-only `src/types/`)
+with V8 and writes `apps/admin/coverage/lcov.info` for SonarQube. CI fails unless line coverage is strictly above 80 % (exactly 80 %
+fails): `tests/coverage/check.php` for the merged PHP Clover report, `apps/admin/scripts/check-coverage.mjs` for the frontend
+(Vitest thresholds alone would accept 80 %).
 
 ## Conventions
 See `AGENTS.md` and `CODE-STYLE.md`. Gotchas learned the hard way: `wpdb::$field_types` maps columns named `object_id` to `%d` (pass explicit formats);

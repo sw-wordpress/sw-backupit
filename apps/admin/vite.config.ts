@@ -68,7 +68,8 @@ export default defineConfig(({ command }) => ({
       // scripts/check-coverage.mjs, because Vitest thresholds accept exactly 80 %.
       include: ['src/**/*.{ts,vue}'],
       exclude: ['src/types/**', 'src/**/*.d.ts'],
-      reporter: ['text-summary', 'json-summary', 'lcov'],
+      // lcov paths relative to the repository root, as SonarQube expects.
+      reporter: ['text-summary', 'json-summary', ['lcov', { projectRoot: '../..' }]],
       reportsDirectory: 'coverage',
       thresholds: { lines: 80 },
     },

@@ -36,9 +36,11 @@ jobs:
       working-directory: tests/wp
       run: vendor/bin/phpunit -c phpunit.xml.dist --coverage-clover ../../coverage/wordpress.xml
     - name: Backup and restore scenarios
-      run: composer test:e2e
+      run: vendor/bin/phpunit --testsuite e2e --coverage-clover coverage/e2e.xml
     - name: Merge and normalize Clover paths
-      run: php tests/coverage/merge.php coverage/unit.xml coverage/wordpress.xml
+      run: php tests/coverage/merge.php coverage/unit.xml coverage/wordpress.xml coverage/e2e.xml
+    - name: Enforce PHP line coverage > 80 %
+      run: php tests/coverage/check.php coverage/clover.xml 80
     - name: Upload Clover coverage
       uses: actions/upload-artifact@v4
       with:
@@ -69,7 +71,17 @@ jobs:
         cache: npm
         cache-dependency-path: apps/admin/package-lock.json
     - run: npm ci
-    - run: npm run lint && npm run typecheck && npm test && npm run build
+    - run: npm run lint && npm run typecheck
+    - name: Tests with strict line coverage > 80 %
+      run: npm run test:coverage
+    - run: npm run build
+    - name: Upload lcov coverage
+      uses: actions/upload-artifact@v4
+      with:
+        name: frontend-coverage
+        path: apps/admin/coverage/lcov.info
+        if-no-files-found: error
+        retention-days: 14
   sonarqube:
     name: SonarQube Cloud
     needs:
@@ -89,6 +101,10 @@ jobs:
       with:
         name: php-coverage
         path: coverage
+    - uses: actions/download-artifact@v4
+      with:
+        name: frontend-coverage
+        path: apps/admin/coverage
     - name: Check SonarQube configuration
       env:
         SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
@@ -103,6 +119,7 @@ jobs:
           exit 1
         fi
         test -s coverage/clover.xml
+        test -s apps/admin/coverage/lcov.info
     - name: Analyze code and import coverage
       uses: SonarSource/sonarqube-scan-action@d209202bc7d53ff1cc128f7f907dac145c9d6ae9
       with:
