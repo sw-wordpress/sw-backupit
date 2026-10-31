@@ -30,7 +30,36 @@ are never echoed as HTML).
 
 ## Build
 `bin/build-zip.sh` creates `dist/sw-backupit-<version>.zip` (production Composer dependencies, compiled SPA, standalone restore in `restore-app/`).
-`bin/build-restore.sh <dir>` builds only the standalone restore application.
+It needs Composer, Docker and Node.js on the *build* machine only. `bin/build-restore.sh <dir>` builds only the standalone restore application.
+
+### Admin UI build
+`make build` (Make, Node.js >= 18.18, npm) builds only the admin UI into `assets/admin/` (including TypeScript checks), not the release ZIP
+or the restore application. Dependencies are installed with `npm ci --include=dev` on the first build and whenever
+`apps/admin/package.json` or its lockfile changes.
+
+### Isolated release dependencies
+Local ZIP builds and the GitHub release workflow share `bin/build-zip.sh`. It installs only production Composer dependencies into a
+temporary staging tree, smoke-tests the checkout, then runs `coenjacobs/mozart:1.2.3` (rewriting the staging copy, not the checkout).
+External classes use the namespace `SWBackupIt\Dependencies\`; classmapped symbols use `SWBackupIt_`. Only the resulting
+`vendor-prefixed/` tree is shipped, never the original top-level `vendor/` directory.
+
+The plugin prefers `vendor-prefixed/autoload.php` and registers the Core, Restore and WordPress PSR-4 mappings on its loader. Source
+checkouts keep the normal `composer install` workflow and the `SWBACKUPIT_AUTOLOADER` test override.
+
+The independent `restore-app/` contains only its own classes, a minimal loader and PSR Log, copied from the isolated staging tree. Its
+small `vendor/` directory is intentional; it is not the plugin's original Composer tree. Building restore directly from a development
+checkout still supports the unprefixed PSR Log library.
+
+`php tests/bootstrap.php [plugin-directory]` checks the real plugin entry point, lifecycle/hooks, all three monorepo mappings and
+representative production library operations (including offline AWS signing, dynamic phpseclib loading and local storage). The build
+runs this test again after removing the original Composer tree; CI also checks the final extracted ZIP and the standalone restore CLI.
+
+## SonarQube Cloud
+The test workflow uploads merged PHP Clover coverage and analyzes same-repository PRs and pushes to the default branch. Configure the
+`SONAR_TOKEN` Actions secret and `SONAR_ORGANIZATION` Actions variable (organization-level bindings may be reused). Project mapping and
+source paths are in `sonar-project.properties`. Fork PRs run tests without access to the scanner token. Coverage uses the existing
+PHPUnit scopes; unmeasured application code is not excluded from SonarQube. Frontend tests and builds run separately;
+JavaScript/TypeScript coverage is not collected yet. Generated assets and third-party dependencies are not analysis inputs.
 
 ## Conventions
 See `AGENTS.md` and `CODE-STYLE.md`. Gotchas learned the hard way: `wpdb::$field_types` maps columns named `object_id` to `%d` (pass explicit formats);

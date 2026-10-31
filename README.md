@@ -1,73 +1,139 @@
-# sw-backupit
+# SW-BackupIt
 
-Robust, resumable WordPress backup, restore and disaster recovery with an independent standalone restore application.
+[![Release](https://img.shields.io/github/v/release/sw-wordpress/sw-backupit?sort=semver)](https://github.com/sw-wordpress/sw-backupit/releases)
+[![Coverage](https://sonarcloud.io/api/project_badges/measure?project=sw-wordpress_sw-backupit&metric=coverage)](https://sonarcloud.io/summary/overall?id=sw-wordpress_sw-backupit)
+[![SonarQube Issues](https://sonarcloud.io/api/project_badges/measure?project=sw-wordpress_sw-backupit&metric=vulnerabilities)](https://sonarcloud.io/project/issues?id=sw-wordpress_sw-backupit&impactSoftwareQualities=SECURITY&resolved=false)
 
-* **Streams everything** (files → ZIP64 volumes, database → gzip SQL parts): low memory, short resumable ticks, works on shared hosting; no process has to stay alive.
-* **Persistent jobs**: checkpoints, leases, pause/resume/cancel, retry with backoff, watchdog, per-step logs and progress.
-* **Full / Files / Database / Incremental / Differential** backups with complete per-backup indexes and verified base chains.
-* **Storage**: local, SFTP, S3-compatible via Flysystem; multi-target replication with independent status, remote verification, resumable S3 multipart, immutable targets / Object Lock.
-* **Client-side encryption** (libsodium XChaCha20-Poly1305 streaming, documented format), retention incl. GFS, e-mail notifications.
-* **Standalone restore** (CLI + secured web wizard) that needs neither WordPress nor Composer: verification, compare, selective restore, serialization-safe URL/path/prefix migration, restore from storage, test restores in an isolated environment.
-* **Enterprise**: audit log, background verification, pre-update backups, multisite (network-wide), health monitoring.
-* Modern Vue 3 / Quasar admin UI (German/English), REST API (`docs/rest-api.md`), WP-CLI (`docs/wp-cli.md`).
+Backs up the complete WordPress site (files and database) and restores it, also on another domain or server.
+Restores run in a standalone application that works even when WordPress itself is broken.
 
-Backups are self-contained directories (`manifest.json`, `files.ndjson`, volumes, SQL parts – `docs/backup-format.md`) and can be restored without the sw-backupit database tables.
+## Features
 
-## Plugin naming
+- **Resumable backups** — Large sites are backed up in short steps that continue after interruptions, also on shared hosting.
+- **Full, incremental and differential** — Profiles decide what is backed up, how often and how long it is kept.
+- **Several storage targets** — Local directory, [SFTP](https://en.wikipedia.org/wiki/SSH_File_Transfer_Protocol) and [S3](https://en.wikipedia.org/wiki/Amazon_S3)-compatible storage, each copy verified.
+- **Encryption** — Optional client-side encryption with [libsodium](https://en.wikipedia.org/wiki/NaCl_(software)) before a backup leaves the server.
+- **Standalone restore** — Web wizard or command line, with selective restore and domain migration.
+- **Restore tests and audit log** — Backups are checked regularly; downloads, deletions and restores are logged.
 
-The plugin directory and entry point are `sw-backupit/sw-backupit.php`. The text domain, REST namespace
-(`sw-backupit/v1`), admin page, WP-CLI command (`wp sw-backupit`) and restore executable (`sw-backupit-restore`)
-use the same name. Update external CLI/REST integrations and reactivate the renamed plugin in WordPress if necessary.
-PHP namespaces (`SWBackupIt`), constants (`SWBACKUPIT_*`), the JavaScript configuration object and existing
-`swbi_*` storage keys stay unchanged for compatibility. Backups with the legacy manifest label remain readable.
+## Languages
 
-## Documentation
-`docs/user-guide.md` · `docs/architecture.md` · `docs/backup-format.md` · `docs/security.md` · `docs/wp-cli.md` · `docs/hooks.md` · `docs/rest-api.md` · `docs/development.md` · progress: `DONE.md`, `TODO.md`
+English, German, French, Italian, Polish.
 
-## Requirements
-PHP 8.2+, WordPress 6.4+, extensions `zip`, `zlib`, `pdo_mysql` (`sodium` for encryption). Build the installable ZIP with `bin/build-zip.sh` (needs Composer, Docker and, for the UI, Node on the *build* machine only).
+## Usage
 
-## Admin UI build
+1. Open **sw-backupit → Dashboard** (on multisite in the Network Admin) and fix any warnings shown there.
+2. Optional: under **Storage targets** click **Add storage target**, then **Test connection**, and add the target to a profile under **Profiles**.
+3. Under **Profiles** click **Run now** on *Full backup (everything, without cache)*. From the command line:
+   `wp sw-backupit backup create --profile="Full backup (everything, without cache)"`
+4. Under **Schedules** click **Create schedule** to run backups automatically.
+5. To restore, open a backup under **Backups**, click **Restore**, then **Prepare restore** and **Open standalone restore**.
 
-Run `make build` from the plugin directory (requires Make, Node.js >=18.18 and npm).
-Dependencies are installed automatically with `npm ci --include=dev` on the first build
-and whenever `apps/admin/package.json` or its lockfile changes. The existing build
-includes TypeScript checks and writes the compiled admin UI to `assets/admin/`.
-This builds the UI only, not the release ZIP or standalone restore application.
+Full guide: [docs/user-guide.md](docs/user-guide.md), commands: [docs/wp-cli.md](docs/wp-cli.md).
 
-## Isolated release dependencies
+## Configuration
 
-Local ZIP builds and the GitHub release workflow share `bin/build-zip.sh`. It installs
-only production Composer dependencies into a temporary staging tree, smoke-tests the
-checkout, then runs `coenjacobs/mozart:1.2.3`. External classes use the namespace
-`SWBackupIt\Dependencies\`; classmapped symbols use `SWBackupIt_`. Only the resulting
-`vendor-prefixed/` tree is shipped, never the original top-level `vendor/` directory.
-Mozart rewrites the staging copy, not the development checkout.
+### Requirements
 
-The plugin prefers `vendor-prefixed/autoload.php` and registers the Core, Restore and
-WordPress PSR-4 mappings on its loader. Source checkouts retain the normal
-`composer install` workflow and the `SWBACKUPIT_AUTOLOADER` test override.
+PHP 8.2+ with `zip`, `zlib`, `pdo_mysql` (and `sodium` for encryption), WordPress 6.4+, MySQL or MariaDB, single site or multisite (network wide).
 
-The independent `restore-app/` contains only its own classes, a minimal loader and
-PSR Log, copied from the isolated staging tree. Its small `vendor/` directory is
-intentional; it is not the plugin's original Composer tree. Building restore directly
-from a development checkout still supports the unprefixed PSR Log library.
+### Settings
 
-`php tests/bootstrap.php [plugin-directory]` checks the real plugin entry point,
-lifecycle/hooks, all three monorepo mappings and representative production library
-operations (including offline AWS signing, dynamic phpseclib loading and local storage).
-The build runs this test again after removing the original Composer tree; CI also
-checks the final extracted ZIP and the standalone restore CLI.
+Options are under **sw-backupit → Settings** (staging directory, **Cron mode**, **Encryption keys**,
+**Backup before updates**, notifications, logging). Keep the staging directory outside the web root.
 
-License: GPL-2.0-or-later.
+The plugin reads these `wp-config.php` constants:
 
-## SonarQube Cloud
+```php
+// Encryption key for key ID <ID> (upper-cased, other characters become "_"). Default: not set,
+// the key stored under Settings → Encryption keys is used. Recommended: keep keys outside the database.
+// Value: the secret shown once on creation ("base64:…") or a passphrase. Also read from the environment.
+define( 'SWBACKUPIT_KEY_<ID>', 'base64:…' );
 
-The test workflow uploads merged PHP Clover coverage and analyzes same-repository PRs
-and pushes to the default branch. Configure the `SONAR_TOKEN` Actions secret and
-`SONAR_ORGANIZATION` Actions variable (organization-level bindings may be reused).
-Project mapping and source paths are in `sonar-project.properties`. Fork PRs run tests
-without access to the scanner token. Coverage uses the existing PHPUnit scopes;
-unmeasured application code is not excluded from SonarQube. Frontend tests and builds
-run separately; JavaScript/TypeScript coverage is not collected by this PHP rollout.
-Generated assets and third-party dependencies are not application analysis inputs.
+// Tests only: path to an alternative autoloader. Default: not set.
+define( 'SWBACKUPIT_AUTOLOADER', '/path/to/autoload.php' );
+```
+
+### Background tasks
+
+WP-Cron checks schedules every minute, runs backup jobs, restarts stuck jobs and once a day cleans up old logs
+and restore wizards, verifies stored backups and runs due restore tests. On sites with little traffic or with
+`DISABLE_WP_CRON`, set **Cron mode** to *System cron (recommended)* and run every minute, e.g.
+`* * * * * wp sw-backupit schedule run-due --path=/path/to/wordpress`.
+
+### Integrations
+
+- **WP-CLI** — All backup, restore, schedule and storage functions: [docs/wp-cli.md](docs/wp-cli.md).
+- **REST API and hooks** — For own integrations: [docs/rest-api.md](docs/rest-api.md), [docs/hooks.md](docs/hooks.md).
+
+### Deactivation and removal
+
+Deactivating stops all background tasks and removes prepared restore wizards; profiles, settings and backups are kept.
+Deleting the plugin does the same and removes tables, settings, keys and capabilities only if the setting
+`delete_data_on_uninstall` is enabled (default: off, not shown in the admin UI). Backups in the staging directory
+and on storage targets are never deleted. On multisite all data is network wide.
+
+## Troubleshooting
+
+| Problem | Solution |
+|---|---|
+| Scheduled backups do not start. | Check the cron notice on the dashboard and use a system cron (see above). |
+| A backup seems stuck. | Wait about a minute: the watchdog restarts lost jobs. Failed jobs can be retried from the job log. |
+| The staging directory is refused or reported as public. | Choose a directory outside the web root; on nginx add a deny rule, see [docs/user-guide.md](docs/user-guide.md#troubleshooting). |
+| An encrypted backup cannot be read. | Provide the key (`--key`, `SWBI_KEY` or `SWBACKUPIT_KEY_<ID>`). Without the key no restore is possible. |
+| Restore reports a missing base backup. | Download the whole chain (`fetch --with-chain`) into the same directory. |
+
+## Built with AI
+
+This plugin was implemented with AI assistance. Why it exists and how AI is used:
+[sw-wordpress manifest](https://github.com/sw-wordpress/.github/blob/main/profile/README.md).
+
+AI agents must follow the project rules before changing code:
+
+- Rules and mandatory coverage: [AGENTS.md](AGENTS.md), [CODE-STYLE.md](CODE-STYLE.md), [CONTRIBUTING.md](CONTRIBUTING.md)
+- Product spec: [PLAN.md](PLAN.md), current status: [TODO.md](TODO.md), [DONE.md](DONE.md)
+- Architecture, format and security: [docs/](docs/) ([architecture.md](docs/architecture.md), [backup-format.md](docs/backup-format.md), [security.md](docs/security.md))
+- README structure: [README-STANDARD.md](https://github.com/sw-wordpress/sw-securelogin/blob/master/docs/README-STANDARD.md)
+
+## Development
+
+Requirements: PHP 8.2+, Composer, Node.js 18.18+ with npm, Make, and Docker for the release build.
+
+```sh
+composer install
+make build                           # admin UI (Vue/Quasar) into assets/admin
+bin/test-db.sh start                 # private MariaDB for integration tests
+(cd tests/wp && composer install)    # WordPress test environment
+
+composer check                       # coding standards, PHPStan, unit + integration tests
+composer test:e2e && composer test:wp && composer test:wp:ms
+(cd apps/admin && npm run typecheck && npm run lint && npm run test)
+
+bin/build-zip.sh                     # release ZIP in dist/
+```
+
+Every change needs tests; line coverage must stay above 80 % for PHP and JavaScript.
+Test setup, release build and SonarQube: [docs/development.md](docs/development.md), translations: [docs/translations.md](docs/translations.md).
+GitHub Actions run the checks on every push.
+
+## License
+
+[GPL-2.0-or-later](https://www.gnu.org/licenses/gpl-2.0.html) — see [LICENSE](LICENSE). Provided by Stefan Warnat.
+
+Bundled third-party components. PHP libraries (license texts in each package directory under `vendor/`
+after `composer install`; the release build ships them prefixed in `vendor-prefixed/`):
+
+- [aws/aws-sdk-php](https://github.com/aws/aws-sdk-php), [aws/aws-crt-php](https://github.com/awslabs/aws-crt-php) — Apache-2.0
+- [league/flysystem](https://github.com/thephpleague/flysystem) with [flysystem-local](https://github.com/thephpleague/flysystem-local), [flysystem-sftp-v3](https://github.com/thephpleague/flysystem-sftp-v3), [flysystem-aws-s3-v3](https://github.com/thephpleague/flysystem-aws-s3-v3), [mime-type-detection](https://github.com/thephpleague/mime-type-detection) — MIT
+- [phpseclib/phpseclib](https://github.com/phpseclib/phpseclib), [paragonie/constant_time_encoding](https://github.com/paragonie/constant_time_encoding), [paragonie/random_compat](https://github.com/paragonie/random_compat) — MIT
+- [maennchen/zipstream-php](https://github.com/maennchen/ZipStream-PHP), [dragonmantank/cron-expression](https://github.com/dragonmantank/cron-expression), [mtdowling/jmespath.php](https://github.com/jmespath/jmespath.php) — MIT
+- [guzzlehttp/guzzle](https://github.com/guzzle/guzzle), [guzzlehttp/promises](https://github.com/guzzle/promises), [guzzlehttp/psr7](https://github.com/guzzle/psr7) — MIT
+- [psr/log](https://github.com/php-fig/log) (also in the standalone restore app), [psr/http-client](https://github.com/php-fig/http-client), [psr/http-factory](https://github.com/php-fig/http-factory), [psr/http-message](https://github.com/php-fig/http-message) — MIT
+- [symfony/filesystem](https://github.com/symfony/filesystem), [deprecation-contracts](https://github.com/symfony/deprecation-contracts), [polyfill-ctype](https://github.com/symfony/polyfill-ctype), [polyfill-mbstring](https://github.com/symfony/polyfill-mbstring), [polyfill-php80](https://github.com/symfony/polyfill-php80), [polyfill-php82](https://github.com/symfony/polyfill-php82) — MIT
+
+Admin UI bundle in `assets/admin/` (license headers in `app.js`, full texts in `apps/admin/node_modules/` of the source):
+
+- [Vue](https://github.com/vuejs/core), [Vue Router](https://github.com/vuejs/router), [Pinia](https://github.com/vuejs/pinia), [Vue I18n](https://github.com/intlify/vue-i18n) — MIT
+- [Quasar](https://github.com/quasarframework/quasar), [@quasar/extras](https://github.com/quasarframework/quasar/tree/dev/extras) — MIT
+- [Material Icons Round](https://github.com/google/material-design-icons) font — Apache-2.0
+- [Inter](https://github.com/rsms/inter), [JetBrains Mono](https://github.com/JetBrains/JetBrainsMono) fonts (via Fontsource) — OFL-1.1

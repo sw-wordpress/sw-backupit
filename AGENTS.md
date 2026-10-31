@@ -33,4 +33,4 @@ Every change to user-facing text updates all languages (PHP gettext catalogs in 
 - Pflicht ist eine Zeilenabdeckung von **> 80 %** des produktiven Codes je Plugin; genau 80 % reichen nicht. PHP und JavaScript/TypeScript, soweit vorhanden, jeweils prüfen. Bestehende strengere Coverage-Grenzen bleiben verbindlich.
 - Vor Abschluss relevante Tests und Coverage-Prüfungen ausführen und Ergebnisse nennen. Fehlende Coverage-Infrastruktur ergänzen; fehlende Messwerte gelten nicht als erfüllte Vorgabe. Keine produktiven Dateien ausschließen oder Grenzen senken, um die Vorgabe zu umgehen.
 
-Vorhanden: PHPUnit-/WordPress-Coverage und SonarQube; siehe `README.md` (SonarQube) und `sonar-project.properties`.
+Vorhanden: PHPUnit-/WordPress-Coverage und SonarQube; siehe `docs/development.md` (SonarQube Cloud) und `sonar-project.properties`.

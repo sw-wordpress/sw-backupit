@@ -33,6 +33,7 @@
     "@quasar/vite-plugin": "1.9.0",
     "@types/node": "^18.19.130",
     "@vitejs/plugin-vue": "^5.2.4",
+    "@vitest/coverage-v8": "^3.2.4",
     "@vue/test-utils": "^2.4.6",
     "eslint": "^9.39.0",
     "eslint-config-prettier": "^10.1.0",
