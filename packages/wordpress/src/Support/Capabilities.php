@@ -58,10 +58,10 @@ final class Capabilities {
 	 * are reserved to super admins. Roles of individual sites (including a subsite administrator that got the caps by
 	 * accident) are never sufficient for them; view/run/profile capabilities can still be delegated per role.
 	 *
-	 * @param list<string> $caps    Primitive capabilities required.
-	 * @param string       $cap     Capability being checked.
-	 * @param int          $user_id User id.
-	 * @param array<mixed> $args    Extra arguments (unused).
+	 * @param array<string> $caps    Primitive capabilities required.
+	 * @param string        $cap     Capability being checked.
+	 * @param int           $user_id User id.
+	 * @param array<mixed>  $args    Extra arguments (unused).
 	 * @return list<string>
 	 */
 	public static function map_meta_cap( $caps, $cap, $user_id, $args ): array { // phpcs:ignore Generic.CodeAnalysis.UnusedFunctionParameter.FoundAfterLastUsed -- signature dictated by the filter.

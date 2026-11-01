@@ -437,6 +437,30 @@ class ReviewFixesTest extends WP_UnitTestCase {
 		$this->assertSame( 2, Services::instance()->jobs()->count(), 'the new intact backup is reused' );
 	}
 
+	public function test_verified_backups_are_reliable_catalog_records_but_corrupt_ones_are_not(): void {
+		[ , $job ] = $this->backup();
+		$id        = $job['backup_id'];
+		$reliable  = static function () use ( $id ): bool {
+			foreach ( Services::instance()->catalog()->records() as $record ) {
+				if ( $record->id === $id ) {
+					return $record->reliable;
+				}
+			}
+			throw new RuntimeException( 'backup missing from the catalog' );
+		};
+		$this->assertTrue( $reliable(), 'complete' );
+		Services::instance()->backups()->mark_verified( $id, 'verified' );
+		$this->assertTrue( $reliable(), 'a verified backup stays usable as parent and in retention' );
+		Services::instance()->backups()->mark_verified( $id, 'corrupt' );
+		$this->assertFalse( $reliable(), 'corrupt' );
+	}
+
+	public function test_service_factories_must_return_the_requested_class(): void {
+		$get = new ReflectionMethod( Services::class, 'get' );
+		$this->expectException( LogicException::class );
+		$get->invoke( Services::instance(), \stdClass::class . 'X', static fn () => new \ArrayObject() );
+	}
+
 	// 10. DST.
 
 	/**

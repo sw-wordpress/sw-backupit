@@ -45,7 +45,7 @@ final class EncryptionKeysController extends BaseController {
 		);
 	}
 
-	public function list_keys() {
+	public function list_keys(): \WP_REST_Response {
 		$items = ( new WpKeyProvider() )->list_ids();
 		return $this->collection( $items, count( $items ), 1, max( 1, count( $items ) ) );
 	}
@@ -53,7 +53,7 @@ final class EncryptionKeysController extends BaseController {
 	/**
 	 * Body: { "id": "prod", "passphrase": "optional" }. Without a passphrase a random 256 bit key is generated.
 	 */
-	public function create( \WP_REST_Request $request ) {
+	public function create( \WP_REST_Request $request ): \WP_REST_Response|\WP_Error {
 		$body = $this->body( $request );
 		$id   = (string) ( $body['id'] ?? '' );
 		try {
@@ -80,7 +80,7 @@ final class EncryptionKeysController extends BaseController {
 		);
 	}
 
-	public function delete( \WP_REST_Request $request ) {
+	public function delete( \WP_REST_Request $request ): \WP_REST_Response|\WP_Error {
 		foreach ( $this->services()->profiles()->all() as $profile ) {
 			if ( $profile->encryption->enabled && $profile->encryption->keyId === (string) $request['id'] ) {
 				return $this->error( 'swbi_conflict', __( 'The key is used by a profile. Change the profile first.', 'sw-backupit' ), 409 );

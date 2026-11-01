@@ -53,8 +53,8 @@ final class AuditLogger {
 	}
 
 	/**
-	 * @param string            $hook Action name.
-	 * @param array<int, mixed> $args Action arguments.
+	 * @param string       $hook Action name.
+	 * @param array<mixed> $args Action arguments.
 	 */
 	private function on_action( string $hook, array $args ): void {
 		[ $type, $index ] = self::MAP[ $hook ];

@@ -236,7 +236,7 @@ final class BackupsController extends BaseController {
 	/**
 	 * Queues a copy (or move) of the backup to another storage target.
 	 */
-	public function transfer( \WP_REST_Request $request ) {
+	public function transfer( \WP_REST_Request $request ): \WP_REST_Response|\WP_Error {
 		$move = rest_sanitize_boolean( $request['move'] );
 		if ( $move && ! current_user_can( Capabilities::DELETE ) ) {
 			return $this->error( 'swbi_forbidden', __( 'Moving a backup removes the source copy and needs the permission to delete backups.', 'sw-backupit' ), 403 );
@@ -250,7 +250,7 @@ final class BackupsController extends BaseController {
 		return new \WP_REST_Response( $this->services()->transfers()->to_rest( $transfer ), 202 );
 	}
 
-	public function cancel_transfer( \WP_REST_Request $request ) {
+	public function cancel_transfer( \WP_REST_Request $request ): \WP_REST_Response|\WP_Error {
 		return $this->services()->transfers()->cancel( (string) $request['transfer'] )
 			? new \WP_REST_Response( array( 'cancelled' => true ) )
 			: $this->error( 'swbi_not_found', __( 'No running transfer with this id.', 'sw-backupit' ), 404 );
@@ -259,7 +259,7 @@ final class BackupsController extends BaseController {
 	/**
 	 * Compares the backup file index with the files of this installation (nothing is changed).
 	 */
-	public function compare( \WP_REST_Request $request ) {
+	public function compare( \WP_REST_Request $request ): \WP_REST_Response|\WP_Error {
 		$id = (string) $request['id'];
 		if ( null === $this->services()->backups()->find_row( $id ) ) {
 			return $this->error( 'swbi_not_found', __( 'Backup not found.', 'sw-backupit' ), 404 );
@@ -286,7 +286,7 @@ final class BackupsController extends BaseController {
 	/**
 	 * Automated test restore into an isolated temp directory and scratch database; nothing productive is touched.
 	 */
-	public function restore_test( \WP_REST_Request $request ) {
+	public function restore_test( \WP_REST_Request $request ): \WP_REST_Response|\WP_Error {
 		try {
 			return new \WP_REST_Response( ( new RestoreTestService() )->run( (string) $request['id'] ) );
 		} catch ( SwbiException $exception ) {
@@ -297,7 +297,7 @@ final class BackupsController extends BaseController {
 	/**
 	 * Prepares the standalone restore wizard (token shown once).
 	 */
-	public function restore_prepare( \WP_REST_Request $request ) {
+	public function restore_prepare( \WP_REST_Request $request ): \WP_REST_Response|\WP_Error {
 		$id = (string) $request['id'];
 		if ( null === $this->services()->backups()->find_row( $id ) ) {
 			return $this->error( 'swbi_not_found', __( 'Backup not found.', 'sw-backupit' ), 404 );
@@ -309,7 +309,7 @@ final class BackupsController extends BaseController {
 		}
 	}
 
-	public function list_backups( \WP_REST_Request $request ) {
+	public function list_backups( \WP_REST_Request $request ): \WP_REST_Response {
 		$result   = $this->services()->backups()->search(
 			array(
 				'profile_id' => (int) $request['profile_id'],
@@ -328,7 +328,7 @@ final class BackupsController extends BaseController {
 		return $this->collection( $items, $result['total'], (int) $request['page'], (int) $request['per_page'] );
 	}
 
-	public function get_backup( \WP_REST_Request $request ) {
+	public function get_backup( \WP_REST_Request $request ): \WP_REST_Response|\WP_Error {
 		$row = $this->services()->backups()->find_row( (string) $request['id'] );
 		if ( null === $row ) {
 			return $this->error( 'swbi_not_found', __( 'Backup not found.', 'sw-backupit' ), 404 );
@@ -340,7 +340,7 @@ final class BackupsController extends BaseController {
 		return new \WP_REST_Response( $this->services()->backups()->to_rest( $row, array(), $profiles ) );
 	}
 
-	public function delete( \WP_REST_Request $request ) {
+	public function delete( \WP_REST_Request $request ): \WP_REST_Response|\WP_Error {
 		$id  = (string) $request['id'];
 		$row = $this->services()->backups()->find_row( $id );
 		if ( null === $row ) {
@@ -363,7 +363,7 @@ final class BackupsController extends BaseController {
 		return new \WP_REST_Response( array( 'deleted' => true ) );
 	}
 
-	public function verify( \WP_REST_Request $request ) {
+	public function verify( \WP_REST_Request $request ): \WP_REST_Response|\WP_Error {
 		$id = (string) $request['id'];
 		if ( null === $this->services()->backups()->find_row( $id ) ) {
 			return $this->error( 'swbi_not_found', __( 'Backup not found.', 'sw-backupit' ), 404 );
@@ -389,7 +389,7 @@ final class BackupsController extends BaseController {
 		);
 	}
 
-	public function protect( \WP_REST_Request $request ) {
+	public function protect( \WP_REST_Request $request ): \WP_REST_Response|\WP_Error {
 		$id = (string) $request['id'];
 		if ( null === $this->services()->backups()->find_row( $id ) ) {
 			return $this->error( 'swbi_not_found', __( 'Backup not found.', 'sw-backupit' ), 404 );
@@ -400,7 +400,7 @@ final class BackupsController extends BaseController {
 		return $this->get_backup( $request );
 	}
 
-	public function files( \WP_REST_Request $request ) {
+	public function files( \WP_REST_Request $request ): \WP_REST_Response|\WP_Error {
 		$id = (string) $request['id'];
 		if ( null === $this->services()->backups()->find_row( $id ) ) {
 			return $this->error( 'swbi_not_found', __( 'Backup not found.', 'sw-backupit' ), 404 );
@@ -452,7 +452,7 @@ final class BackupsController extends BaseController {
 	/**
 	 * Streams one artifact of a backup after authorization. No public URL ever exists.
 	 *
-	 * @return \WP_Error|void
+	 * @return \WP_Error
 	 */
 	public function download( \WP_REST_Request $request ) {
 		$path = $this->download_path( $request );
@@ -471,7 +471,7 @@ final class BackupsController extends BaseController {
 	/**
 	 * Streams the complete recovery package (backup + chain + restore application) as one ZIP.
 	 *
-	 * @return \WP_Error|void
+	 * @return \WP_Error
 	 */
 	public function package( \WP_REST_Request $request ) {
 		$id = (string) $request['id'];
@@ -480,6 +480,10 @@ final class BackupsController extends BaseController {
 		}
 		if ( ! BackgroundChecks::has_local_data( $id ) ) {
 			return $this->error( 'swbi_no_local_copy', __( 'The backup has no complete local copy. Download it from a storage target first.', 'sw-backupit' ), 409 );
+		}
+		$output = fopen( 'php://output', 'wb' ); // phpcs:ignore WordPress.WP.AlternativeFunctions
+		if ( false === $output ) {
+			return $this->error( 'swbi_error', __( 'An unexpected error occurred.', 'sw-backupit' ), 500 );
 		}
 		while ( ob_get_level() > 0 ) {
 			ob_end_clean();
@@ -492,7 +496,6 @@ final class BackupsController extends BaseController {
 		header( 'Content-Disposition: attachment; filename="' . RecoveryPackage::file_name( $id ) . '"' );
 		header( 'X-Content-Type-Options: nosniff' );
 		do_action( 'swbi_backup_downloaded', $id, 'recovery-package' );
-		$output = fopen( 'php://output', 'wb' ); // phpcs:ignore WordPress.WP.AlternativeFunctions
 		try {
 			( new RecoveryPackage() )->write( $output, $id );
 		} catch ( SwbiException $exception ) {
