@@ -1,8 +1,13 @@
 # SW-BackupIt
 
 [![Release](https://img.shields.io/github/v/release/sw-wordpress/sw-backupit?sort=semver)](https://github.com/sw-wordpress/sw-backupit/releases)
+[![CI](https://github.com/sw-wordpress/sw-backupit/actions/workflows/tests.yml/badge.svg)](https://github.com/sw-wordpress/sw-backupit/actions/workflows/tests.yml)
 [![Coverage](https://sonarcloud.io/api/project_badges/measure?project=sw-wordpress_sw-backupit&metric=coverage)](https://sonarcloud.io/summary/overall?id=sw-wordpress_sw-backupit)
 [![SonarQube Issues](https://sonarcloud.io/api/project_badges/measure?project=sw-wordpress_sw-backupit&metric=vulnerabilities)](https://sonarcloud.io/project/issues?id=sw-wordpress_sw-backupit&impactSoftwareQualities=SECURITY&resolved=false)
+![PHPStan level 8](https://img.shields.io/badge/phpstan%20level-8%20of%209-brightgreen?style=flat-square&logo=php)
+![PHP 8.2+](https://img.shields.io/badge/PHP-8.2%2B-777bb4?style=flat-square&logo=php&logoColor=white)
+![WordPress 6.4+](https://img.shields.io/badge/WordPress-6.4%2B-21759b?style=flat-square&logo=wordpress&logoColor=white)
+[![License GPL-2.0-or-later](https://img.shields.io/badge/License-GPL--2.0--or--later-blue?style=flat-square)](https://www.gnu.org/licenses/gpl-2.0.html)
 
 Backs up the complete WordPress site (files and database) and restores it, also on another domain or server.
 Restores run in a standalone application that works even when WordPress itself is broken.
