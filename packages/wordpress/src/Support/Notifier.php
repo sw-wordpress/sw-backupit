@@ -87,7 +87,7 @@ final class Notifier {
 		if ( array() === $list ) {
 			$list = array( (string) get_option( 'admin_email' ) );
 		}
-		return array_values( array_filter( array_map( 'sanitize_email', array_map( 'strval', $list ) ), 'is_email' ) );
+		return array_values( array_filter( array_map( 'sanitize_email', array_map( 'strval', $list ) ), static fn ( string $email ): bool => false !== is_email( $email ) ) );
 	}
 
 	private function is_duplicate( string $key ): bool {

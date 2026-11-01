@@ -70,7 +70,7 @@ final class WpdbJobRepository implements JobRepositoryInterface {
 		}
 		$sql  = $wpdb->prepare( "SELECT * FROM {$this->table()} $where ORDER BY created_at DESC LIMIT %d OFFSET %d", $limit, $offset ); // phpcs:ignore WordPress.DB
 		$rows = $wpdb->get_results( $sql, ARRAY_A ); // phpcs:ignore WordPress.DB
-		return array_map( fn ( array $row ): Job => $this->from_row( $row ), is_array( $rows ) ? $rows : array() );
+		return array_values( array_map( fn ( array $row ): Job => $this->from_row( $row ), is_array( $rows ) ? $rows : array() ) );
 	}
 
 	/**

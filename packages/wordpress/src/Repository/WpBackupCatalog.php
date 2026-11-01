@@ -33,7 +33,7 @@ final class WpBackupCatalog implements BackupCatalogInterface {
 		foreach ( $result['items'] as $row ) {
 			$created   = Time::from_db( (string) $row['created_at'] );
 			$type      = BackupType::tryFrom( (string) $row['type'] );
-			$reliable  = null !== $created && null !== $type && 'complete' === $row['status'] && 'corrupt' !== $row['status'];
+			$reliable  = null !== $created && null !== $type && in_array( $row['status'], array( 'complete', 'verified' ), true );
 			$meta      = is_string( $row['meta'] ) ? json_decode( $row['meta'], true ) : array();
 			$requires  = is_array( $meta ) && is_array( $meta['requires'] ?? null ) ? array_values( array_filter( $meta['requires'], 'is_string' ) ) : array();
 			$records[] = new BackupRecord(

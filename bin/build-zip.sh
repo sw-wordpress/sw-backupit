@@ -34,6 +34,7 @@ rsync -a --exclude-from="$UNTRACKED" --exclude-from=- "$ROOT/" "$STAGE/$NAME/" <
 .editorconfig
 .phpunit.cache
 .phpstan.cache
+/.phpstan.cache/
 .phpcs*.cache
 /vendor
 /vendor-prefixed
@@ -51,7 +52,7 @@ rsync -a --exclude-from="$UNTRACKED" --exclude-from=- "$ROOT/" "$STAGE/$NAME/" <
 /FINDINGS.md
 /docs/implementation-plan.md
 phpunit.xml.dist
-phpstan.neon.dist
+/phpstan.neon*
 phpcs*.xml.dist
 PLAN.md
 CODE-STYLE.md

@@ -25,6 +25,13 @@ jobs:
         coverage: xdebug
     - run: composer install --prefer-dist --no-interaction --no-progress
     - run: composer validate --strict
+    - name: Audit shipped Composer packages
+      run: |
+        if [ "$(php -r 'echo count(json_decode(file_get_contents("composer.lock"), true)["packages"]);')" = 0 ]; then
+          echo 'No runtime Composer packages are shipped; nothing to audit.'
+        else
+          composer audit --locked --no-dev
+        fi
     - run: composer cs && composer cs:wp && composer stan
     - name: Install isolated WordPress test dependencies
       run: composer install --working-dir=tests/wp --prefer-dist --no-interaction --no-progress
@@ -71,6 +78,7 @@ jobs:
         cache: npm
         cache-dependency-path: apps/admin/package-lock.json
     - run: npm ci
+    - run: npm audit --omit=dev --audit-level=high
     - run: npm run lint && npm run typecheck
     - name: Tests with strict line coverage > 80 %
       run: npm run test:coverage
@@ -89,7 +97,8 @@ jobs:
     - frontend
     if: |-
       (github.event_name == 'pull_request' &&
-       github.event.pull_request.head.repo.full_name == github.repository) ||
+       github.event.pull_request.head.repo.full_name == github.repository &&
+       github.event.pull_request.user.login != 'dependabot[bot]') ||
       (github.event_name == 'push' &&
        github.ref_name == github.event.repository.default_branch)
     runs-on: ubuntu-latest

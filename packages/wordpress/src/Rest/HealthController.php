@@ -28,7 +28,7 @@ final class HealthController extends BaseController {
 		);
 	}
 
-	public function get() {
+	public function get(): \WP_REST_Response {
 		$checks   = array();
 		$warnings = array();
 		$add      = static function ( string $id, string $label, string $status, string $message ) use ( &$checks, &$warnings ): void {

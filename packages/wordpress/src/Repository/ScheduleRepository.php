@@ -103,7 +103,11 @@ final class ScheduleRepository {
 		return 1 === $wpdb->delete( $this->table(), array( 'id' => $id ) ); // phpcs:ignore WordPress.DB.DirectDatabaseQuery
 	}
 
-	/** Next planned run of any enabled schedule (dashboard). */
+	/**
+	 * Next planned run of any enabled schedule (dashboard).
+	 *
+	 * @return array<string, mixed>|null
+	 */
 	public function next_planned(): ?array {
 		global $wpdb;
 		$row = $wpdb->get_row( "SELECT * FROM {$this->table()} WHERE enabled = 1 AND next_run_at IS NOT NULL ORDER BY next_run_at ASC LIMIT 1", ARRAY_A ); // phpcs:ignore WordPress.DB.DirectDatabaseQuery,WordPress.DB

@@ -33,6 +33,12 @@ abstract class BaseController {
 		return static fn (): bool => current_user_can( $capability );
 	}
 
+	/**
+	 * @param string               $code    Error code.
+	 * @param string               $message Error message.
+	 * @param int                  $status  HTTP status.
+	 * @param array<string, mixed> $params  Invalid parameters by name.
+	 */
 	protected function error( string $code, string $message, int $status = 400, array $params = array() ): \WP_Error {
 		$data = array( 'status' => $status );
 		if ( array() !== $params ) {
@@ -88,6 +94,9 @@ abstract class BaseController {
 		return is_array( $params ) ? $params : array();
 	}
 
+	/**
+	 * @return array<string, mixed>
+	 */
 	protected function uuid_arg(): array {
 		return array(
 			'type'              => 'string',

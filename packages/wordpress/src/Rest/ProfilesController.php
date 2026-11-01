@@ -98,20 +98,20 @@ final class ProfilesController extends BaseController {
 		);
 	}
 
-	public function list_profiles() {
+	public function list_profiles(): \WP_REST_Response {
 		$repo  = $this->services()->profiles();
 		$items = array_map( array( $repo, 'to_rest' ), $repo->all() );
 		return $this->collection( $items, count( $items ), 1, max( 1, count( $items ) ) );
 	}
 
-	public function get_profile( \WP_REST_Request $request ) {
+	public function get_profile( \WP_REST_Request $request ): \WP_REST_Response|\WP_Error {
 		$profile = $this->services()->profiles()->find( (int) $request['id'] );
 		return null === $profile
 			? $this->error( 'swbi_not_found', __( 'Profile not found.', 'sw-backupit' ), 404 )
 			: new \WP_REST_Response( $this->services()->profiles()->to_rest( $profile ) );
 	}
 
-	public function create( \WP_REST_Request $request ) {
+	public function create( \WP_REST_Request $request ): \WP_REST_Response|\WP_Error {
 		try {
 			$profile = $this->services()->profiles()->create( DefaultProfiles::apply_creation_defaults( $this->sanitize( $this->body( $request ) ) ) );
 		} catch ( ConfigurationException $exception ) {
@@ -121,7 +121,7 @@ final class ProfilesController extends BaseController {
 		return new \WP_REST_Response( $this->services()->profiles()->to_rest( $profile ), 201 );
 	}
 
-	public function update( \WP_REST_Request $request ) {
+	public function update( \WP_REST_Request $request ): \WP_REST_Response|\WP_Error {
 		try {
 			$profile = $this->services()->profiles()->update( (int) $request['id'], $this->sanitize( $this->body( $request ) ) );
 		} catch ( ConfigurationException $exception ) {
@@ -135,7 +135,7 @@ final class ProfilesController extends BaseController {
 			: new \WP_REST_Response( $this->services()->profiles()->to_rest( $profile ) );
 	}
 
-	public function delete( \WP_REST_Request $request ) {
+	public function delete( \WP_REST_Request $request ): \WP_REST_Response|\WP_Error {
 		if ( ! rest_sanitize_boolean( $request['confirm'] ) ) {
 			return $this->error( 'swbi_confirmation_required', __( 'Deleting a profile requires confirmation.', 'sw-backupit' ), 400 );
 		}
@@ -153,14 +153,14 @@ final class ProfilesController extends BaseController {
 			: $this->error( 'swbi_not_found', __( 'Profile not found.', 'sw-backupit' ), 404 );
 	}
 
-	public function duplicate( \WP_REST_Request $request ) {
+	public function duplicate( \WP_REST_Request $request ): \WP_REST_Response|\WP_Error {
 		$copy = $this->services()->profiles()->duplicate( (int) $request['id'] );
 		return null === $copy
 			? $this->error( 'swbi_not_found', __( 'Profile not found.', 'sw-backupit' ), 404 )
 			: new \WP_REST_Response( $this->services()->profiles()->to_rest( $copy ), 201 );
 	}
 
-	public function run( \WP_REST_Request $request ) {
+	public function run( \WP_REST_Request $request ): \WP_REST_Response|\WP_Error {
 		$profile = $this->services()->profiles()->find( (int) $request['id'] );
 		if ( null === $profile ) {
 			return $this->error( 'swbi_not_found', __( 'Profile not found.', 'sw-backupit' ), 404 );

@@ -1,0 +1,15 @@
+<?php
+
+/**
+ * Corrects WordPress core PHPDoc for PHPStan: a valid JSON body may decode to a scalar,
+ * and requests without a JSON body return null (see WP_REST_Request::parse_json_params()).
+ */
+class WP_REST_Request
+{
+    /**
+     * @return array<mixed>|string|int|float|bool|null
+     */
+    public function get_json_params()
+    {
+    }
+}
