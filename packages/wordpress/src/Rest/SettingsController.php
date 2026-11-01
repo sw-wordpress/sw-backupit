@@ -33,7 +33,7 @@ final class SettingsController extends BaseController {
 		);
 	}
 
-	public function get() {
+	public function get(): \WP_REST_Response {
 		$settings = Settings::all();
 		// Shows the resolved directory; staging_dir_auto tells that it is chosen automatically (posting it back keeps it so).
 		$settings['staging_dir_auto'] = '' === $settings['staging_dir'];
@@ -41,7 +41,7 @@ final class SettingsController extends BaseController {
 		return new \WP_REST_Response( $settings );
 	}
 
-	public function update( \WP_REST_Request $request ) {
+	public function update( \WP_REST_Request $request ): \WP_REST_Response|\WP_Error {
 		$before = Settings::all();
 		$result = Settings::update( $this->body( $request ) );
 		if ( is_wp_error( $result ) ) {

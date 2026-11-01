@@ -54,6 +54,17 @@ checkout still supports the unprefixed PSR Log library.
 representative production library operations (including offline AWS signing, dynamic phpseclib loading and local storage). The build
 runs this test again after removing the original Composer tree; CI also checks the final extracted ZIP and the standalone restore CLI.
 
+## Dependency security
+Every push/PR fails on known advisories in **shipped** dependencies (`composer audit --locked --no-dev`, skipped while `composer.lock` has no
+runtime packages; `npm audit --omit=dev --audit-level=high` in `apps/admin`). New advisories appear without code changes, so
+`.github/workflows/security-audit.yml` audits all dependencies, including dev tooling, daily and keeps one open `security-audit` issue
+(closed when clean). `.github/dependabot.yml` opens weekly grouped PRs (security fixes, peer-coupled toolchain packages, dev tools, runtime
+minor/patch; runtime majors individually). Dependabot PRs get no secrets, so the SonarQube job skips them. Enable Dependabot alerts and
+security updates in the repository settings. The admin app needs Node >= 22 (vue-i18n 11; `apps/admin/.nvmrc`, CI uses 22).
+PHPStan level 8 covers all production PHP (core, restore, WordPress adapter, `sw-backupit.php`, `uninstall.php`) with no baseline; WordPress
+(`szepeviktor/phpstan-wordpress`), WP-CLI and constants come from `tests/phpstan/` (bootstrap, stubs, corrected core PHPDoc). `bin/` holds
+dev/build scripts and is not analysed. `tests/wp` is a separate Composer project and outside Dependabot and the audits.
+
 ## SonarQube Cloud
 The test workflow uploads merged PHP Clover coverage and analyzes same-repository PRs and pushes to the default branch. Configure the
 `SONAR_TOKEN` Actions secret and `SONAR_ORGANIZATION` Actions variable (organization-level bindings may be reused). Project mapping and

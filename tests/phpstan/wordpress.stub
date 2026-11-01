@@ -1,0 +1,29 @@
+<?php
+
+/**
+ * Corrections of WordPress core PHPDoc (never loaded at runtime).
+ *
+ * @package sw-backupit
+ */
+
+/**
+ * Core accepts any value: strings are compared case-insensitively against 'false' and '0', everything else is cast.
+ *
+ * @param mixed $value
+ * @return bool
+ */
+function rest_sanitize_boolean($value)
+{
+}
+
+/**
+ * Core accepts any numeric value (floats included).
+ *
+ * @param int|float|string $bytes
+ * @param int $decimals
+ * @return string|false
+ * @phpstan-return ($bytes is not numeric ? false : ($bytes is int<min, -1>|'0' ? false : string))
+ */
+function size_format($bytes, $decimals = 0)
+{
+}

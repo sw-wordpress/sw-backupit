@@ -60,8 +60,8 @@ final class PreUpdateBackup {
 	/**
 	 * Plugin and theme updates.
 	 *
-	 * @param bool|\WP_Error       $response   Passed through unchanged unless the backup is required and failed.
-	 * @param array<string, mixed> $hook_extra Upgrader context (type: plugin|theme, action: update|install).
+	 * @param bool|\WP_Error $response   Passed through unchanged unless the backup is required and failed.
+	 * @param mixed          $hook_extra Upgrader context (type: plugin|theme, action: update|install); array in practice, filters may pass anything.
 	 * @return bool|\WP_Error
 	 */
 	public function before_install( $response, $hook_extra ) {
@@ -123,8 +123,8 @@ final class PreUpdateBackup {
 	/**
 	 * @param \SWBackupIt\Core\Domain\BackupProfile $profile  Profile used for the pre-update backup.
 	 * @param array<string, mixed>                  $settings pre_update_backup settings.
-	 * @param bool|\WP_Error                        $response Value to return unchanged unless the update must be blocked.
-	 * @return bool|\WP_Error
+	 * @param true                                  $response Value to return unchanged unless the update must be blocked.
+	 * @return true|\WP_Error
 	 */
 	private function ensure_backup( \SWBackupIt\Core\Domain\BackupProfile $profile, array $settings, $response ) {
 		$window = max( 5, (int) ( $settings['max_age_minutes'] ?? 60 ) ) * MINUTE_IN_SECONDS;

@@ -37,6 +37,7 @@ final class BackgroundChecks {
 			Services::instance()->backups()->touch_checked( $id );
 			return $id;
 		}
+		$error = '';
 		try {
 			$report = ( new Verifier() )->verify( BackupSet::open( Settings::staging_dir() . '/' . $id ) );
 		} catch ( SwbiException $exception ) {
@@ -51,7 +52,7 @@ final class BackgroundChecks {
 				'backup_failed',
 				'corrupt-' . $id,
 				__( 'A stored backup failed its integrity check', 'sw-backupit' ),
-				sprintf( /* translators: 1: backup id, 2: details */ __( 'Backup %1$s is damaged or incomplete: %2$s', 'sw-backupit' ), $id, null !== $report ? implode( '; ', array_slice( $report->errors(), 0, 3 ) ) : ( $error ?? '' ) )
+				sprintf( /* translators: 1: backup id, 2: details */ __( 'Backup %1$s is damaged or incomplete: %2$s', 'sw-backupit' ), $id, null !== $report ? implode( '; ', array_slice( $report->errors(), 0, 3 ) ) : $error )
 			);
 		}
 		return $id;

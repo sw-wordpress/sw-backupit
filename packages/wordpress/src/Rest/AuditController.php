@@ -42,7 +42,7 @@ final class AuditController extends BaseController {
 		);
 	}
 
-	public function list_entries( \WP_REST_Request $request ) {
+	public function list_entries( \WP_REST_Request $request ): \WP_REST_Response {
 		$result = AuditLogger::search(
 			array(
 				'action'      => (string) $request['action'],

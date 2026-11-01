@@ -94,7 +94,7 @@ final class JobsController extends BaseController {
 		);
 	}
 
-	public function list_jobs( \WP_REST_Request $request ) {
+	public function list_jobs( \WP_REST_Request $request ): \WP_REST_Response {
 		$status   = (string) $request['status'];
 		$statuses = match ( $status ) {
 			'' => null,
@@ -109,7 +109,7 @@ final class JobsController extends BaseController {
 		return $this->collection( $items, $repo->count( $statuses ), $page, $per_page );
 	}
 
-	public function get_job( \WP_REST_Request $request ) {
+	public function get_job( \WP_REST_Request $request ): \WP_REST_Response|\WP_Error {
 		try {
 			return new \WP_REST_Response( JobPresenter::to_rest( $this->services()->jobs()->find( (string) $request['id'] ) ) );
 		} catch ( \Throwable $throwable ) {
@@ -117,7 +117,7 @@ final class JobsController extends BaseController {
 		}
 	}
 
-	private function control( \WP_REST_Request $request, string $action ) {
+	private function control( \WP_REST_Request $request, string $action ): \WP_REST_Response|\WP_Error {
 		$id      = (string) $request['id'];
 		$service = $this->services()->job_service();
 		try {
@@ -147,7 +147,7 @@ final class JobsController extends BaseController {
 		}
 	}
 
-	public function logs( \WP_REST_Request $request ) {
+	public function logs( \WP_REST_Request $request ): \WP_REST_Response|\WP_Error {
 		$id = (string) $request['id'];
 		try {
 			$this->services()->jobs()->find( $id );

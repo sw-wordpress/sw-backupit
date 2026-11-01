@@ -51,12 +51,18 @@ final class Services {
 
 	/**
 	 * @template T of object
+	 * @phpstan-param class-string<T> $id
 	 * @param string        $id      Class name used as cache key.
 	 * @param callable(): T $factory
 	 * @return T
+	 * @throws \LogicException When the factory returns an instance of another class.
 	 */
 	private function get( string $id, callable $factory ): object {
-		return $this->cache[ $id ] ??= $factory();
+		$service = $this->cache[ $id ] ??= $factory();
+		if ( ! $service instanceof $id ) {
+			throw new \LogicException( sprintf( 'Service factory for %s returned %s.', $id, $service::class ) );
+		}
+		return $service;
 	}
 
 	public function jobs(): WpdbJobRepository {
