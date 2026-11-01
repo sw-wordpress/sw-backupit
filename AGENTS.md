@@ -13,7 +13,7 @@ Read `PLAN.md` (product spec) and `CODE-STYLE.md` (binding style/security rules)
 - Backups must stay readable without the WordPress database (manifest + index live next to the volumes).
 - Job status/backup types are enums, never strings.
 - Hooks/events: define failure policy explicitly (see `docs/architecture.md`).
-- PHPStan level 8 covers all production PHP (core, restore, adapter, plugin file, `uninstall.php`) with no baseline or ignores; WordPress/WP-CLI symbols and PHPDoc fixes live in `tests/phpstan/`.
+- PHPStan level 8 covers all production PHP (core, restore, adapter, plugin file, `uninstall.php`) with no baseline or ignores; `bin/` (build and dev scripts, never shipped) is deliberately outside the scope; WordPress/WP-CLI symbols and PHPDoc fixes live in `tests/phpstan/`.
 - Security: path guard for every filesystem write on restore, no unserialize without `allowed_classes => false`, no shell execution from the web UI, no secrets in logs/manifests.
 
 ## Workflow
