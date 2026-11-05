@@ -77,3 +77,8 @@ See `docs/implementation-plan.md` and `docs/architecture.md`: NDJSON index (no p
 - Added security/UI regression tests and recorded per-finding rationale in `docs/sonarqube-review.md`. PHP and frontend line
   coverage exceed 80%; Composer style/static checks, TypeScript, ESLint, tests and production frontend build pass locally.
   Cloud analysis is pending publication; no remote issue statuses were changed.
+
+## 2026-11-05 – CI dependency audit fix
+- CI stopped before PHP tests on advisory GHSA-6prc-h956-hxjq, published November 4, affecting the AWS SDK's transitive
+  `symfony/filesystem` dependency. Updated only that package from 7.4.21 to patched 7.4.23 in both Composer lockfiles.
+- Production dependency audits and Composer validation pass; no advisory suppressions or dependency constraints changed.
