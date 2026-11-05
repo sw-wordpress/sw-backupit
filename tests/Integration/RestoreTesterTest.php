@@ -14,6 +14,8 @@ use SWBackupIt\Core\Database\ConnectionFactory;
 use SWBackupIt\Core\Domain\BackupProfile;
 use SWBackupIt\Core\Domain\JobStatus;
 use SWBackupIt\Core\Job\FileJobRepository;
+use SWBackupIt\Core\Support\AtomicFile;
+use SWBackupIt\Restore\Backup\BackupSet;
 use SWBackupIt\Restore\Testing\RestoreTester;
 use SWBackupIt\Restore\Testing\RestoreTestResult;
 use SWBackupIt\Tests\Support\SiteFixture;
@@ -65,6 +67,23 @@ final class RestoreTesterTest extends TestCase
     {
         $result = (new RestoreTester())->run($this->backupDir, null, $this->makeTempDir('rt'), null);
         self::assertSame(RestoreTestResult::PARTIAL, $result->status());
+    }
+
+    public function testManifestPrefixIsBoundAsDataWhenLookingUpTheOptionsTable(): void
+    {
+        $path = $this->backupDir . '/manifest.json';
+        $manifest = AtomicFile::readJson($path);
+        $manifest['source']['table_prefix'] = "' OR 1=1 -- ";
+        AtomicFile::writeJson($path, $manifest);
+        $set = BackupSet::open($this->backupDir);
+        $result = new RestoreTestResult();
+        try {
+            (new \ReflectionMethod(RestoreTester::class, 'checkDatabase'))->invoke(new RestoreTester(), $set, $this->config, $result);
+            self::assertNotContains('wordpress', array_column($result->checks, 'name'));
+            self::assertSame(RestoreTestResult::PASSED, $result->status());
+        } finally {
+            $set->close();
+        }
     }
 
     public function testCorruptBackupFailsTheTest(): void

@@ -4,10 +4,12 @@ declare(strict_types=1);
 
 namespace SWBackupIt\Core\Storage;
 
+use SWBackupIt\Core\Exception\ConfigurationException;
 use SWBackupIt\Core\Exception\IntegrityException;
 use SWBackupIt\Core\Manifest\Manifest;
 use SWBackupIt\Core\Support\AtomicFile;
 use SWBackupIt\Core\Support\PathGuard;
+use SWBackupIt\Core\Support\Uuid;
 
 /**
  * Downloads a complete backup from a storage target into a local directory (restore from external storage).
@@ -47,7 +49,11 @@ final class BackupDownloader
      */
     public function download(RemoteStorageInterface $storage, string $backupId, string $destinationRoot, ?callable $onFile = null): string
     {
-        $target = rtrim($destinationRoot, '/') . '/' . $backupId;
+        if (!Uuid::isValid($backupId)) {
+            throw new ConfigurationException('Invalid backup id.');
+        }
+        AtomicFile::ensureDirectory($destinationRoot);
+        $target = PathGuard::resolveBelow($destinationRoot, $backupId);
         AtomicFile::ensureDirectory($target);
         $catalog = (new RemoteCatalog())->read($storage, $backupId, $target);
         $manifest = $catalog['manifest'];
@@ -65,14 +71,14 @@ final class BackupDownloader
             $files[$manifest->indexFileName()] = [null, (string) $manifest->filesIndexSha256()];
         }
         foreach ($files as $relative => [$size, $sha256]) {
-            PathGuard::assertSafeRelative($relative);
-            $local = $target . '/' . $relative;
+            $local = PathGuard::resolveBelow($destinationRoot, $backupId . '/' . $relative);
             if (is_file($local) && hash_file('sha256', $local) === $sha256) {
                 continue;
             }
             if ($onFile !== null) {
                 $onFile($relative);
             }
+            $local = PathGuard::resolveBelow($destinationRoot, $backupId . '/' . $relative);
             AtomicFile::ensureDirectory(dirname($local));
             $storage->download($backupId . '/' . $relative, $local);
             $hash = hash_file('sha256', $local);
@@ -81,7 +87,8 @@ final class BackupDownloader
                 throw new IntegrityException('A downloaded file failed verification.', ['file' => $relative]);
             }
         }
-        $storage->download($backupId . '/manifest.json', $target . '/manifest.json');
+        // Publish the manifest we verified, rather than fetching a potentially different version.
+        AtomicFile::writeJson(PathGuard::resolveBelow($destinationRoot, $backupId . '/manifest.json'), $manifest->toArray());
 
         return $target;
     }

@@ -73,18 +73,16 @@ async function runImport(): Promise<void> {
         /></template>
         <fieldset class="swbi-ds__list">
           <legend class="swbi-sr-only">{{ t('storage.discover.title') }}</legend>
-          <label
+          <q-checkbox
             v-for="b in items"
             :key="b.backup_id"
+            v-model="selected"
+            :val="b.backup_id"
+            :disable="b.already_imported || b.error !== null"
+            :aria-label="b.backup_id"
             class="swbi-ds__row"
             :class="{ 'is-disabled': b.already_imported || b.error !== null }"
           >
-            <q-checkbox
-              v-model="selected"
-              :val="b.backup_id"
-              :disable="b.already_imported || b.error !== null"
-              :aria-label="b.backup_id"
-            />
             <span class="swbi-ds__info">
               <strong class="swbi-mono">{{ fmt.shortId(b.backup_id) }}</strong>
               <span class="swbi-muted"
@@ -96,7 +94,7 @@ async function runImport(): Promise<void> {
             <span v-else-if="b.already_imported" class="swbi-muted">{{
               t('storage.discover.already')
             }}</span>
-          </label>
+          </q-checkbox>
         </fieldset>
         <q-checkbox v-model="download" :label="t('storage.discover.download')" />
         <p class="swbi-muted swbi-ds__hint">{{ t('storage.discover.downloadHint') }}</p>
@@ -152,6 +150,13 @@ async function runImport(): Promise<void> {
 }
 .swbi-ds__row:last-child {
   border-bottom: 0;
+}
+.swbi-ds__row :deep(.q-checkbox__label) {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex: 1;
+  min-width: 0;
 }
 .swbi-ds__row.is-disabled {
   opacity: 0.7;

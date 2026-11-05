@@ -9,6 +9,7 @@ use SWBackupIt\Core\Database\ConnectionConfig;
 use SWBackupIt\Core\Exception\SwbiException;
 use SWBackupIt\Core\Support\AtomicFile;
 use SWBackupIt\Core\Support\Bytes;
+use SWBackupIt\Core\Support\PathGuard;
 use SWBackupIt\Core\Support\ResourceBudget;
 use SWBackupIt\Core\Support\Uuid;
 use SWBackupIt\Restore\Backup\BackupSet;
@@ -317,7 +318,7 @@ final class WebApp
                 continue;
             }
             try {
-                $manifest = BackupSet::open($dir)->manifest();
+                $manifest = BackupSet::open($this->backupDir(basename($dir)))->manifest();
                 $files = $manifest->section('files');
                 $size = array_sum(array_map(static fn ($v): int => $v->size, $manifest->volumes()));
                 $result[] = ['id' => $manifest->backupId(), 'created_at' => $manifest->createdAt(), 'type' => $manifest->type()->value, 'encrypted' => $manifest->isEncrypted(), 'files' => $files['count'] ?? 0, 'size' => Bytes::format((int) $size), 'site' => (string) ($manifest->section('source')['site_url'] ?? '')];
@@ -335,7 +336,9 @@ final class WebApp
         if (!Uuid::isValid($id)) {
             throw new \SWBackupIt\Core\Exception\ConfigurationException('Invalid backup id.');
         }
-        $dir = rtrim((string) ($this->config['backups_dir'] ?? ''), '/') . '/' . $id;
+        $root = (string) ($this->config['backups_dir'] ?? '');
+        $dir = PathGuard::resolveBelow($root, $id);
+        PathGuard::resolveBelow($root, $id . '/manifest.json');
         if (!is_dir($dir)) {
             throw new \SWBackupIt\Core\Exception\ConfigurationException('The backup was not found in the configured backups directory.');
         }

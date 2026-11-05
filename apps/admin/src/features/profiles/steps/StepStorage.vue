@@ -18,13 +18,15 @@ const { t } = useI18n();
       </p>
       <fieldset v-else class="swbi-checks">
         <legend class="swbi-sr-only">{{ t('profiles.sections.targets') }}</legend>
-        <label
+        <q-checkbox
           v-for="tg in targets"
           :key="tg.id"
+          v-model="form.storage_target_ids"
+          :val="tg.id"
+          :aria-label="tg.name"
           class="swbi-target"
           :class="{ 'is-on': form.storage_target_ids.includes(tg.id) }"
         >
-          <q-checkbox v-model="form.storage_target_ids" :val="tg.id" :aria-label="tg.name" />
           <span class="swbi-target__main">
             <strong>{{ tg.name }}</strong>
             <span class="swbi-muted">{{ t(`storage.types.${tg.type}`) }}</span>
@@ -33,7 +35,7 @@ const { t } = useI18n();
             <q-icon name="r_warning" size="16px" aria-hidden="true" />
             {{ t(`status.health.${tg.status}`) }}
           </span>
-        </label>
+        </q-checkbox>
       </fieldset>
       <p
         v-if="!loading && targets.length > 0 && form.storage_target_ids.length === 0"
@@ -82,6 +84,13 @@ const { t } = useI18n();
 .swbi-target.is-on {
   border-color: var(--swbi-primary);
   background: var(--swbi-primary-soft);
+}
+.swbi-target :deep(.q-checkbox__label) {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex: 1;
+  min-width: 0;
 }
 .swbi-target__main {
   display: flex;

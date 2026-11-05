@@ -177,6 +177,30 @@ class StoragePhaseTest extends WP_UnitTestCase {
 		remove_filter( 'swbi_allow_before_backup', '__return_false' );
 	}
 
+	public function test_import_refuses_symlink_destinations_with_and_without_download(): void {
+		$target  = $this->request( 'POST', '/storage-targets', array( 'name' => 'Replica', 'type' => 'local', 'config' => array( 'path' => $this->remote ) ) )->get_data();
+		$profile = $this->request( 'POST', '/profiles', array( 'name' => 'Import', 'type' => 'files', 'include_paths' => array( 'wp-includes/js/jquery' ), 'storage_target_ids' => array( (int) $target['id'] ) ) )->get_data();
+		$job     = $this->run_profile( (int) $profile['id'] );
+		$id      = $job['backup_id'];
+		$dir     = $this->staging . '/' . $id;
+		\SWBackupIt\Core\Support\AtomicFile::removeTree( $dir );
+		$outside = $this->staging . '-outside';
+		mkdir( $outside );
+		file_put_contents( $outside . '/sentinel', 'keep' );
+		symlink( $outside, $dir );
+		try {
+			foreach ( array( false, true ) as $download ) {
+				$response = $this->request( 'POST', '/storage-targets/' . $target['id'] . '/import', array( 'backup_ids' => array( $id ), 'download' => $download ) );
+				$this->assertSame( 502, $response->get_status() );
+				$this->assertSame( array( '.', '..', 'sentinel' ), scandir( $outside ) );
+				$this->assertSame( 'keep', file_get_contents( $outside . '/sentinel' ) );
+			}
+		} finally {
+			unlink( $dir );
+			\SWBackupIt\Core\Support\AtomicFile::removeTree( $outside );
+		}
+	}
+
 	public function test_retention_cli_semantics_via_catalog_respects_protected_backups(): void {
 		$profile = $this->request( 'POST', '/profiles', array( 'name' => 'Ret', 'type' => 'files', 'include_paths' => array( 'wp-includes/js/jquery' ), 'retention' => array( 'max_count' => 2 ) ) )->get_data();
 		$ids = array();
