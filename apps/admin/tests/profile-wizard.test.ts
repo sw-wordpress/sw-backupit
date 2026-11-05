@@ -51,6 +51,24 @@ describe('CLI command', () => {
 });
 
 describe('validateProfile', () => {
+  it.each([
+    ['ops@example.com', true],
+    ['ops+backup@sub.example.com', true],
+    ['a@b.c.d', true],
+    ['@example.com', false],
+    ['ops@example', false],
+    ['ops@.com', false],
+    ['ops@example.', false],
+    ['ops@@example.com', false],
+    ['ops @example.com', false],
+    ['ops@example.com\n', false],
+    ['x'.repeat(100000), false],
+    ['a@' + '.'.repeat(100000), false],
+  ])('validates recipient case %# without ambiguous backtracking', (recipient, valid) => {
+    const form = defaultProfileInput();
+    form.notifications.recipients = [recipient];
+    expect(validateProfile(form).retention.some((issue) => issue.code === 'email')).toBe(!valid);
+  });
   it('groups issues by step', () => {
     const form = defaultProfileInput();
     expect(firstStepWithIssues(validateProfile(form))).toBe('general');

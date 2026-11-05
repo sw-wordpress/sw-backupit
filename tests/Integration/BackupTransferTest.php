@@ -7,14 +7,19 @@ namespace SWBackupIt\Tests\Integration;
 use PHPUnit\Framework\TestCase;
 use SWBackupIt\Core\Domain\JobStatus;
 use SWBackupIt\Core\Exception\IntegrityException;
+use SWBackupIt\Core\Exception\ConfigurationException;
+use SWBackupIt\Core\Exception\PathViolationException;
 use SWBackupIt\Core\Manifest\Manifest;
 use SWBackupIt\Core\Retry\RetryPolicy;
 use SWBackupIt\Core\Storage\BackupDownloader;
 use SWBackupIt\Core\Storage\BackupTransfer;
 use SWBackupIt\Core\Storage\RemoteStorageInterface;
+use SWBackupIt\Core\Storage\RemoteCatalog;
 use SWBackupIt\Core\Storage\StorageFactory;
 use SWBackupIt\Core\Storage\StorageTarget;
 use SWBackupIt\Core\Support\ResourceBudget;
+use SWBackupIt\Core\Support\AtomicFile;
+use SWBackupIt\Core\Support\Uuid;
 use SWBackupIt\Restore\Backup\BackupSet;
 use SWBackupIt\Restore\Backup\Verifier;
 use SWBackupIt\Tests\Support\FilesBackupFixture;
@@ -41,6 +46,112 @@ final class BackupTransferTest extends TestCase
         self::assertSame(JobStatus::Completed, $this->repository->find($job->id)?->status);
 
         return $job->backupId;
+    }
+
+    public function testDownloaderRejectsTraversalBeforeAccessingStorageOrCreatingDirectories(): void
+    {
+        $storage = $this->createMock(RemoteStorageInterface::class);
+        $storage->expects(self::never())->method('exists');
+        $storage->expects(self::never())->method('download');
+        $root = $this->makeTempDir('download');
+        try {
+            (new BackupDownloader())->download($storage, '../escape', $root . '/not-created');
+            self::fail('Traversal must be rejected.');
+        } catch (ConfigurationException) {
+            self::assertDirectoryDoesNotExist($root . '/not-created');
+            self::assertDirectoryDoesNotExist($root . '/escape');
+        }
+    }
+
+    public function testCatalogRejectsTraversalBeforeDownloadingOrDeletingAnything(): void
+    {
+        $storage = $this->createMock(RemoteStorageInterface::class);
+        $storage->expects(self::never())->method('download');
+        $root = $this->makeTempDir('catalog');
+        file_put_contents($root . '/sentinel.manifest.json', 'keep');
+        try {
+            (new RemoteCatalog())->read($storage, '../sentinel', $root . '/temp');
+            self::fail('Traversal must be rejected.');
+        } catch (ConfigurationException) {
+            self::assertSame('keep', file_get_contents($root . '/sentinel.manifest.json'));
+        }
+    }
+
+    public function testDownloaderRefusesSymlinkBackupDirectory(): void
+    {
+        $root = $this->makeTempDir('download');
+        $outside = $this->makeTempDir('outside');
+        $id = Uuid::v4();
+        symlink($outside, $root . '/' . $id);
+        $storage = $this->createMock(RemoteStorageInterface::class);
+        $storage->expects(self::never())->method('download');
+        $this->expectException(PathViolationException::class);
+        (new BackupDownloader())->download($storage, $id, $root);
+    }
+
+    public function testDownloaderRefusesSymlinkDataDirectoryAndManifest(): void
+    {
+        $id = $this->backup();
+        $storage = $this->storage(1);
+        (new BackupTransfer($this->makeTempDir('work')))->run($id, $this->staging . '/' . $id, null, $storage);
+        foreach (['volumes', 'manifest.json'] as $name) {
+            $root = $this->makeTempDir('download');
+            $outside = $this->makeTempDir('outside');
+            AtomicFile::ensureDirectory($root . '/' . $id);
+            file_put_contents($outside . '/sentinel', 'keep');
+            symlink($name === 'volumes' ? $outside : $outside . '/sentinel', $root . '/' . $id . '/' . $name);
+            try {
+                (new BackupDownloader())->download($storage, $id, $root);
+                self::fail('Symlink destination must be rejected.');
+            } catch (PathViolationException) {
+                self::assertSame('keep', file_get_contents($outside . '/sentinel'));
+                self::assertSame(['.', '..', 'sentinel'], scandir($outside));
+            }
+        }
+    }
+
+    public function testCatalogDoesNotUsePredictableScratchPaths(): void
+    {
+        $id = $this->backup();
+        $storage = $this->storage(1);
+        (new BackupTransfer($this->makeTempDir('work')))->run($id, $this->staging . '/' . $id, null, $storage);
+        $root = $this->makeTempDir('catalog');
+        $outside = $this->makeTempDir('outside') . '/sentinel';
+        file_put_contents($outside, 'keep');
+        symlink($outside, $root . '/' . $id . '.manifest.json');
+        $read = (new RemoteCatalog())->read($storage, $id, $root);
+        self::assertSame($id, $read['manifest']?->backupId());
+        self::assertSame('keep', file_get_contents($outside));
+        self::assertTrue(is_link($root . '/' . $id . '.manifest.json'));
+        self::assertCount(1, glob($root . '/*.json') ?: []);
+    }
+
+    public function testAncestorTraversalIsRejected(): void
+    {
+        $id = $this->backup();
+        $manifestPath = $this->staging . '/' . $id . '/manifest.json';
+        $manifest = AtomicFile::readJson($manifestPath);
+        $manifest['chain']['requires'] = ['../outside'];
+        AtomicFile::writeJson($manifestPath, $manifest);
+        $storage = $this->storage(1);
+        (new BackupTransfer($this->makeTempDir('work')))->run($id, $this->staging . '/' . $id, null, $storage);
+        $this->expectException(ConfigurationException::class);
+        (new BackupDownloader())->downloadWithAncestors($storage, $id, $this->makeTempDir('download'));
+    }
+
+    public function testDownloaderPublishesTheManifestSnapshotItVerified(): void
+    {
+        $id = $this->backup();
+        $expected = Manifest::read($this->staging . '/' . $id)->toArray();
+        $storage = $this->storage(1);
+        (new BackupTransfer($this->makeTempDir('work')))->run($id, $this->staging . '/' . $id, null, $storage);
+        $replacement = $this->makeTempDir('replacement') . '/manifest.json';
+        file_put_contents($replacement, 'invalid replacement manifest');
+        $root = $this->makeTempDir('download');
+        (new BackupDownloader())->download($storage, $id, $root, function () use ($storage, $id, $replacement): void {
+            $storage->upload($replacement, $id . '/manifest.json');
+        });
+        self::assertSame($expected, Manifest::read($root . '/' . $id)->toArray());
     }
 
     private function storage(int $id): RemoteStorageInterface

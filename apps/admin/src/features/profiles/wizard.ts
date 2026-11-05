@@ -62,7 +62,14 @@ export interface Issue {
 }
 export type StepIssues = Record<StepId, Issue[]>;
 
-const EMAIL = /^\S+@\S+\.\S+$/;
+/** Locate delimiters once to keep validation linear. */
+function isEmail(value: string): boolean {
+  const at = value.indexOf('@');
+  if (at < 1 || /\s/.test(value)) return false;
+  const domain = value.slice(at + 1);
+  const dot = domain.lastIndexOf('.');
+  return !domain.includes('@') && dot > 0 && dot < domain.length - 1;
+}
 
 /** Pure validation, grouped by wizard step. Client-side validation is UX only. */
 export function validateProfile(form: ProfileInput): StepIssues {
@@ -104,7 +111,7 @@ export function validateProfile(form: ProfileInput): StepIssues {
   ];
   for (const [field, value] of numbers)
     if (!nonNeg(value)) out.retention.push({ field, code: 'min', n: 0 });
-  if (!form.notifications.recipients.every((a) => EMAIL.test(a))) {
+  if (!form.notifications.recipients.every(isEmail)) {
     out.retention.push({ field: 'notifications.recipients', code: 'email' });
   }
   return out;

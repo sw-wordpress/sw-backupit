@@ -16,6 +16,8 @@ use SWBackupIt\Core\Exception\SwbiException;
 use SWBackupIt\Core\Storage\BackupDownloader;
 use SWBackupIt\Core\Storage\RemoteCatalog;
 use SWBackupIt\Core\Storage\StorageFactory;
+use SWBackupIt\Core\Support\AtomicFile;
+use SWBackupIt\Core\Support\PathGuard;
 use SWBackupIt\WordPress\Support\Capabilities;
 use SWBackupIt\WordPress\Support\Settings;
 
@@ -220,12 +222,11 @@ final class StorageTargetsController extends BaseController {
 				if ( null === $read['manifest'] ) {
 					continue;
 				}
-				$dir = Settings::staging_dir() . '/' . $backup_id;
+				$dir = PathGuard::resolveBelow( Settings::staging_dir(), $backup_id );
 				if ( $download ) {
 					( new BackupDownloader() )->download( $storage, $backup_id, Settings::staging_dir() );
 				} elseif ( ! is_dir( $dir ) ) {
-					wp_mkdir_p( $dir );
-					file_put_contents( $dir . '/manifest.json', (string) wp_json_encode( $read['manifest']->toArray(), JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES ) ); // phpcs:ignore WordPress.WP.AlternativeFunctions
+					AtomicFile::writeJson( PathGuard::resolveBelow( Settings::staging_dir(), $backup_id . '/manifest.json' ), $read['manifest']->toArray() );
 				}
 				$this->services()->backups()->register( $read['manifest'], null, null, $dir );
 				$this->services()->backups()->set_location( $backup_id, $target_id, 'verified', '', $backup_id );
@@ -242,8 +243,10 @@ final class StorageTargetsController extends BaseController {
 	}
 
 	private function temp_dir(): string {
-		$dir = untrailingslashit( Settings::staging_dir() ) . '/tmp';
-		wp_mkdir_p( $dir );
+		$root = Settings::staging_dir();
+		AtomicFile::ensureDirectory( $root );
+		$dir = PathGuard::resolveBelow( $root, 'tmp' );
+		AtomicFile::ensureDirectory( $dir );
 		return $dir;
 	}
 }

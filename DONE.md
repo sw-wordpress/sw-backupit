@@ -69,3 +69,11 @@ See `docs/implementation-plan.md` and `docs/architecture.md`: NDJSON index (no p
 
 ## 2026-10-27 – Configurable restore-test credentials
 - Reproduced the CI E2E failure with a non-default private database password. The restored configuration was correct; the assertion assumed `swbi`. The test now checks the configured target password without printing that password in its assertion failure. Default and custom-credential E2E runs validate the same restore contract.
+
+## 2026-11-05 – SonarQube findings validation
+- Reviewed all 16 open findings; guarded backup download/import/catalog and wizard paths against traversal and symlinks,
+  removed regex backtracking, and made Quasar card labels explicit. Found and fixed an additional SQL prefix interpolation
+  in restore testing. Preserved deliberate constructor validation, keyboard-scrollable previews and nonsecurity dedupe hashes.
+- Added security/UI regression tests and recorded per-finding rationale in `docs/sonarqube-review.md`. PHP and frontend line
+  coverage exceed 80%; Composer style/static checks, TypeScript, ESLint, tests and production frontend build pass locally.
+  Cloud analysis is pending publication; no remote issue statuses were changed.

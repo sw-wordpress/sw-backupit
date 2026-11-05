@@ -4,9 +4,11 @@ declare(strict_types=1);
 
 namespace SWBackupIt\Core\Storage;
 
+use SWBackupIt\Core\Exception\ConfigurationException;
 use SWBackupIt\Core\Exception\SwbiException;
 use SWBackupIt\Core\Manifest\Manifest;
 use SWBackupIt\Core\Support\AtomicFile;
+use SWBackupIt\Core\Support\PathGuard;
 use SWBackupIt\Core\Support\Uuid;
 
 /**
@@ -37,7 +39,12 @@ final class RemoteCatalog
      */
     public function read(RemoteStorageInterface $storage, string $backupId, string $tempDirectory): array
     {
-        $local = $tempDirectory . '/' . $backupId . '.manifest.json';
+        if (!Uuid::isValid($backupId)) {
+            throw new ConfigurationException('Invalid backup id.');
+        }
+        AtomicFile::ensureDirectory($tempDirectory);
+        // Independent scratch names also prevent concurrent catalog reads from sharing a file.
+        $local = PathGuard::resolveBelow($tempDirectory, bin2hex(random_bytes(16)) . '.manifest.json');
         try {
             if (!$storage->exists($backupId . '/manifest.json')) {
                 return ['backup_id' => $backupId, 'manifest' => null, 'error' => 'no manifest (incomplete upload)'];
