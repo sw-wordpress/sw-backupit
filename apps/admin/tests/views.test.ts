@@ -13,8 +13,13 @@ afterEach(() => {
 });
 
 const sent = (re: RegExp): boolean => requests(fetchMock).some((r) => re.test(r));
-async function waitFor(cond: () => boolean, tries = 40): Promise<void> {
-  for (let i = 0; i < tries && !cond(); i++) await settle(1);
+/** Wait in real time (lazy route chunks and slow CI runners need more than event-loop turns). */
+async function waitFor(cond: () => boolean, timeoutMs = 5000): Promise<void> {
+  const end = Date.now() + timeoutMs;
+  while (!cond() && Date.now() < end) {
+    await settle(1);
+    await new Promise((r) => setTimeout(r, 10));
+  }
 }
 async function open(path: string, ready: RegExp) {
   const mounted = await mountApp(path);
@@ -102,7 +107,7 @@ describe('profiles view', () => {
   it('opens the editor from the list', async () => {
     const { wrapper, router } = await open('/profiles', /Nightly Full/);
     await click(/Edit Nightly Full/);
-    await waitFor(() => /\/edit$/.test(router.currentRoute.value.path), 200);
+    await waitFor(() => /\/edit$/.test(router.currentRoute.value.path));
     expect(router.currentRoute.value.path).toMatch(/^\/profiles\/\d+\/edit$/);
     wrapper.unmount();
   });
