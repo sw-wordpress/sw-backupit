@@ -172,7 +172,8 @@ final class RestoreTester
         $result->add('database', $problems === [] ? 'passed' : 'failed', $problems === [] ? sprintf('%d tables restored with the exported row counts.', $checked) : implode('; ', array_slice($problems, 0, 5)));
         $prefix = (string) ($set->manifest()->section('source')['table_prefix'] ?? '');
         if ($prefix !== '') {
-            $options = $pdo->query("SHOW TABLES LIKE '" . str_replace(['_', '%'], ['\\_', '\\%'], $prefix) . "options'");
+            $options = $pdo->prepare('SELECT TABLE_NAME FROM information_schema.TABLES WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = ?');
+            $options->execute([$prefix . 'options']);
             if ($options !== false && $options->fetch() !== false) {
                 $url = $pdo->query('SELECT option_value FROM ' . DatabaseExporter::id($prefix . 'options') . " WHERE option_name = 'siteurl'");
                 $found = $url !== false ? $url->fetchColumn() : false;

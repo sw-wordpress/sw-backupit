@@ -3,6 +3,7 @@
 Open and future work. Everything else is listed in `DONE.md`. See `docs/implementation-plan.md` for context.
 
 ## Known gaps (explicitly not implemented)
+- [ ] Re-run SonarQube Cloud after publishing the local fixes; review the remaining false positives documented in [the findings review](docs/sonarqube-review.md).
 - [ ] **Real SFTP integration test** – no SSH server was available in the development environment; SFTP is covered by configuration/SSRF/host-key validation tests only (the Flysystem adapter is the library's own, shared contract code with the local adapter).
 - [ ] **S3 Object Lock for multipart uploads** is sent with `CreateMultipartUpload` but was only verified for single-part objects (the S3 mock does not return lock data for multipart); verify with your provider.
 - [ ] **Resumable local/SFTP uploads** – only S3 resumes within a file (multipart parts); local/SFTP restart the file (finished files are never repeated).

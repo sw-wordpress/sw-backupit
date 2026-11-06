@@ -388,7 +388,7 @@ msgstr ""
 #: packages/wordpress/src/Rest/BackupsController.php:395
 #: packages/wordpress/src/Rest/BackupsController.php:406
 #: packages/wordpress/src/Rest/BackupsController.php:479
-#: packages/wordpress/src/Rest/BackupsController.php:513
+#: packages/wordpress/src/Rest/BackupsController.php:516
 #: packages/wordpress/src/Runner/RestoreTestService.php:26
 #: packages/wordpress/src/Runner/TransferService.php:76
 msgid "Backup not found."
@@ -418,20 +418,21 @@ msgstr ""
 msgid "The backup has no complete local copy. Download it from a storage target first."
 msgstr ""
 
-#: packages/wordpress/src/Rest/BackupsController.php:535
+#: packages/wordpress/src/Rest/BackupsController.php:486
+#: packages/wordpress/src/Rest/BaseController.php:119
+#: packages/wordpress/src/Runner/TransferService.php:313
+msgid "An unexpected error occurred."
+msgstr ""
+
+#: packages/wordpress/src/Rest/BackupsController.php:538
 msgid "The requested file does not exist."
 msgstr ""
 
-#: packages/wordpress/src/Rest/BaseController.php:104
+#: packages/wordpress/src/Rest/BaseController.php:113
 #: packages/wordpress/src/Rest/JobsController.php:144
 #: packages/wordpress/src/Rest/JobsController.php:155
 #: packages/wordpress/src/Support/CoreMessages.php:127
 msgid "Job not found."
-msgstr ""
-
-#: packages/wordpress/src/Rest/BaseController.php:110
-#: packages/wordpress/src/Runner/TransferService.php:313
-msgid "An unexpected error occurred."
 msgstr ""
 
 #: packages/wordpress/src/Rest/EncryptionKeysController.php:63
@@ -574,12 +575,12 @@ msgstr ""
 msgid "The storage target is used by a profile."
 msgstr ""
 
-#: packages/wordpress/src/Runner/BackgroundChecks.php:53
+#: packages/wordpress/src/Runner/BackgroundChecks.php:54
 msgid "A stored backup failed its integrity check"
 msgstr ""
 
 #. translators: 1: backup id, 2: details
-#: packages/wordpress/src/Runner/BackgroundChecks.php:54
+#: packages/wordpress/src/Runner/BackgroundChecks.php:55
 #, php-format
 msgid "Backup %1$s is damaged or incomplete: %2$s"
 msgstr ""
@@ -1657,11 +1658,11 @@ msgid "Invalid notification recipient."
 msgstr ""
 
 #. translators: 1: required PHP version, 2: current PHP version
-#: sw-backupit.php:34
+#: sw-backupit.php:35
 #, php-format
 msgid "sw-backupit requires PHP %1$s or newer. You are running PHP %2$s."
 msgstr ""
 
-#: sw-backupit.php:57
+#: sw-backupit.php:58
 msgid "sw-backupit: the vendor directory is missing. Install the release package or run \"composer install\"."
 msgstr ""

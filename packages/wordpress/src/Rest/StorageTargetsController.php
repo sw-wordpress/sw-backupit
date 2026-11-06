@@ -16,6 +16,8 @@ use SWBackupIt\Core\Exception\SwbiException;
 use SWBackupIt\Core\Storage\BackupDownloader;
 use SWBackupIt\Core\Storage\RemoteCatalog;
 use SWBackupIt\Core\Storage\StorageFactory;
+use SWBackupIt\Core\Support\AtomicFile;
+use SWBackupIt\Core\Support\PathGuard;
 use SWBackupIt\WordPress\Support\Capabilities;
 use SWBackupIt\WordPress\Support\Settings;
 
@@ -87,28 +89,28 @@ final class StorageTargetsController extends BaseController {
 		}
 	}
 
-	public function list_targets() {
+	public function list_targets(): \WP_REST_Response {
 		$repo  = $this->services()->storage_targets();
 		$items = array_map( array( $repo, 'to_rest' ), $repo->all() );
 		return $this->collection( $items, count( $items ), 1, max( 1, count( $items ) ) );
 	}
 
-	public function get_target( \WP_REST_Request $request ) {
+	public function get_target( \WP_REST_Request $request ): \WP_REST_Response|\WP_Error {
 		$row = $this->services()->storage_targets()->find_row( (int) $request['id'] );
 		return null === $row
 			? $this->error( 'swbi_not_found', __( 'Storage target not found.', 'sw-backupit' ), 404 )
 			: new \WP_REST_Response( $this->services()->storage_targets()->to_rest( $row ) );
 	}
 
-	public function create( \WP_REST_Request $request ) {
+	public function create( \WP_REST_Request $request ): \WP_REST_Response|\WP_Error {
 		return $this->save( null, $request, 201 );
 	}
 
-	public function update( \WP_REST_Request $request ) {
+	public function update( \WP_REST_Request $request ): \WP_REST_Response|\WP_Error {
 		return $this->save( (int) $request['id'], $request, 200 );
 	}
 
-	private function save( ?int $id, \WP_REST_Request $request, int $status ) {
+	private function save( ?int $id, \WP_REST_Request $request, int $status ): \WP_REST_Response|\WP_Error {
 		try {
 			$saved = $this->services()->storage_targets()->save( $id, $this->body( $request ) );
 		} catch ( ConfigurationException $exception ) {
@@ -118,7 +120,7 @@ final class StorageTargetsController extends BaseController {
 		return new \WP_REST_Response( $this->services()->storage_targets()->to_rest( (array) $this->services()->storage_targets()->find_row( $saved ) ), $status );
 	}
 
-	public function delete( \WP_REST_Request $request ) {
+	public function delete( \WP_REST_Request $request ): \WP_REST_Response|\WP_Error {
 		$id = (int) $request['id'];
 		foreach ( $this->services()->profiles()->all() as $profile ) {
 			if ( in_array( $id, $profile->storageTargetIds, true ) ) {
@@ -134,7 +136,7 @@ final class StorageTargetsController extends BaseController {
 			: $this->error( 'swbi_not_found', __( 'Storage target not found.', 'sw-backupit' ), 404 );
 	}
 
-	public function test( \WP_REST_Request $request ) {
+	public function test( \WP_REST_Request $request ): \WP_REST_Response|\WP_Error {
 		$id     = (int) $request['id'];
 		$target = $this->services()->storage_targets()->find( $id );
 		if ( null === $target ) {
@@ -164,7 +166,7 @@ final class StorageTargetsController extends BaseController {
 		);
 	}
 
-	public function discover( \WP_REST_Request $request ) {
+	public function discover( \WP_REST_Request $request ): \WP_REST_Response|\WP_Error {
 		$target = $this->services()->storage_targets()->find( (int) $request['id'] );
 		if ( null === $target ) {
 			return $this->error( 'swbi_not_found', __( 'Storage target not found.', 'sw-backupit' ), 404 );
@@ -203,7 +205,7 @@ final class StorageTargetsController extends BaseController {
 	 * Registers remote backups in the catalog (disaster recovery: the catalog is rebuilt from storage manifests).
 	 * With `download: true` the data is also fetched into the local staging area.
 	 */
-	public function import( \WP_REST_Request $request ) {
+	public function import( \WP_REST_Request $request ): \WP_REST_Response|\WP_Error {
 		$target_id = (int) $request['id'];
 		$target    = $this->services()->storage_targets()->find( $target_id );
 		if ( null === $target ) {
@@ -220,12 +222,11 @@ final class StorageTargetsController extends BaseController {
 				if ( null === $read['manifest'] ) {
 					continue;
 				}
-				$dir = Settings::staging_dir() . '/' . $backup_id;
+				$dir = PathGuard::resolveBelow( Settings::staging_dir(), $backup_id );
 				if ( $download ) {
 					( new BackupDownloader() )->download( $storage, $backup_id, Settings::staging_dir() );
 				} elseif ( ! is_dir( $dir ) ) {
-					wp_mkdir_p( $dir );
-					file_put_contents( $dir . '/manifest.json', (string) wp_json_encode( $read['manifest']->toArray(), JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES ) ); // phpcs:ignore WordPress.WP.AlternativeFunctions
+					AtomicFile::writeJson( PathGuard::resolveBelow( Settings::staging_dir(), $backup_id . '/manifest.json' ), $read['manifest']->toArray() );
 				}
 				$this->services()->backups()->register( $read['manifest'], null, null, $dir );
 				$this->services()->backups()->set_location( $backup_id, $target_id, 'verified', '', $backup_id );
@@ -242,8 +243,10 @@ final class StorageTargetsController extends BaseController {
 	}
 
 	private function temp_dir(): string {
-		$dir = untrailingslashit( Settings::staging_dir() ) . '/tmp';
-		wp_mkdir_p( $dir );
+		$root = Settings::staging_dir();
+		AtomicFile::ensureDirectory( $root );
+		$dir = PathGuard::resolveBelow( $root, 'tmp' );
+		AtomicFile::ensureDirectory( $dir );
 		return $dir;
 	}
 }

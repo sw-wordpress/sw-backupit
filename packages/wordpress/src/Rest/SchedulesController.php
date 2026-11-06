@@ -75,20 +75,20 @@ final class SchedulesController extends BaseController {
 		);
 	}
 
-	public function list_schedules() {
+	public function list_schedules(): \WP_REST_Response {
 		$repo  = $this->services()->schedules();
 		$items = array_map( array( $repo, 'to_rest' ), $repo->all() );
 		return $this->collection( $items, count( $items ), 1, max( 1, count( $items ) ) );
 	}
 
-	public function get_schedule( \WP_REST_Request $request ) {
+	public function get_schedule( \WP_REST_Request $request ): \WP_REST_Response|\WP_Error {
 		$row = $this->services()->schedules()->find( (int) $request['id'] );
 		return null === $row
 			? $this->error( 'swbi_not_found', __( 'Schedule not found.', 'sw-backupit' ), 404 )
 			: new \WP_REST_Response( $this->services()->schedules()->to_rest( $row ) );
 	}
 
-	public function create( \WP_REST_Request $request ) {
+	public function create( \WP_REST_Request $request ): \WP_REST_Response|\WP_Error {
 		$data = $this->validate( $this->body( $request ), null );
 		if ( is_wp_error( $data ) ) {
 			return $data;
@@ -99,7 +99,7 @@ final class SchedulesController extends BaseController {
 		return new \WP_REST_Response( $this->services()->schedules()->to_rest( (array) $row ), 201 );
 	}
 
-	public function update( \WP_REST_Request $request ) {
+	public function update( \WP_REST_Request $request ): \WP_REST_Response|\WP_Error {
 		$id      = (int) $request['id'];
 		$current = $this->services()->schedules()->find( $id );
 		if ( null === $current ) {
@@ -114,7 +114,7 @@ final class SchedulesController extends BaseController {
 		return new \WP_REST_Response( $this->services()->schedules()->to_rest( (array) $this->services()->schedules()->find( $id ) ) );
 	}
 
-	public function delete( \WP_REST_Request $request ) {
+	public function delete( \WP_REST_Request $request ): \WP_REST_Response|\WP_Error {
 		$deleted = $this->services()->schedules()->delete( (int) $request['id'] );
 		if ( $deleted ) {
 			do_action( 'swbi_schedule_deleted', (string) (int) $request['id'] );
@@ -124,7 +124,7 @@ final class SchedulesController extends BaseController {
 			: $this->error( 'swbi_not_found', __( 'Schedule not found.', 'sw-backupit' ), 404 );
 	}
 
-	public function run( \WP_REST_Request $request ) {
+	public function run( \WP_REST_Request $request ): \WP_REST_Response|\WP_Error {
 		$row = $this->services()->schedules()->find( (int) $request['id'] );
 		if ( null === $row ) {
 			return $this->error( 'swbi_not_found', __( 'Schedule not found.', 'sw-backupit' ), 404 );
@@ -218,11 +218,14 @@ final class SchedulesController extends BaseController {
 			'retry_max'       => (int) $merged['retry_max'],
 			'retry_backoff'   => (int) $merged['retry_backoff'],
 		);
-		$timing_changed = null === $current;
-		foreach ( array( 'enabled', 'frequency', 'cron_expression', 'timezone', 'time_of_day', 'weekday', 'monthday' ) as $key ) {
-			$timing_changed = $timing_changed || (string) $current[ $key ] !== (string) $merged[ $key ];
+		$recalculate = true;
+		if ( null !== $current ) {
+			$recalculate = null === $current['next_run_at'];
+			foreach ( array( 'enabled', 'frequency', 'cron_expression', 'timezone', 'time_of_day', 'weekday', 'monthday' ) as $key ) {
+				$recalculate = $recalculate || (string) $current[ $key ] !== (string) $merged[ $key ];
+			}
 		}
-		if ( $timing_changed || null === $current['next_run_at'] ) {
+		if ( $recalculate ) {
 			$data['next_run_at'] = $merged['enabled'] ? Time::to_db( ScheduleCalculator::next_run( $merged, Time::now() ) ) : null;
 			$data['retry_count'] = 0;
 		}

@@ -13,6 +13,7 @@ Read `PLAN.md` (product spec) and `CODE-STYLE.md` (binding style/security rules)
 - Backups must stay readable without the WordPress database (manifest + index live next to the volumes).
 - Job status/backup types are enums, never strings.
 - Hooks/events: define failure policy explicitly (see `docs/architecture.md`).
+- PHPStan level 8 covers all production PHP (core, restore, adapter, plugin file, `uninstall.php`) with no baseline or ignores; `bin/` (build and dev scripts, never shipped) is deliberately outside the scope; WordPress/WP-CLI symbols and PHPDoc fixes live in `tests/phpstan/`.
 - Security: path guard for every filesystem write on restore, no unserialize without `allowed_classes => false`, no shell execution from the web UI, no secrets in logs/manifests.
 
 ## Workflow
@@ -22,6 +23,18 @@ Read `PLAN.md` (product spec) and `CODE-STYLE.md` (binding style/security rules)
 
 ## Translations
 Every change to user-facing text updates all languages (PHP gettext catalogs in `languages/`, SPA catalogs in `apps/admin/src/i18n/`, wizard catalogs are generated). Run `bin/i18n.sh update` and `bin/i18n.sh check`; the PHPUnit test `I18nTest` and the Vitest parity test enforce it. See `docs/translations.md`.
+
+## Dokumentation
+
+- Verfasse Dokumentation möglichst knapp und ohne Wiederholungen, um Tokens zu sparen. Beschränke sie auf nötige Entscheidungen, Sicherheitsdetails und Testhinweise; verlinke vorhandene Dokumentation statt Inhalte zu duplizieren.
+
+## Tests und Coverage
+
+- Jede funktionale Codeänderung (neue Funktionen, Fehlerbehebungen und Refactorings) muss durch passende automatisierte Tests abgedeckt sein; Tests im selben Arbeitsschritt ergänzen oder anpassen.
+- Pflicht ist eine Zeilenabdeckung von **> 80 %** des produktiven Codes je Plugin; genau 80 % reichen nicht. PHP und JavaScript/TypeScript, soweit vorhanden, jeweils prüfen. Bestehende strengere Coverage-Grenzen bleiben verbindlich.
+- Vor Abschluss relevante Tests und Coverage-Prüfungen ausführen und Ergebnisse nennen. Fehlende Coverage-Infrastruktur ergänzen; fehlende Messwerte gelten nicht als erfüllte Vorgabe. Keine produktiven Dateien ausschließen oder Grenzen senken, um die Vorgabe zu umgehen.
+
+Vorhanden: PHPUnit-/WordPress-Coverage und SonarQube; siehe `docs/development.md` (SonarQube Cloud) und `sonar-project.properties`.
 
 ## Automated review follow-up for pull / merge requests
 

@@ -1,0 +1,58 @@
+version: 2
+# Fewer, coherent PRs: security fixes per ecosystem, packages that must move together,
+# then routine updates. Runtime majors (shipped in the plugin) still arrive individually.
+updates:
+  - package-ecosystem: composer
+    directory: /
+    schedule:
+      interval: weekly
+      day: monday
+    open-pull-requests-limit: 5
+    groups:
+      composer-security:
+        applies-to: security-updates
+        patterns: ['*']
+      php-dev-tools:
+        dependency-type: development
+        update-types: [minor, patch]
+
+  - package-ecosystem: npm
+    directory: /apps/admin
+    schedule:
+      interval: weekly
+      day: monday
+    open-pull-requests-limit: 10
+    ignore:
+      # Types must match the Node runtime used by CI and release builds (22).
+      - dependency-name: '@types/node'
+        versions: ['>=23']
+      # TypeScript 7 (native compiler) has no JS API yet; typescript-eslint (<6.1) and vue-tsc need it.
+      - dependency-name: typescript
+        versions: ['>=7']
+    groups:
+      npm-security:
+        applies-to: security-updates
+        patterns: ['*']
+      # Peer-coupled: vitest and its coverage provider share exact versions.
+      vitest:
+        patterns: ['vitest', '@vitest/*']
+      # Peer-coupled: @quasar/vite-plugin pins the supported vite and @vitejs/plugin-vue majors.
+      build-toolchain:
+        patterns: ['vite', '@vitejs/*', '@quasar/vite-plugin']
+      npm-dev-tools:
+        dependency-type: development
+        update-types: [minor, patch, major]
+        # Group membership is not order-based; keep the coupled groups above separate.
+        exclude-patterns: ['vitest', '@vitest/*', 'vite', '@vitejs/*', '@quasar/vite-plugin']
+      npm-runtime:
+        dependency-type: production
+        update-types: [minor, patch]
+
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: weekly
+      day: monday
+    groups:
+      github-actions:
+        patterns: ['*']

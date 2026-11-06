@@ -53,7 +53,9 @@ const restoreHref = computed(() => {
 });
 
 function stripSlash(s: string): string {
-  return s.replace(/\/+$/, '');
+  let end = s.length;
+  while (end > 0 && s[end - 1] === '/') end--;
+  return s.slice(0, end);
 }
 
 async function prepare(): Promise<void> {

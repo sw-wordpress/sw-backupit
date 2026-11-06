@@ -18,6 +18,9 @@ final class Time {
 		return new DateTimeImmutable( 'now', new DateTimeZone( 'UTC' ) );
 	}
 
+	/**
+	 * @return ($date is null ? null : string)
+	 */
 	public static function to_db( ?DateTimeImmutable $date ): ?string {
 		return $date?->setTimezone( new DateTimeZone( 'UTC' ) )->format( 'Y-m-d H:i:s' );
 	}

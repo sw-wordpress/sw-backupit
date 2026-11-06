@@ -3,4 +3,23 @@ parameters:
     paths:
         - packages/core/src
         - packages/restore/src
+        - packages/restore/public
+        - packages/restore/lang
+        - packages/wordpress/src
+        - sw-backupit.php
+        - uninstall.php
+    stubFiles:
+        - tests/phpstan/wordpress.stub
+        - tests/phpstan/WP_REST_Request.stub
+    scanFiles:
+        - tests/phpstan/stubs.php
+    bootstrapFiles:
+        - tests/phpstan/bootstrap.php
+    dynamicConstantNames:
+        - SWBACKUPIT_VERSION
+        - SWBACKUPIT_FILE
+        - SWBACKUPIT_DIR
+        - SWBACKUPIT_URL
+        - SWBACKUPIT_MIN_PHP
+        - SWBackupIt\WordPress\Database\Schema::CURRENT
     tmpDir: .phpstan.cache

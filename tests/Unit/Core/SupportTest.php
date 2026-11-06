@@ -86,5 +86,6 @@ final class SupportTest extends TestCase
         $uuid = Uuid::v4();
         self::assertTrue(Uuid::isValid($uuid));
         self::assertFalse(Uuid::isValid('../etc'));
+        self::assertFalse(Uuid::isValid($uuid . "\n"));
     }
 }

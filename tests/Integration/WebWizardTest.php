@@ -164,6 +164,20 @@ final class WebWizardTest extends TestCase
         self::assertSame(403, $this->call('POST', ['a' => 'login'], ['token' => $this->token])->status);
     }
 
+    public function testBackupDirectoryAndManifestSymlinksAreRejected(): void
+    {
+        $this->setUpWizard();
+        [$session] = $this->login();
+        $alias = \SWBackupIt\Core\Support\Uuid::v4();
+        symlink($this->staging . '/' . $this->backupId, $this->staging . '/' . $alias);
+        self::assertSame(400, $this->call('GET', ['a' => 'backup', 'id' => $alias], [], $session)->status);
+        $manifest = $this->staging . '/' . $this->backupId . '/manifest.json';
+        rename($manifest, $manifest . '.real');
+        symlink($manifest . '.real', $manifest);
+        self::assertSame(400, $this->call('GET', ['a' => 'backup', 'id' => $this->backupId], [], $session)->status);
+        self::assertStringNotContainsString($this->backupId, $this->call('GET', [], [], $session)->body);
+    }
+
     public function testFinishIsRefusedUnlessTheRestoreSucceeded(): void
     {
         $this->setUpWizard();

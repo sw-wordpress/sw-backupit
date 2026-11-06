@@ -65,6 +65,13 @@ bin/                               build and test helper scripts (ZIP, restore a
 `league/flysystem` (+ local, aws-s3-v3, sftp-v3), `aws/aws-sdk-php` (via the S3 adapter), `phpseclib` (SFTP), `maennchen/zipstream-php`
 (streamed ZIP64), `psr/log`, `dragonmantank/cron-expression`; PHP extensions `zip`, `zlib`, `hash`, `json`, `pdo_mysql` (+ `sodium` for encryption).
 
+## Naming and compatibility
+
+The plugin directory and entry point are `sw-backupit/sw-backupit.php`. The text domain, REST namespace (`sw-backupit/v1`), admin page,
+WP-CLI command (`wp sw-backupit`) and restore executable (`sw-backupit-restore`) use the same name. After a rename, update external
+CLI/REST integrations and reactivate the plugin if necessary. PHP namespaces (`SWBackupIt`), constants (`SWBACKUPIT_*`), the JavaScript
+configuration object and existing `swbi_*` storage keys stay unchanged for compatibility. Backups with the legacy manifest label remain readable.
+
 ## Data model (tables `{$wpdb->base_prefix}swbi_*`; network wide on multisite)
 
 `profiles`, `schedules`, `jobs` (JSON entity + lease/flags columns), `job_events`, `backups` (catalog cache incl. chain info and last restore test),
