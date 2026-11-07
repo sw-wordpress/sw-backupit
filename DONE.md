@@ -87,3 +87,4 @@ See `docs/implementation-plan.md` and `docs/architecture.md`: NDJSON index (no p
 - #5 browser validation: tolerate backend profiles without optional GFS retention settings.
 
 - #18: Resolve remaining development-tool advisories through scoped patched minimatch/glob overrides without downgrading the toolchain.
+- #3: Resolve release/source autoloaders and register monorepo mappings during independent uninstall; release bootstrap smoke checks now execute uninstall in a fresh process.
