@@ -15,6 +15,7 @@ use SWBackupIt\WordPress\Support\Time;
 
 final class SchedulesController extends BaseController {
 
+	/** Schedule mutations affect the whole network and must use a network-sensitive capability. */
 	public function register_routes(): void {
 		register_rest_route(
 			self::NAMESPACE,
