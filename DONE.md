@@ -84,3 +84,4 @@ See `docs/implementation-plan.md` and `docs/architecture.md`: NDJSON index (no p
 - Production dependency audits and Composer validation pass; no advisory suppressions or dependency constraints changed.
 
 - #21: Require download capability for live comparison; retain read-only file listings and hide the comparison action from viewers.
+- #3: Resolve release/source autoloaders and register monorepo mappings during independent uninstall; release bootstrap smoke checks now execute uninstall in a fresh process.

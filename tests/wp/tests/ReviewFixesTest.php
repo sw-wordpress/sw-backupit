@@ -59,6 +59,16 @@ class ReviewFixesTest extends WP_UnitTestCase {
 	/** @var list<array<string, mixed>> */
 	private array $mail = array();
 
+	public function test_uninstall_entry_point_clears_cron_without_removing_retained_data(): void {
+		if ( ! defined( 'WP_UNINSTALL_PLUGIN' ) ) {
+			define( 'WP_UNINSTALL_PLUGIN', true );
+		}
+		wp_schedule_single_event( time() + 60, \SWBackupIt\WordPress\Runner\CronManager::HOOK_WATCH );
+		require dirname( __DIR__, 3 ) . '/uninstall.php';
+		$this->assertFalse( wp_next_scheduled( \SWBackupIt\WordPress\Runner\CronManager::HOOK_WATCH ) );
+		$this->assertSame( $this->staging, Settings::staging_dir() );
+	}
+
 	public function set_up(): void {
 		parent::set_up();
 		Schema::migrate();
