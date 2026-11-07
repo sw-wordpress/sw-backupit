@@ -121,10 +121,9 @@ final class BackupRunner
             $job->nextRetryAt = null;
         }
 
-        $source = $this->sources->forJob($job);
-        $context = new BackupContext($job, $profile, new BackupLayout($source->stagingPath, $job->backupId), $source, $logger, $this->dispatcher, $this->clock, $budget, $commit, $this->keys, $this->storage, $this->catalog);
-
         try {
+            $source = $this->sources->forJob($job);
+            $context = new BackupContext($job, $profile, new BackupLayout($source->stagingPath, $job->backupId), $source, $logger, $this->dispatcher, $this->clock, $budget, $commit, $this->keys, $this->storage, $this->catalog);
             while (true) {
                 $flag = $this->applyControlFlags($job, $context, $logger);
                 if ($flag !== null) {
