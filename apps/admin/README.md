@@ -6,7 +6,7 @@ REST contract: [`docs/rest-api.md`](../../docs/rest-api.md) including the author
 
 ## Dev workflow
 
-Node 18.18+ is enough (versions are pinned accordingly, see below).
+Use Node 22.13+ on the 22 LTS line, Node 24 or Node 26+.
 
 ```bash
 cd apps/admin
@@ -148,7 +148,6 @@ Create/edit profile is a full page (`/profiles/new`, `/profiles/:id/edit`, `feat
 - Destructive actions use `ConfirmDialog` naming the target and consequences; deleting a backup requires typing the first 8 characters of its id; restore requires the path-confirmation checkbox plus typing the id prefix.
 - Tables collapse into stacked cards below 760 px; the rail collapses to icons and becomes a scrollable top bar below 860 px.
 
-## Versions (Node 18 compatible)
+## Toolchain
 
-vue 3.5, quasar 2.18, @quasar/vite-plugin 1.9.0 (1.10+ requires Node 20), vite 6.4, vitest 3.2 (vitest 4+ requires Node 20), vue-i18n 10.0 (11 requires Node 22), pinia 3, vue-router 4, eslint 9.39, typescript 5.9, vue-tsc 3, prettier 3, playwright-core 1.55 (dev only; uses a Chromium from the Playwright cache).
-`npm audit` reports advisories in vitest's transitive dependencies (dev tooling only, never shipped); the fixed versions need Node 20+.
+Use Node 22.13+, 24 or 26+ (`.nvmrc` selects Node 22 LTS). Vite 8, Quasar Vite plugin 2, Vue plugin 6, Vitest 5 and ESLint 10 are upgraded together. TypeScript remains on 5.9 for vue-tsc/typescript-eslint compatibility. Tests keep the strict line coverage > 80% gate.

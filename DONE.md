@@ -84,4 +84,9 @@ See `docs/implementation-plan.md` and `docs/architecture.md`: NDJSON index (no p
 - Production dependency audits and Composer validation pass; no advisory suppressions or dependency constraints changed.
 
 - #27: Discover storage backups on the first sheet opening; regression covered by the storage view test.
+- #5: Upgrade the coupled Vite/Quasar/Vue build plugins and ESLint toolchain; retain Vitest 5, TypeScript 5.9 and strict coverage gates.
+- #5 browser validation: tolerate backend profiles without optional GFS retention settings.
+- #23: Reserve network-wide schedule/profile mutations and job execution to multisite super administrators.
 - #3: Resolve release/source autoloaders and register monorepo mappings during independent uninstall; release bootstrap smoke checks now execute uninstall in a fresh process.
+
+- #20: Require storage management before assigning or overriding backup destinations, including new profiles.
