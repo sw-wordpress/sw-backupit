@@ -80,4 +80,4 @@ See `AGENTS.md` and `CODE-STYLE.md`. Gotchas learned the hard way: `wpdb::$field
 ZipStream rewrites `\ : * ? " < > |` in entry names (we percent-encode them); the WordPress test suite creates tables as TEMPORARY (other connections cannot see them).
 
 ### Temporary dev dependency overrides (#18)
-Scoped npm overrides replace vulnerable minimatch 7–11.0.0 and glob 9–14.0.1 with patched releases. Older unaffected major lines remain intact. These are development-tool dependencies; remove the overrides once upstream toolchains require patched versions. Validate override changes with frozen installation, audit, ESLint, tests/coverage and production build.
+A version-scoped override replaces vulnerable minimatch 7–11.0.0 while preserving older unaffected minimatch majors. The glob override selects patched 14.0.4 for all current consumers; a version-scoped glob override breaks frozen installation with npm 10, although npm 11 accepts the same lockfile. These are development-tool dependencies; remove the overrides once upstream toolchains require patched versions. Validate override changes with frozen installation, audit, ESLint, tests/coverage and production build.
