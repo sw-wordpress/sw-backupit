@@ -268,7 +268,7 @@ final class BackupsController extends BaseController {
 		if ( ! in_array( $mode, array( 'metadata', 'sha256' ), true ) ) {
 			return $this->error( 'swbi_invalid_param', __( 'The mode must be metadata or sha256.', 'sw-backupit' ), 400 );
 		}
-		$work = untrailingslashit( Settings::staging_dir() ) . '/tmp/compare-' . bin2hex( random_bytes( 4 ) );
+		$work = untrailingslashit( Settings::staging_dir_for_writes() ) . '/tmp/compare-' . bin2hex( random_bytes( 4 ) );
 		try {
 			wp_raise_memory_limit( 'admin' );
 			$set = BackupSet::open( Settings::staging_dir() . '/' . $id, $this->services()->keys(), $work );
@@ -405,7 +405,7 @@ final class BackupsController extends BaseController {
 		if ( null === $this->services()->backups()->find_row( $id ) ) {
 			return $this->error( 'swbi_not_found', __( 'Backup not found.', 'sw-backupit' ), 404 );
 		}
-		$work = untrailingslashit( Settings::staging_dir() ) . '/tmp/browse-' . bin2hex( random_bytes( 4 ) );
+		$work = untrailingslashit( Settings::staging_dir_for_writes() ) . '/tmp/browse-' . bin2hex( random_bytes( 4 ) );
 		try {
 			$set = BackupSet::open( Settings::staging_dir() . '/' . $id, $this->services()->keys(), $work );
 		} catch ( SwbiException $exception ) {

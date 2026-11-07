@@ -181,7 +181,22 @@ final class Settings {
 		$dir     = is_dir( $parent ) && wp_is_writable( $parent ) && ! self::is_inside_docroot( $parent )
 			? $outside
 			: untrailingslashit( WP_CONTENT_DIR ) . '/sw-backupit-staging-' . $suffix;
-		\SWBackupIt\WordPress\Support\Options::update( 'swbi_staging_dir', $dir, false );
+		if ( ! self::is_inside_docroot( $dir ) ) {
+			\SWBackupIt\WordPress\Support\Options::update( 'swbi_staging_dir', $dir, false );
+		}
+		return $dir;
+	}
+
+	/**
+	 * Resolve and enforce the staging policy immediately before writing sensitive data.
+	 *
+	 * @throws \SWBackupIt\Core\Exception\ConfigurationException When staging is public without explicit opt-in.
+	 */
+	public static function staging_dir_for_writes(): string {
+		$dir = self::staging_dir();
+		if ( empty( self::all()['allow_public_paths'] ) && self::is_inside_docroot( $dir ) ) {
+			throw new \SWBackupIt\Core\Exception\ConfigurationException( __( 'The staging directory is inside the web root, where backups could be downloaded by anyone. Choose a directory outside the web root.', 'sw-backupit' ) );
+		}
 		return $dir;
 	}
 
