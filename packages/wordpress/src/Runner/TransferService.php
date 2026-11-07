@@ -353,6 +353,7 @@ final class TransferService {
 		foreach ( $transfer['items'] as $other ) {
 			$done_before += 'done' === $other['status'] ? (int) $other['size'] : 0;
 		}
+		Settings::staging_dir_for_writes();
 		$state = ( new BackupTransfer( $this->work_directory( $id ) ) )->run(
 			$backup_id,
 			$local,
@@ -576,7 +577,7 @@ final class TransferService {
 	}
 
 	private function work_directory( string $id ): string {
-		return Settings::staging_dir_for_writes() . '/tmp/transfer-' . preg_replace( '/[^a-z0-9]/', '', $id );
+		return Settings::staging_dir() . '/tmp/transfer-' . preg_replace( '/[^a-z0-9]/', '', $id );
 	}
 
 	private function retry_delay(): int {
