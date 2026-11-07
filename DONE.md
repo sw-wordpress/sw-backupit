@@ -82,3 +82,6 @@ See `docs/implementation-plan.md` and `docs/architecture.md`: NDJSON index (no p
 - CI stopped before PHP tests on advisory GHSA-6prc-h956-hxjq, published November 4, affecting the AWS SDK's transitive
   `symfony/filesystem` dependency. Updated only that package from 7.4.21 to patched 7.4.23 in both Composer lockfiles.
 - Production dependency audits and Composer validation pass; no advisory suppressions or dependency constraints changed.
+
+- #5: Upgrade the coupled Vite/Quasar/Vue build plugins and ESLint toolchain; retain Vitest 5, TypeScript 5.9 and strict coverage gates.
+- #5 browser validation: tolerate backend profiles without optional GFS retention settings.

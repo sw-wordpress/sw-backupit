@@ -33,7 +33,7 @@ are never echoed as HTML).
 It needs Composer, Docker and Node.js on the *build* machine only. `bin/build-restore.sh <dir>` builds only the standalone restore application.
 
 ### Admin UI build
-`make build` (Make, Node.js >= 18.18, npm) builds only the admin UI into `assets/admin/` (including TypeScript checks), not the release ZIP
+`make build` (Make, Node.js >= 22.13, npm) builds only the admin UI into `assets/admin/` (including TypeScript checks), not the release ZIP
 or the restore application. Dependencies are installed with `npm ci --include=dev` on the first build and whenever
 `apps/admin/package.json` or its lockfile changes.
 
@@ -60,7 +60,7 @@ runtime packages; `npm audit --omit=dev --audit-level=high` in `apps/admin`). Ne
 `.github/workflows/security-audit.yml` audits all dependencies, including dev tooling, daily and keeps one open `security-audit` issue
 (closed when clean). `.github/dependabot.yml` opens weekly grouped PRs (security fixes, peer-coupled toolchain packages, dev tools, runtime
 minor/patch; runtime majors individually). Dependabot PRs get no secrets, so the SonarQube job skips them. Enable Dependabot alerts and
-security updates in the repository settings. The admin app needs Node >= 22 (vue-i18n 11; `apps/admin/.nvmrc`, CI uses 22).
+security updates in the repository settings. The admin app needs Node 22.13+, 24 or 26+ (vue-i18n 11; `apps/admin/.nvmrc`, CI uses 22).
 PHPStan level 8 covers all production PHP (core, restore, WordPress adapter, `sw-backupit.php`, `uninstall.php`) with no baseline; WordPress
 (`szepeviktor/phpstan-wordpress`), WP-CLI and constants come from `tests/phpstan/` (bootstrap, stubs, corrected core PHPDoc). `bin/` holds
 dev/build scripts and is not analysed. `tests/wp` is a separate Composer project and outside Dependabot and the audits.
