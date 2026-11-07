@@ -64,6 +64,28 @@ final class WebWizardTest extends TestCase
         return [$m[1], (string) $data['csrf']];
     }
 
+    public function testStateProtectionCoversSessionsAndExtensionlessMarkers(): void
+    {
+        $this->setUpWizard();
+        $config = require $this->app . '/config.php';
+        $state = $config['state_dir'];
+        self::assertStringContainsString('Require all denied', file_get_contents($state . '/.htaccess'));
+        self::assertStringContainsString('accessType="Deny" users="*"', file_get_contents($state . '/web.config'));
+        self::assertSame(0700, fileperms($state) & 0777);
+        [$session] = $this->login();
+        self::assertFileExists($state . '/sessions/' . $session . '.json');
+        self::assertFileExists($state . '/token-used');
+        // Startup repairs rules for already configured wizards too.
+        unlink($state . '/.htaccess');
+        new WebApp($config + ['app_dir' => $this->app]);
+        self::assertFileExists($state . '/.htaccess');
+        $defaultApp = $this->makeTempDir('default-app');
+        WebSetup::initialize($defaultApp, $this->staging);
+        $default = require $defaultApp . '/config.php';
+        self::assertSame(sys_get_temp_dir(), dirname($default['state_dir']));
+        \SWBackupIt\Core\Support\AtomicFile::removeTree($default['state_dir']);
+    }
+
     public function testUnauthenticatedAccessRevealsNothing(): void
     {
         $this->setUpWizard();

@@ -31,11 +31,12 @@ final class WebSetup
             'token_hash' => hash('sha256', $token),
             'expires_at' => time() + $ttlSeconds,
             'backups_dir' => $backups,
-            'state_dir' => $stateDirectory ?? dirname(rtrim($appDirectory, '/')) . '/.swbi-restore-state-' . substr(hash('sha256', $appDirectory), 0, 10),
+            'state_dir' => $stateDirectory ?? sys_get_temp_dir() . '/.swbi-restore-state-' . substr(hash('sha256', $appDirectory), 0, 10),
             'allowed_target_roots' => $targetRoots,
             'suggested_target' => $suggestedTarget,
             'language' => $language,
         ];
+        self::protectStateDirectory($config['state_dir']);
         $php = "<?php\n// Generated. Contains only a token hash, never the token.\nreturn " . var_export($config, true) . ";\n";
         AtomicFile::write(rtrim($appDirectory, '/') . '/config.php', $php);
         @chmod(rtrim($appDirectory, '/') . '/config.php', 0600);
@@ -47,5 +48,17 @@ final class WebSetup
         @unlink($state . '/token-used');
 
         return $token;
+    }
+
+    /** Protect session data and extensionless markers, including state from older wizard setups. */
+    public static function protectStateDirectory(string $directory): void
+    {
+        AtomicFile::ensureDirectory($directory);
+        chmod($directory, 0700);
+        AtomicFile::write($directory . '/.htaccess', "Require all denied\nDeny from all\n");
+        AtomicFile::write($directory . '/web.config', '<?xml version="1.0" encoding="UTF-8"?>' .
+            '<configuration><system.webServer><security><authorization>' .
+            '<clear/><add accessType="Deny" users="*"/>' .
+            '</authorization></security></system.webServer></configuration>');
     }
 }
