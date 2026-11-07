@@ -28,7 +28,7 @@ Status codes: 400 validation, 401/403 auth/capability, 404 missing, 409 conflict
 
 Administrators receive all of them by default (`manage_options` mapped on activation). On **multisite** only the main site's
 administrator role receives them (also after schema updates), and `swbi_download`, `swbi_restore`, `swbi_settings`,
-`swbi_manage_storage` and `swbi_delete` always require a **super admin** (`map_meta_cap`), because all data is network wide.
+`swbi_manage_storage`, `swbi_delete`, `swbi_run` and `swbi_manage_profiles` always require a **super admin** (`map_meta_cap`), because all data is network wide.
 
 ## Enumerations
 
