@@ -54,6 +54,21 @@ final class CompareTest extends TestCase
         self::assertSame(0, $selected->counts['only_local'] - count(array_filter($selected->samples['only_local'], static fn (string $p): bool => !str_starts_with($p, 'wp-content/uploads/many'))));
     }
 
+    public function testCompareRejectsTraversalAbsolutePathsAndSymlinksBeforeHashing(): void
+    {
+        $root = $this->makeTempDir('compare-root');
+        $outside = $this->makeTempDir('compare-outside');
+        file_put_contents($outside . '/secret', 'secret');
+        symlink($outside, $root . '/link');
+        $classify = new \ReflectionMethod(Comparator::class, 'classify');
+        foreach (['../secret', $outside . '/secret', 'link/secret', 'link\\secret'] as $path) {
+            $entry = ['p' => $path, 't' => 'f', 's' => 6, 'm' => 0, 'h' => hash('sha256', 'secret')];
+            foreach ([Comparator::MODE_METADATA, Comparator::MODE_SHA256] as $mode) {
+                self::assertSame('incomparable', $classify->invoke(new Comparator(), $entry, $entry, $root, $mode));
+            }
+        }
+    }
+
     public function testCompareViaCli(): void
     {
         $runner = $this->setUpFilesBackup();
