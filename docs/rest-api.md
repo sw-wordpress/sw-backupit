@@ -236,3 +236,5 @@ Config keys: `local`: `path`; `sftp`: `host, port, username, root, host_fingerpr
 * Settings additions: `pre_update_backup: { core, plugins, themes, profile_id, max_age_minutes, wait_seconds, block_on_failure }`, `restore_test: { enabled, interval_days }`, `logging.audit_retention_days`.
 * Storage target config additions: `lock_days` (all types, retention lock in days) and `object_lock: { mode: GOVERNANCE|COMPLIANCE, days }` (s3).
 * Audit `object_type` values: `job, backup, profile, schedule, storage_target, encryption_key, settings` (`backup_started` is logged on the `job`).
+
+Selecting storage targets on profile creation/update or overriding the target for a run additionally requires `swbi_manage_storage`. An operator may still edit other profile fields without changing its destination list.

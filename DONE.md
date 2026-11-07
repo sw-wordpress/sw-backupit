@@ -85,3 +85,5 @@ See `docs/implementation-plan.md` and `docs/architecture.md`: NDJSON index (no p
 
 - #23: Reserve network-wide schedule/profile mutations and job execution to multisite super administrators.
 - #3: Resolve release/source autoloaders and register monorepo mappings during independent uninstall; release bootstrap smoke checks now execute uninstall in a fresh process.
+
+- #20: Require storage management before assigning or overriding backup destinations, including new profiles.
