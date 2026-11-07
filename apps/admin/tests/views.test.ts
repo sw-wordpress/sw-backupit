@@ -92,9 +92,11 @@ describe('profiles view', () => {
     fetchMock.mockImplementation(async (...args) => {
       const response = await original(...args);
       if (new URL(String(args[0])).pathname.endsWith('/profiles')) {
-        const data = await response.json() as { items: Array<{ retention: unknown }> };
+        const data = (await response.json()) as { items: Array<{ retention: unknown }> };
         for (const profile of data.items) profile.retention = {};
-        return new Response(JSON.stringify(data), { headers: { 'Content-Type': 'application/json' } });
+        return new Response(JSON.stringify(data), {
+          headers: { 'Content-Type': 'application/json' },
+        });
       }
       return response;
     });
