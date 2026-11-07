@@ -86,3 +86,4 @@ See `docs/implementation-plan.md` and `docs/architecture.md`: NDJSON index (no p
 - #2: Enforce resolved staging privacy before job creation/execution and restore preparation; never cache new public fallbacks. Existing backups stay in place.
 
 - #24: Protect restore state itself on Apache/IIS, cover extensionless markers and default standalone state to private temporary storage.
+- #3: Resolve release/source autoloaders and register monorepo mappings during independent uninstall; release bootstrap smoke checks now execute uninstall in a fresh process.
