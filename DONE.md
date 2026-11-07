@@ -84,3 +84,5 @@ See `docs/implementation-plan.md` and `docs/architecture.md`: NDJSON index (no p
 - Production dependency audits and Composer validation pass; no advisory suppressions or dependency constraints changed.
 
 - #2: Enforce resolved staging privacy before job creation/execution and restore preparation; never cache new public fallbacks. Existing backups stay in place.
+
+- #24: Protect restore state itself on Apache/IIS, cover extensionless markers and default standalone state to private temporary storage.

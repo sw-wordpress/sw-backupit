@@ -29,6 +29,7 @@ final class Auth
      */
     public function __construct(private readonly array $config, private readonly string $stateDirectory)
     {
+        WebSetup::protectStateDirectory($stateDirectory);
         AtomicFile::ensureDirectory($stateDirectory . '/sessions');
         @chmod($stateDirectory, 0700);
     }
