@@ -83,5 +83,5 @@ See `docs/implementation-plan.md` and `docs/architecture.md`: NDJSON index (no p
   `symfony/filesystem` dependency. Updated only that package from 7.4.21 to patched 7.4.23 in both Composer lockfiles.
 - Production dependency audits and Composer validation pass; no advisory suppressions or dependency constraints changed.
 
-- #2: Enforce resolved staging privacy before job creation/execution and restore preparation; never cache new public fallbacks. Existing backups stay in place.
+- #2: Enforce resolved staging privacy before job creation/execution and restore preparation; never cache new public fallbacks. Existing backups stay in place. Refusals produce job/REST errors, allow cancellation cleanup and honor required pre-update backups.
 - #3: Resolve release/source autoloaders and register monorepo mappings during independent uninstall; release bootstrap smoke checks now execute uninstall in a fresh process.
