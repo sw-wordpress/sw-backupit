@@ -53,6 +53,36 @@ class SecurityRegressionTest extends WP_UnitTestCase {
 		return rest_get_server()->dispatch( $request );
 	}
 
+	public function test_view_only_users_can_list_files_but_cannot_compare(): void {
+		$profile = Services::instance()->profiles()->create(
+			array(
+				'name'          => 'Compare permission',
+				'type'          => 'files',
+				'include_paths' => array( 'wp-includes/js/jquery' ),
+			)
+		);
+		$job     = Services::instance()->job_service()->start( $profile, 'manual', null, false );
+		for ( $i = 0; $i < 100; $i++ ) {
+			$result = Services::instance()->job_service()->tick( $job->id, 10.0 );
+			if ( ! $result->shouldContinue ) {
+				break;
+			}
+		}
+		$job = Services::instance()->jobs()->find( $job->id );
+		$this->assertSame( 'completed', $job->status->value );
+		$viewer = self::factory()->user->create( array( 'role' => 'subscriber' ) );
+		$user   = new WP_User( $viewer );
+		$user->add_cap( Capabilities::VIEW );
+		wp_set_current_user( $viewer );
+		$this->assertSame( 200, $this->request( 'GET', '/backups/' . $job->backupId . '/files' )->get_status() );
+		$this->assertSame( 403, $this->request( 'POST', '/backups/' . $job->backupId . '/compare' )->get_status() );
+		$user->add_cap( Capabilities::DOWNLOAD );
+		if ( is_multisite() ) {
+			grant_super_admin( $viewer );
+		}
+		wp_set_current_user( 0 );
+		wp_set_current_user( $viewer );
+		$this->assertSame( 200, $this->request( 'POST', '/backups/' . $job->backupId . '/compare' )->get_status() );
 	public function test_delegated_profile_operators_cannot_select_storage_targets(): void {
 		$profile = Services::instance()->profiles()->create( array( 'name' => 'Operator', 'type' => 'files' ) );
 		$operator = self::factory()->user->create( array( 'role' => 'subscriber' ) );
