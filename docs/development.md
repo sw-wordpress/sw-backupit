@@ -78,3 +78,6 @@ fails): `tests/coverage/check.php` for the merged PHP Clover report, `apps/admin
 ## Conventions
 See `AGENTS.md` and `CODE-STYLE.md`. Gotchas learned the hard way: `wpdb::$field_types` maps columns named `object_id` to `%d` (pass explicit formats);
 ZipStream rewrites `\ : * ? " < > |` in entry names (we percent-encode them); the WordPress test suite creates tables as TEMPORARY (other connections cannot see them).
+
+### Verified backups and retention (#4)
+`verified` means trustworthy metadata, not deletion protection. Verified backups intentionally participate in retention and parent selection. Explicit protection, the newest valid/self-contained backup and required chain dependencies still win over count, age and size limits. Before upgrading existing installations with many verified backups, run `wp sw-backupit retention run --dry-run` and inspect the deletion plan; protect backups that must survive. The first real run may delete a large historical backlog. No automatic migration or artificial deletion cap is introduced. Regression tests plan count/age/size retention against 100 old verified catalog entries and a multi-level chain without deleting files.

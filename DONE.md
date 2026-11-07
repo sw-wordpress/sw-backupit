@@ -82,3 +82,5 @@ See `docs/implementation-plan.md` and `docs/architecture.md`: NDJSON index (no p
 - CI stopped before PHP tests on advisory GHSA-6prc-h956-hxjq, published November 4, affecting the AWS SDK's transitive
   `symfony/filesystem` dependency. Updated only that package from 7.4.21 to patched 7.4.23 in both Composer lockfiles.
 - Production dependency audits and Composer validation pass; no advisory suppressions or dependency constraints changed.
+
+- #4: Confirm verified backups participate in retention; document upgrade dry runs and regression-test bulk verified catalogs with chain/protection safety.
