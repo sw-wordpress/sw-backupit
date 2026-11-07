@@ -101,6 +101,33 @@ class SecurityRegressionTest extends WP_UnitTestCase {
 		}
 	}
 
+	public function test_staging_refusal_fails_queued_jobs_and_returns_rest_errors(): void {
+		$profile = Services::instance()->profiles()->create( array( 'name' => 'Staging refusal', 'type' => 'files', 'include_paths' => array( 'wp-includes/js/jquery' ) ) );
+		$finished = Services::instance()->job_service()->start( $profile, 'manual', null, false );
+		for ( $i = 0; $i < 100; $i++ ) {
+			$result = Services::instance()->job_service()->tick( $finished->id, 10.0 );
+			if ( ! $result->shouldContinue ) {
+				break;
+			}
+		}
+		$this->assertSame( 'completed', $result->status->value );
+		$queued = Services::instance()->job_service()->start( $profile, 'manual', null, false );
+		$public = untrailingslashit( ABSPATH ) . '/swbi-refusal-' . bin2hex( random_bytes( 4 ) );
+		\SWBackupIt\WordPress\Support\Options::update( 'swbi_settings', array( 'staging_dir' => $public ) );
+		$files = $this->request( 'GET', '/backups/' . $finished->backupId . '/files' );
+		$this->assertSame( 404, $files->get_status() );
+		$this->assertSame( 'swbi_backup_unavailable', $files->get_data()['code'] );
+		$compare = $this->request( 'POST', '/backups/' . $finished->backupId . '/compare' );
+		$this->assertSame( 422, $compare->get_status() );
+		$this->assertSame( 'swbi_compare_failed', $compare->get_data()['code'] );
+		$result = Services::instance()->job_service()->tick( $queued->id, 10.0 );
+		$this->assertSame( 'failed', $result->status->value );
+		$saved = Services::instance()->jobs()->find( $queued->id );
+		$this->assertSame( 'failed', $saved->status->value );
+		$this->assertNotEmpty( $saved->error );
+		$this->assertDirectoryDoesNotExist( $public );
+	}
+
 	public function test_malformed_identifiers_never_reach_the_database_layer(): void {
 		foreach ( array( '/jobs/not-a-uuid', '/jobs/..%2F..%2Fetc', "/backups/' OR 1=1 --", '/backups/../../etc/passwd/files', '/profiles/abc', '/schedules/1;DROP TABLE x' ) as $route ) {
 			$status = $this->request( 'GET', $route )->get_status();
