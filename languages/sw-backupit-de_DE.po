@@ -281,40 +281,40 @@ msgstr "Die Wiederherstellung wurde erfolgreich abgeschlossen."
 msgid "Connection lost. Reload this page to resume the restore."
 msgstr "Verbindung unterbrochen. Laden Sie diese Seite neu, um die Wiederherstellung fortzusetzen."
 
-#: packages/restore/src/Web/WebApp.php:64
+#: packages/restore/src/Web/WebApp.php:65
 msgid "Forbidden"
 msgstr "Zugriff verweigert"
 
-#: packages/restore/src/Web/WebApp.php:64
+#: packages/restore/src/Web/WebApp.php:65
 msgid "Invalid or missing security token. Reload the page."
 msgstr "Ungültiges oder fehlendes Sicherheits-Token. Laden Sie die Seite neu."
 
-#: packages/restore/src/Web/WebApp.php:88
+#: packages/restore/src/Web/WebApp.php:89
 #, php-format
 msgid "Too many failed attempts. Try again in %d minutes."
 msgstr "Zu viele fehlgeschlagene Versuche. Versuchen Sie es in %d Minuten erneut."
 
-#: packages/restore/src/Web/WebApp.php:89
+#: packages/restore/src/Web/WebApp.php:90
 msgid "The token is not valid."
 msgstr "Das Token ist ungültig."
 
-#: packages/restore/src/Web/WebApp.php:103
+#: packages/restore/src/Web/WebApp.php:104
 msgid "You were signed out."
 msgstr "Sie wurden abgemeldet."
 
-#: packages/restore/src/Web/WebApp.php:227
+#: packages/restore/src/Web/WebApp.php:228
 msgid "No restore is running."
 msgstr "Es läuft keine Wiederherstellung."
 
-#: packages/restore/src/Web/WebApp.php:277
+#: packages/restore/src/Web/WebApp.php:278
 msgid "The restore completed. The restore application is now locked and its files were removed."
 msgstr "Die Wiederherstellung ist abgeschlossen. Die Restore-Anwendung ist nun gesperrt und ihre Dateien wurden entfernt."
 
-#: packages/restore/src/Web/WebApp.php:277
+#: packages/restore/src/Web/WebApp.php:278
 msgid "The restore completed. The restore application is now locked. Please delete the restore directory from your server manually."
 msgstr "Die Wiederherstellung ist abgeschlossen. Die Restore-Anwendung ist nun gesperrt. Bitte löschen Sie das Restore-Verzeichnis manuell von Ihrem Server."
 
-#: packages/restore/src/Web/WebApp.php:279
+#: packages/restore/src/Web/WebApp.php:280
 msgid "Restore finished"
 msgstr "Wiederherstellung abgeschlossen"
 
@@ -324,6 +324,7 @@ msgid "sw-backupit"
 msgstr "sw-backupit"
 
 #: packages/wordpress/src/Admin/AdminPage.php:41
+#: packages/wordpress/src/Rest/ProfilesController.php:197
 msgid "You do not have permission to access this page."
 msgstr "Sie haben keine Berechtigung, auf diese Seite zuzugreifen."
 
@@ -494,84 +495,84 @@ msgid "Overdue schedules: %s"
 msgstr "Überfällige Zeitpläne: %s"
 
 #: packages/wordpress/src/Rest/ProfilesController.php:110
-#: packages/wordpress/src/Rest/ProfilesController.php:134
-#: packages/wordpress/src/Rest/ProfilesController.php:153
-#: packages/wordpress/src/Rest/ProfilesController.php:159
-#: packages/wordpress/src/Rest/ProfilesController.php:166
+#: packages/wordpress/src/Rest/ProfilesController.php:144
+#: packages/wordpress/src/Rest/ProfilesController.php:163
+#: packages/wordpress/src/Rest/ProfilesController.php:169
+#: packages/wordpress/src/Rest/ProfilesController.php:176
 msgid "Profile not found."
 msgstr "Profil nicht gefunden."
 
-#: packages/wordpress/src/Rest/ProfilesController.php:140
+#: packages/wordpress/src/Rest/ProfilesController.php:150
 msgid "Deleting a profile requires confirmation."
 msgstr "Zum Löschen eines Profils ist eine Bestätigung erforderlich."
 
-#: packages/wordpress/src/Rest/ProfilesController.php:145
+#: packages/wordpress/src/Rest/ProfilesController.php:155
 msgid "The profile is used by a schedule. Delete the schedule first."
 msgstr "Das Profil wird von einem Zeitplan verwendet. Löschen Sie zuerst den Zeitplan."
 
-#: packages/wordpress/src/Rest/ProfilesController.php:171
+#: packages/wordpress/src/Rest/ProfilesController.php:184
 #: packages/wordpress/src/Runner/TransferService.php:83
 #: packages/wordpress/src/Support/CoreMessages.php:208
 msgid "The storage target does not exist."
 msgstr "Das Speicherziel existiert nicht."
 
-#: packages/wordpress/src/Rest/SchedulesController.php:87
-#: packages/wordpress/src/Rest/SchedulesController.php:106
-#: packages/wordpress/src/Rest/SchedulesController.php:124
-#: packages/wordpress/src/Rest/SchedulesController.php:130
+#: packages/wordpress/src/Rest/SchedulesController.php:88
+#: packages/wordpress/src/Rest/SchedulesController.php:107
+#: packages/wordpress/src/Rest/SchedulesController.php:125
+#: packages/wordpress/src/Rest/SchedulesController.php:131
 msgid "Schedule not found."
 msgstr "Zeitplan nicht gefunden."
 
-#: packages/wordpress/src/Rest/SchedulesController.php:135
+#: packages/wordpress/src/Rest/SchedulesController.php:136
 msgid "The schedule could not be started."
 msgstr "Der Zeitplan konnte nicht gestartet werden."
 
-#: packages/wordpress/src/Rest/SchedulesController.php:181
+#: packages/wordpress/src/Rest/SchedulesController.php:182
 msgid "Name is required."
 msgstr "Ein Name ist erforderlich."
 
-#: packages/wordpress/src/Rest/SchedulesController.php:184
+#: packages/wordpress/src/Rest/SchedulesController.php:185
 msgid "Profile does not exist."
 msgstr "Das Profil existiert nicht."
 
-#: packages/wordpress/src/Rest/SchedulesController.php:187
+#: packages/wordpress/src/Rest/SchedulesController.php:188
 msgid "Unknown frequency."
 msgstr "Unbekannte Häufigkeit."
 
-#: packages/wordpress/src/Rest/SchedulesController.php:190
+#: packages/wordpress/src/Rest/SchedulesController.php:191
 msgid "Invalid cron expression."
 msgstr "Ungültiger Cron-Ausdruck."
 
-#: packages/wordpress/src/Rest/SchedulesController.php:193
+#: packages/wordpress/src/Rest/SchedulesController.php:194
 #: packages/wordpress/src/Support/Settings.php:115
 msgid "Unknown timezone."
 msgstr "Unbekannte Zeitzone."
 
-#: packages/wordpress/src/Rest/SchedulesController.php:196
+#: packages/wordpress/src/Rest/SchedulesController.php:197
 msgid "Time must be HH:MM."
 msgstr "Die Uhrzeit muss im Format HH:MM angegeben werden."
 
-#: packages/wordpress/src/Rest/SchedulesController.php:199
+#: packages/wordpress/src/Rest/SchedulesController.php:200
 msgid "Weekday or day of month out of range."
 msgstr "Wochentag oder Tag des Monats außerhalb des gültigen Bereichs."
 
-#: packages/wordpress/src/Rest/SchedulesController.php:202
+#: packages/wordpress/src/Rest/SchedulesController.php:203
 msgid "Retry settings are out of range."
 msgstr "Die Wiederholungseinstellungen liegen außerhalb des gültigen Bereichs."
 
-#: packages/wordpress/src/Rest/SchedulesController.php:205
+#: packages/wordpress/src/Rest/SchedulesController.php:206
 msgid "The schedule is invalid."
 msgstr "Der Zeitplan ist ungültig."
 
-#: packages/wordpress/src/Rest/StorageTargetsController.php:99
-#: packages/wordpress/src/Rest/StorageTargetsController.php:134
-#: packages/wordpress/src/Rest/StorageTargetsController.php:141
-#: packages/wordpress/src/Rest/StorageTargetsController.php:170
-#: packages/wordpress/src/Rest/StorageTargetsController.php:210
+#: packages/wordpress/src/Rest/StorageTargetsController.php:101
+#: packages/wordpress/src/Rest/StorageTargetsController.php:136
+#: packages/wordpress/src/Rest/StorageTargetsController.php:143
+#: packages/wordpress/src/Rest/StorageTargetsController.php:172
+#: packages/wordpress/src/Rest/StorageTargetsController.php:212
 msgid "Storage target not found."
 msgstr "Speicherziel nicht gefunden."
 
-#: packages/wordpress/src/Rest/StorageTargetsController.php:125
+#: packages/wordpress/src/Rest/StorageTargetsController.php:127
 msgid "The storage target is used by a profile."
 msgstr "Das Speicherziel wird von einem Profil verwendet."
 

@@ -84,3 +84,5 @@ See `docs/implementation-plan.md` and `docs/architecture.md`: NDJSON index (no p
 - Production dependency audits and Composer validation pass; no advisory suppressions or dependency constraints changed.
 
 - #23: Reserve network-wide schedule/profile mutations and job execution to multisite super administrators.
+
+- #20: Require storage management before assigning or overriding backup destinations, including new profiles.
