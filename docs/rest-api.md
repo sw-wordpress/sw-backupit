@@ -28,7 +28,7 @@ Status codes: 400 validation, 401/403 auth/capability, 404 missing, 409 conflict
 
 Administrators receive all of them by default (`manage_options` mapped on activation). On **multisite** only the main site's
 administrator role receives them (also after schema updates), and `swbi_download`, `swbi_restore`, `swbi_settings`,
-`swbi_manage_storage` and `swbi_delete` always require a **super admin** (`map_meta_cap`), because all data is network wide.
+`swbi_manage_storage`, `swbi_delete`, `swbi_run` and `swbi_manage_profiles` always require a **super admin** (`map_meta_cap`), because all data is network wide.
 
 ## Enumerations
 
@@ -236,3 +236,5 @@ Config keys: `local`: `path`; `sftp`: `host, port, username, root, host_fingerpr
 * Settings additions: `pre_update_backup: { core, plugins, themes, profile_id, max_age_minutes, wait_seconds, block_on_failure }`, `restore_test: { enabled, interval_days }`, `logging.audit_retention_days`.
 * Storage target config additions: `lock_days` (all types, retention lock in days) and `object_lock: { mode: GOVERNANCE|COMPLIANCE, days }` (s3).
 * Audit `object_type` values: `job, backup, profile, schedule, storage_target, encryption_key, settings` (`backup_started` is logged on the `job`).
+
+Selecting storage targets on profile creation/update or overriding the target for a run additionally requires `swbi_manage_storage`. An operator may still edit other profile fields without changing its destination list.

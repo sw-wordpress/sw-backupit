@@ -83,6 +83,25 @@ class SecurityRegressionTest extends WP_UnitTestCase {
 		wp_set_current_user( 0 );
 		wp_set_current_user( $viewer );
 		$this->assertSame( 200, $this->request( 'POST', '/backups/' . $job->backupId . '/compare' )->get_status() );
+	public function test_delegated_profile_operators_cannot_select_storage_targets(): void {
+		$profile = Services::instance()->profiles()->create( array( 'name' => 'Operator', 'type' => 'files' ) );
+		$operator = self::factory()->user->create( array( 'role' => 'subscriber' ) );
+		$user = new WP_User( $operator );
+		$user->add_cap( Capabilities::MANAGE_PROFILES );
+		$user->add_cap( Capabilities::RUN );
+		wp_set_current_user( $operator );
+		foreach ( array( 0, 1, 99999 ) as $target ) {
+			$this->assertSame( 403, $this->request( 'POST', '/profiles/' . $profile->id . '/run', array( 'storage_target_id' => $target ) )->get_status() );
+		}
+		$this->assertSame( 403, $this->request( 'PUT', '/profiles/' . $profile->id, array( 'storage_target_ids' => array( 1 ) ) )->get_status() );
+		$this->assertSame( 403, $this->request( 'POST', '/profiles', array( 'name' => 'Denied', 'storage_target_ids' => array( 1 ) ) )->get_status() );
+		if ( ! is_multisite() ) {
+			$this->assertSame( 200, $this->request( 'PUT', '/profiles/' . $profile->id, array( 'description' => 'Still editable', 'storage_target_ids' => array() ) )->get_status() );
+			$user->add_cap( Capabilities::MANAGE_STORAGE );
+			wp_set_current_user( 0 );
+			wp_set_current_user( $operator );
+			$this->assertSame( 200, $this->request( 'PUT', '/profiles/' . $profile->id, array( 'storage_target_ids' => array( 1 ) ) )->get_status() );
+		}
 	}
 
 	public function test_malformed_identifiers_never_reach_the_database_layer(): void {
