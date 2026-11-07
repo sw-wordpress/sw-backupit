@@ -78,3 +78,6 @@ fails): `tests/coverage/check.php` for the merged PHP Clover report, `apps/admin
 ## Conventions
 See `AGENTS.md` and `CODE-STYLE.md`. Gotchas learned the hard way: `wpdb::$field_types` maps columns named `object_id` to `%d` (pass explicit formats);
 ZipStream rewrites `\ : * ? " < > |` in entry names (we percent-encode them); the WordPress test suite creates tables as TEMPORARY (other connections cannot see them).
+
+### Public staging upgrade
+Backup starts/resumes and restore preparation now refuse resolved public staging paths by default, including previously cached paths. Health/settings remain readable. Existing backups are kept in place: copy them to a private directory and explicitly update staging settings after verification. The `allow_public_paths` override is unsafe on servers that ignore `.htaccess`; configure server access controls before deliberately enabling it.

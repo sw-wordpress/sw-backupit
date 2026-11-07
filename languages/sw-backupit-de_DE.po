@@ -281,40 +281,40 @@ msgstr "Die Wiederherstellung wurde erfolgreich abgeschlossen."
 msgid "Connection lost. Reload this page to resume the restore."
 msgstr "Verbindung unterbrochen. Laden Sie diese Seite neu, um die Wiederherstellung fortzusetzen."
 
-#: packages/restore/src/Web/WebApp.php:64
+#: packages/restore/src/Web/WebApp.php:65
 msgid "Forbidden"
 msgstr "Zugriff verweigert"
 
-#: packages/restore/src/Web/WebApp.php:64
+#: packages/restore/src/Web/WebApp.php:65
 msgid "Invalid or missing security token. Reload the page."
 msgstr "Ungültiges oder fehlendes Sicherheits-Token. Laden Sie die Seite neu."
 
-#: packages/restore/src/Web/WebApp.php:88
+#: packages/restore/src/Web/WebApp.php:89
 #, php-format
 msgid "Too many failed attempts. Try again in %d minutes."
 msgstr "Zu viele fehlgeschlagene Versuche. Versuchen Sie es in %d Minuten erneut."
 
-#: packages/restore/src/Web/WebApp.php:89
+#: packages/restore/src/Web/WebApp.php:90
 msgid "The token is not valid."
 msgstr "Das Token ist ungültig."
 
-#: packages/restore/src/Web/WebApp.php:103
+#: packages/restore/src/Web/WebApp.php:104
 msgid "You were signed out."
 msgstr "Sie wurden abgemeldet."
 
-#: packages/restore/src/Web/WebApp.php:227
+#: packages/restore/src/Web/WebApp.php:228
 msgid "No restore is running."
 msgstr "Es läuft keine Wiederherstellung."
 
-#: packages/restore/src/Web/WebApp.php:277
+#: packages/restore/src/Web/WebApp.php:278
 msgid "The restore completed. The restore application is now locked and its files were removed."
 msgstr "Die Wiederherstellung ist abgeschlossen. Die Restore-Anwendung ist nun gesperrt und ihre Dateien wurden entfernt."
 
-#: packages/restore/src/Web/WebApp.php:277
+#: packages/restore/src/Web/WebApp.php:278
 msgid "The restore completed. The restore application is now locked. Please delete the restore directory from your server manually."
 msgstr "Die Wiederherstellung ist abgeschlossen. Die Restore-Anwendung ist nun gesperrt. Bitte löschen Sie das Restore-Verzeichnis manuell von Ihrem Server."
 
-#: packages/restore/src/Web/WebApp.php:279
+#: packages/restore/src/Web/WebApp.php:280
 msgid "Restore finished"
 msgstr "Wiederherstellung abgeschlossen"
 
@@ -563,15 +563,15 @@ msgstr "Die Wiederholungseinstellungen liegen außerhalb des gültigen Bereichs.
 msgid "The schedule is invalid."
 msgstr "Der Zeitplan ist ungültig."
 
-#: packages/wordpress/src/Rest/StorageTargetsController.php:99
-#: packages/wordpress/src/Rest/StorageTargetsController.php:134
-#: packages/wordpress/src/Rest/StorageTargetsController.php:141
-#: packages/wordpress/src/Rest/StorageTargetsController.php:170
-#: packages/wordpress/src/Rest/StorageTargetsController.php:210
+#: packages/wordpress/src/Rest/StorageTargetsController.php:101
+#: packages/wordpress/src/Rest/StorageTargetsController.php:136
+#: packages/wordpress/src/Rest/StorageTargetsController.php:143
+#: packages/wordpress/src/Rest/StorageTargetsController.php:172
+#: packages/wordpress/src/Rest/StorageTargetsController.php:212
 msgid "Storage target not found."
 msgstr "Speicherziel nicht gefunden."
 
-#: packages/wordpress/src/Rest/StorageTargetsController.php:125
+#: packages/wordpress/src/Rest/StorageTargetsController.php:127
 msgid "The storage target is used by a profile."
 msgstr "Das Speicherziel wird von einem Profil verwendet."
 
@@ -609,24 +609,24 @@ msgstr "Der Speicherplatz für Backups wird knapp"
 msgid "Only %s are free in the backup staging directory."
 msgstr "Im Backup-Staging-Verzeichnis sind nur noch %s frei."
 
-#: packages/wordpress/src/Runner/JobService.php:105
-#: packages/wordpress/src/Runner/JobService.php:121
+#: packages/wordpress/src/Runner/JobService.php:106
+#: packages/wordpress/src/Runner/JobService.php:122
 msgid "Another backup is already running."
 msgstr "Es läuft bereits ein anderes Backup."
 
-#: packages/wordpress/src/Runner/JobService.php:159
+#: packages/wordpress/src/Runner/JobService.php:160
 msgid "The job cannot be paused in its current state."
 msgstr "Der Job kann im aktuellen Zustand nicht pausiert werden."
 
-#: packages/wordpress/src/Runner/JobService.php:170
+#: packages/wordpress/src/Runner/JobService.php:171
 msgid "Only paused jobs can be resumed."
 msgstr "Nur pausierte Jobs können fortgesetzt werden."
 
-#: packages/wordpress/src/Runner/JobService.php:185
+#: packages/wordpress/src/Runner/JobService.php:186
 msgid "The job has already finished."
 msgstr "Der Job ist bereits beendet."
 
-#: packages/wordpress/src/Runner/JobService.php:207
+#: packages/wordpress/src/Runner/JobService.php:208
 msgid "Only failed jobs can be retried."
 msgstr "Nur fehlgeschlagene Jobs können wiederholt werden."
 
@@ -1650,6 +1650,7 @@ msgid "The staging directory must be an absolute path without \"..\"."
 msgstr "Das Staging-Verzeichnis muss ein absoluter Pfad ohne \"..\" sein."
 
 #: packages/wordpress/src/Support/Settings.php:125
+#: packages/wordpress/src/Support/Settings.php:198
 msgid "The staging directory is inside the web root, where backups could be downloaded by anyone. Choose a directory outside the web root."
 msgstr "Das Staging-Verzeichnis liegt im Web-Root, wo Backups von jedem heruntergeladen werden könnten. Wählen Sie ein Verzeichnis außerhalb des Web-Roots."
 

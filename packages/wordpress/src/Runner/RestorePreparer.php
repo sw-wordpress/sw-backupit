@@ -28,7 +28,7 @@ final class RestorePreparer {
 	 * @throws SwbiException When the backup is not available locally.
 	 */
 	public function prepare( string $backup_id, int $ttl = 3600 ): array {
-		$staging = Settings::staging_dir();
+		$staging = Settings::staging_dir_for_writes();
 		$set     = BackupSet::open( $staging . '/' . $backup_id );
 		if ( $set->isLocalCopyRemoved() ) {
 			throw new SwbiException( __( 'The local copy of this backup was removed. Download it from a storage target first.', 'sw-backupit' ) );

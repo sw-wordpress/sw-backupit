@@ -53,6 +53,81 @@ class SecurityRegressionTest extends WP_UnitTestCase {
 		return rest_get_server()->dispatch( $request );
 	}
 
+	public function test_public_staging_is_refused_before_jobs_or_restore_write_files(): void {
+		$public = untrailingslashit( ABSPATH ) . '/swbi-public-regression-' . bin2hex( random_bytes( 4 ) );
+		$profile = Services::instance()->profiles()->create( array( 'name' => 'Unsafe staging', 'type' => 'files' ) );
+		foreach ( array( false, true ) as $cached ) {
+			\SWBackupIt\WordPress\Support\Options::update( 'swbi_settings', array( 'staging_dir' => $cached ? '' : $public ) );
+			\SWBackupIt\WordPress\Support\Options::update( 'swbi_staging_dir', $public );
+			$this->assertSame( $public, Settings::staging_dir(), 'reading settings must stay safe for health checks' );
+			$actions = array(
+				static fn () => Services::instance()->job_service()->start( $profile, 'manual', null, false ),
+				static fn () => ( new \SWBackupIt\WordPress\Runner\WpSourceInfoProvider() )->forJob( ( new \SWBackupIt\Core\Backup\JobFactory() )->create( $profile ) ),
+				static fn () => ( new \SWBackupIt\WordPress\Runner\RestorePreparer() )->prepare( wp_generate_uuid4() ),
+			);
+			foreach ( $actions as $action ) {
+				try {
+					$action();
+					$this->fail( 'Public staging must be rejected.' );
+				} catch ( \SWBackupIt\Core\Exception\ConfigurationException $exception ) {
+					$this->assertStringContainsString( 'web root', $exception->getMessage() );
+				}
+			}
+			$this->assertDirectoryDoesNotExist( $public );
+		}
+		\SWBackupIt\WordPress\Support\Options::update( 'swbi_settings', array( 'staging_dir' => $public, 'allow_public_paths' => true ) );
+		$this->assertSame( $public, Settings::staging_dir_for_writes(), 'the explicit unsafe override is respected' );
+		Settings::update( array( 'staging_dir' => $this->staging, 'allow_public_paths' => false ) );
+		$this->assertSame( $this->staging, Settings::staging_dir_for_writes() );
+	}
+
+	public function test_subdirectory_install_never_caches_a_public_automatic_fallback(): void {
+		$previous = $_SERVER['DOCUMENT_ROOT'] ?? null;
+		$_SERVER['DOCUMENT_ROOT'] = dirname( untrailingslashit( ABSPATH ) );
+		\SWBackupIt\WordPress\Support\Options::update( 'swbi_settings', array() );
+		\SWBackupIt\WordPress\Support\Options::delete( 'swbi_staging_dir' );
+		try {
+			$dir = Settings::staging_dir();
+			$this->assertTrue( Settings::is_inside_docroot( $dir ) );
+			$this->assertSame( '', \SWBackupIt\WordPress\Support\Options::get( 'swbi_staging_dir', '' ) );
+			$this->expectException( \SWBackupIt\Core\Exception\ConfigurationException::class );
+			Settings::staging_dir_for_writes();
+		} finally {
+			if ( null === $previous ) {
+				unset( $_SERVER['DOCUMENT_ROOT'] );
+			} else {
+				$_SERVER['DOCUMENT_ROOT'] = $previous;
+			}
+		}
+	}
+
+	public function test_staging_refusal_fails_queued_jobs_and_returns_rest_errors(): void {
+		$profile = Services::instance()->profiles()->create( array( 'name' => 'Staging refusal', 'type' => 'files', 'include_paths' => array( 'wp-includes/js/jquery' ) ) );
+		$finished = Services::instance()->job_service()->start( $profile, 'manual', null, false );
+		for ( $i = 0; $i < 100; $i++ ) {
+			$result = Services::instance()->job_service()->tick( $finished->id, 10.0 );
+			if ( ! $result->shouldContinue ) {
+				break;
+			}
+		}
+		$this->assertSame( 'completed', $result->status->value );
+		$queued = Services::instance()->job_service()->start( $profile, 'manual', null, false );
+		$public = untrailingslashit( ABSPATH ) . '/swbi-refusal-' . bin2hex( random_bytes( 4 ) );
+		\SWBackupIt\WordPress\Support\Options::update( 'swbi_settings', array( 'staging_dir' => $public ) );
+		$files = $this->request( 'GET', '/backups/' . $finished->backupId . '/files' );
+		$this->assertSame( 404, $files->get_status() );
+		$this->assertSame( 'swbi_backup_unavailable', $files->get_data()['code'] );
+		$compare = $this->request( 'POST', '/backups/' . $finished->backupId . '/compare' );
+		$this->assertSame( 422, $compare->get_status() );
+		$this->assertSame( 'swbi_compare_failed', $compare->get_data()['code'] );
+		$result = Services::instance()->job_service()->tick( $queued->id, 10.0 );
+		$this->assertSame( 'failed', $result->status->value );
+		$saved = Services::instance()->jobs()->find( $queued->id );
+		$this->assertSame( 'failed', $saved->status->value );
+		$this->assertNotEmpty( $saved->error );
+		$this->assertDirectoryDoesNotExist( $public );
+	}
+
 	public function test_malformed_identifiers_never_reach_the_database_layer(): void {
 		foreach ( array( '/jobs/not-a-uuid', '/jobs/..%2F..%2Fetc', "/backups/' OR 1=1 --", '/backups/../../etc/passwd/files', '/profiles/abc', '/schedules/1;DROP TABLE x' ) as $route ) {
 			$status = $this->request( 'GET', $route )->get_status();
