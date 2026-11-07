@@ -85,3 +85,4 @@ See `docs/implementation-plan.md` and `docs/architecture.md`: NDJSON index (no p
 
 - #5: Upgrade the coupled Vite/Quasar/Vue build plugins and ESLint toolchain; retain Vitest 5, TypeScript 5.9 and strict coverage gates.
 - #5 browser validation: tolerate backend profiles without optional GFS retention settings.
+- #3: Resolve release/source autoloaders and register monorepo mappings during independent uninstall; release bootstrap smoke checks now execute uninstall in a fresh process.

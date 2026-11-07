@@ -145,3 +145,9 @@ if ($prefix !== '') {
 }
 
 echo 'PASS: Plugin bootstrap, monorepo mappings, cron, AWS signing, S3/SFTP adapters, phpseclib, local storage and ZIP streaming.' . PHP_EOL;
+
+// Uninstall must work in a fresh process without the plugin entry point registering its mappings first.
+$uninstall = proc_open([PHP_BINARY, __DIR__ . '/uninstall.php', $root], [1 => STDOUT, 2 => STDERR], $pipes);
+if (!is_resource($uninstall) || proc_close($uninstall) !== 0) {
+    throw new RuntimeException('Independent uninstall smoke test failed.');
+}
