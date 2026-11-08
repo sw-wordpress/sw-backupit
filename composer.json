@@ -49,6 +49,13 @@
         }
     },
     "extra": {
+        "aws/aws-sdk-php": [
+            "S3",
+            "Sts",
+            "SSO",
+            "SSOOIDC",
+            "Signin"
+        ],
         "mozart": {
             "dep_namespace": "SWBackupIt\\Dependencies\\",
             "dep_directory": "/vendor-prefixed/",
@@ -75,6 +82,7 @@
         }
     },
     "scripts": {
+        "prune-aws": "Aws\\Script\\Composer\\Composer::removeUnusedServices",
         "test": "phpunit --testsuite unit,integration",
         "test:e2e": "phpunit --testsuite e2e",
         "stan": "phpstan analyse --memory-limit=1G",
