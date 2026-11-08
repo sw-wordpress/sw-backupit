@@ -34,7 +34,7 @@ function is_wp_error(mixed $thing): bool
 {
     return $thing instanceof WP_Error;
 }
-function __(string $text): string
+function __(string $text, string $domain = 'default'): string
 {
     return $text;
 }
