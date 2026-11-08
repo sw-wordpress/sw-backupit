@@ -3,12 +3,14 @@
  * Plugin Name:       SW-BackupIt
  * Plugin URI:        https://example.com/sw-backupit
  * Description:       Robust, resumable WordPress backup, restore and disaster recovery with a standalone restore application.
- * Version:           0.1.0
+ * Version:           0.8.0
  * Requires at least: 6.4
  * Requires PHP:      8.2
- * Author:            sw-backupit contributors
+ * Author:            Stefan Warnat
+ * Author URI:        https://stefanwarnat.de
  * License:           GPL-2.0-or-later
  * License URI:       https://www.gnu.org/licenses/gpl-2.0.html
+ * Update URI:        https://github.com/sw-wordpress/sw-backupit
  * Text Domain:       sw-backupit
  * Domain Path:       /languages
  *

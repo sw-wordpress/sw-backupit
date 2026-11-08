@@ -321,7 +321,7 @@ msgstr "Restauration terminée"
 #: packages/wordpress/src/Admin/AdminPage.php:29
 #: packages/wordpress/src/Admin/AdminPage.php:30
 msgid "sw-backupit"
-msgstr "sw-backupit"
+msgstr "BackupIt"
 
 #: packages/wordpress/src/Admin/AdminPage.php:41
 #: packages/wordpress/src/Rest/ProfilesController.php:197
@@ -330,11 +330,11 @@ msgstr "Vous n'avez pas l'autorisation d'accéder à cette page."
 
 #: packages/wordpress/src/Admin/AdminPage.php:44
 msgid "The sw-backupit admin interface has not been built. Install the release package or run \"npm run build\" in apps/admin."
-msgstr "L'interface d'administration de sw-backupit n'a pas été compilée. Installez le paquet de la version publiée ou exécutez « npm run build » dans apps/admin."
+msgstr "L'interface d'administration de BackupIt n'a pas été compilée. Installez le paquet de la version publiée ou exécutez « npm run build » dans apps/admin."
 
 #: packages/wordpress/src/Admin/AdminPage.php:47
 msgid "sw-backupit requires JavaScript."
-msgstr "sw-backupit nécessite JavaScript."
+msgstr "BackupIt nécessite JavaScript."
 
 #: packages/wordpress/src/Repository/BackupRepository.php:239
 #: packages/wordpress/src/Runner/TransferService.php:516
@@ -588,7 +588,7 @@ msgstr "La sauvegarde %1$s est endommagée ou incomplète : %2$s"
 
 #: packages/wordpress/src/Runner/CronManager.php:30
 msgid "Every minute (sw-backupit)"
-msgstr "Toutes les minutes (sw-backupit)"
+msgstr "Toutes les minutes (BackupIt)"
 
 #. translators: %s: schedule name
 #: packages/wordpress/src/Runner/HealthMonitor.php:31
@@ -696,7 +696,7 @@ msgstr "La sauvegarde %s n'a pas de copie locale complète. Téléchargez-la d'a
 #: packages/wordpress/src/Runner/RecoveryPackage.php:90
 #, php-format
 msgid "sw-backupit recovery package for backup %s"
-msgstr "Paquet de récupération sw-backupit pour la sauvegarde %s"
+msgstr "Paquet de récupération BackupIt pour la sauvegarde %s"
 
 #: packages/wordpress/src/Runner/RecoveryPackage.php:92
 msgid "Contents: backups/ holds the backup and every base backup it needs, sw-backupit-restore/ the standalone restore application (needs PHP 8.2 with zip and PDO MySQL, no WordPress)."
@@ -1210,11 +1210,11 @@ msgstr "Aucun gestionnaire de stockage n'est configuré."
 
 #: packages/wordpress/src/Support/CoreMessages.php:141
 msgid "Not a sw-backupit manifest."
-msgstr "Ce n'est pas un manifeste sw-backupit."
+msgstr "Ce n'est pas un manifeste BackupIt."
 
 #: packages/wordpress/src/Support/CoreMessages.php:142
 msgid "Not an sw-backupit encrypted file."
-msgstr "Ce n'est pas un fichier chiffré sw-backupit."
+msgstr "Ce n'est pas un fichier chiffré BackupIt."
 
 #: packages/wordpress/src/Support/CoreMessages.php:143
 msgid "Not enough free disk space in the staging directory."
@@ -1658,15 +1658,169 @@ msgstr "Le répertoire de préparation se trouve dans la racine web, où n'impor
 msgid "Invalid notification recipient."
 msgstr "Destinataire de notification invalide."
 
+#: packages/wordpress/src/Update/Manifest.php:46
+msgid "Release verification failed. The release was not accepted."
+msgstr "La vérification de la version a échoué. La version n'a pas été acceptée."
+
+#: packages/wordpress/src/Update/Package.php:30
+msgid "ZIP size or SHA-256 does not match, or ZIP verification is unavailable."
+msgstr "La taille ou le SHA-256 du ZIP ne correspond pas, ou la vérification du ZIP est indisponible."
+
+#: packages/wordpress/src/Update/Package.php:34
+msgid "Invalid ZIP archive."
+msgstr "Archive ZIP non valide."
+
+#: packages/wordpress/src/Update/Package.php:40
+msgid "The update package failed the safety checks."
+msgstr "Le paquet de mise à jour n'a pas passé les contrôles de sécurité."
+
+#: packages/wordpress/src/Update/Provider.php:67
+msgid "Manual updates only"
+msgstr "Mises à jour manuelles uniquement"
+
+#: packages/wordpress/src/Update/Provider.php:87
+msgid "GitHub installation is only allowed manually in the WordPress backend."
+msgstr "L'installation depuis GitHub n'est autorisée que manuellement dans l'administration WordPress."
+
+#: packages/wordpress/src/Update/Provider.php:91
+msgid "Automatic GitHub installation is blocked."
+msgstr "L'installation automatique depuis GitHub est bloquée."
+
+#: packages/wordpress/src/Update/Provider.php:110
+msgid "No valid manual WordPress update request."
+msgstr "Aucune demande de mise à jour WordPress manuelle valide."
+
+#: packages/wordpress/src/Update/Provider.php:213
+msgid "Signed GitHub release. Install only manually through WordPress."
+msgstr "Version GitHub signée. Installation uniquement manuelle via WordPress."
+
+#: packages/wordpress/src/Update/Provider.php:231
+msgid "Check for updates now"
+msgstr "Rechercher les mises à jour maintenant"
+
+#: packages/wordpress/src/Update/Provider.php:242
+msgid "GitHub updates are blocked: no public release key is configured."
+msgstr "Les mises à jour GitHub sont bloquées : aucune clé de version publique n'est configurée."
+
+#: packages/wordpress/src/Update/Provider.php:246
+msgid "No verified update check yet."
+msgstr "Aucune vérification de mise à jour validée pour l'instant."
+
+#. translators: %s: time span, e.g. "2 hours"
+#: packages/wordpress/src/Update/Provider.php:249
+#, php-format
+msgid "Last verified check: %s ago."
+msgstr "Dernière vérification validée : il y a %s."
+
+#. translators: %s: error message
+#: packages/wordpress/src/Update/Provider.php:253
+#, php-format
+msgid "Last error: %s"
+msgstr "Dernière erreur : %s"
+
+#: packages/wordpress/src/Update/Provider.php:289
+msgid "Checking signed releases …"
+msgstr "Vérification des versions signées …"
+
+#: packages/wordpress/src/Update/Provider.php:290
+msgid "Check finished."
+msgstr "Vérification terminée."
+
+#: packages/wordpress/src/Update/Provider.php:291
+msgid "GitHub could not be reached. Please try again later."
+msgstr "GitHub est injoignable. Veuillez réessayer plus tard."
+
+#: packages/wordpress/src/Update/Service.php:51
+msgid "Update checks are only allowed in an authorised backend session."
+msgstr "Les vérifications de mise à jour ne sont autorisées que dans une session d'administration autorisée."
+
+#: packages/wordpress/src/Update/Service.php:54
+msgid "No public release key or Sodium is available. GitHub updates are blocked."
+msgstr "Clé de version publique ou Sodium manquant. Les mises à jour GitHub sont bloquées."
+
+#: packages/wordpress/src/Update/Service.php:58
+msgid "An update check is already running."
+msgstr "Une vérification de mise à jour est déjà en cours."
+
+#: packages/wordpress/src/Update/Service.php:64
+msgid "The last update check is still within the check interval."
+msgstr "La dernière vérification est encore dans l'intervalle de vérification."
+
+#: packages/wordpress/src/Update/Service.php:71
+msgid "The check took too long. The result was not adopted."
+msgstr "La vérification a pris trop de temps. Le résultat n'a pas été repris."
+
+#: packages/wordpress/src/Update/Service.php:79
+msgid "Signed release information verified. Install updates only through the WordPress plugin list."
+msgstr "Informations de version signées vérifiées. Installez les mises à jour uniquement via la liste des extensions WordPress."
+
+#: packages/wordpress/src/Update/Service.php:81
+msgid "Invalid release response."
+msgstr "Réponse de version non valide."
+
+#: packages/wordpress/src/Update/Service.php:103
+msgid "No valid stable release response."
+msgstr "Aucune réponse de version stable valide."
+
+#: packages/wordpress/src/Update/Service.php:112
+msgid "Release manifest or signature is missing."
+msgstr "Le manifeste de version ou la signature est manquant."
+
+#: packages/wordpress/src/Update/Service.php:128
+msgid "An already verified newer version must not be rolled back."
+msgstr "Une version plus récente déjà vérifiée ne doit pas être annulée."
+
+#: packages/wordpress/src/Update/Service.php:150
+msgid "Please check for updates again before installing."
+msgstr "Veuillez vérifier à nouveau les mises à jour avant l'installation."
+
+#: packages/wordpress/src/Update/Service.php:157
+msgid "Outdated release offer."
+msgstr "Offre de version obsolète."
+
+#: packages/wordpress/src/Update/Service.php:178
+msgid "Package, version or system requirements do not match."
+msgstr "Le paquet, la version ou la configuration requise ne correspondent pas."
+
+#: packages/wordpress/src/Update/Service.php:186
+msgid "Temporary update file unavailable."
+msgstr "Fichier de mise à jour temporaire indisponible."
+
+#: packages/wordpress/src/Update/Transport.php:27
+msgid "Update address not allowed."
+msgstr "Adresse de mise à jour non autorisée."
+
+#: packages/wordpress/src/Update/Transport.php:47
+msgid "GitHub could not be reached."
+msgstr "GitHub est injoignable."
+
+#: packages/wordpress/src/Update/Transport.php:53
+msgid "Invalid redirect."
+msgstr "Redirection non valide."
+
+#. translators: %d: HTTP status code
+#: packages/wordpress/src/Update/Transport.php:60
+#, php-format
+msgid "GitHub responded with HTTP %d."
+msgstr "Réponse de GitHub : HTTP %d."
+
+#: packages/wordpress/src/Update/Transport.php:65
+msgid "The update response exceeds the size limit."
+msgstr "La réponse de mise à jour dépasse la limite de taille."
+
+#: packages/wordpress/src/Update/Transport.php:69
+msgid "Too many update redirects."
+msgstr "Trop de redirections de mise à jour."
+
 #. translators: 1: required PHP version, 2: current PHP version
-#: sw-backupit.php:35
+#: sw-backupit.php:36
 #, php-format
 msgid "sw-backupit requires PHP %1$s or newer. You are running PHP %2$s."
-msgstr "sw-backupit nécessite PHP %1$s ou une version plus récente. Vous utilisez PHP %2$s."
+msgstr "BackupIt nécessite PHP %1$s ou une version plus récente. Vous utilisez PHP %2$s."
 
-#: sw-backupit.php:58
+#: sw-backupit.php:59
 msgid "sw-backupit: the vendor directory is missing. Install the release package or run \"composer install\"."
-msgstr "sw-backupit : le répertoire vendor est manquant. Installez le paquet de la version publiée ou exécutez « composer install »."
+msgstr "BackupIt : le répertoire vendor est manquant. Installez le paquet de la version publiée ou exécutez « composer install »."
 
 #~ msgid "The staging directory is inside the web root. Make sure the web server denies access or choose a directory outside the web root in the settings."
 #~ msgstr "Le répertoire de préparation se trouve dans la racine web. Assurez-vous que le serveur web en interdit l'accès ou choisissez dans les réglages un répertoire situé en dehors de la racine web."
