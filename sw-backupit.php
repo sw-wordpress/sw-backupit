@@ -19,7 +19,7 @@
 
 defined( 'ABSPATH' ) || exit;
 
-define( 'SWBACKUPIT_VERSION', '0.1.0' );
+define( 'SWBACKUPIT_VERSION', '0.8.0' );
 define( 'SWBACKUPIT_FILE', __FILE__ );
 define( 'SWBACKUPIT_DIR', plugin_dir_path( __FILE__ ) );
 define( 'SWBACKUPIT_URL', plugin_dir_url( __FILE__ ) );
