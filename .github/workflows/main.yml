@@ -77,6 +77,7 @@ jobs:
       - name: Verify ZIP contents
         env:
           ZIP_FILE: ${{ steps.metadata.outputs.zip }}
+          KEY_ID: ${{ vars.SW_PLUGIN_RELEASE_KEY_ID }}
         run: |
           shopt -s nullglob
           ZIPS=("$RUNNER_TEMP"/dist/*.zip)
@@ -96,8 +97,6 @@ jobs:
           unzip -q "${ZIPS[0]}" -d "$RUNNER_TEMP/unpacked"
           php tests/bootstrap.php "$RUNNER_TEMP/unpacked/$PLUGIN_SLUG"
           php "$RUNNER_TEMP/unpacked/$PLUGIN_SLUG/restore-app/bin/sw-backupit-restore" help
-        env:
-          KEY_ID: ${{ vars.SW_PLUGIN_RELEASE_KEY_ID }}
 
       - name: Upload package to draft release
         env:
