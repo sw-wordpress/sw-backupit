@@ -1,7 +1,7 @@
 /* global document, window */
 // Browser check of assets/js/swbackupit-updates.js with a simulated admin-ajax.php (no WordPress, no GitHub).
 // Verifies: single-flight manual check, disabled button while running, result/error text, deferred daily check,
-// never more than the declared AJAX action, and > 80 % line coverage of the script.
+// never more than the declared AJAX action, and strictly > 80 % executable-line coverage of the script.
 import assert from 'node:assert/strict';
 import { existsSync, readdirSync, readFileSync } from 'node:fs';
 import { homedir } from 'node:os';
@@ -159,7 +159,23 @@ for (const handler of [(route) => route.fulfill({ status: 500, body: 'x' }), (ro
 }
 await browser.close();
 
-const ratio = union.reduce((sum, m) => sum + m, 0) / script.length;
-console.log(`updates script byte coverage: ${(ratio * 100).toFixed(1)} %`);
-assert.ok(ratio > 0.8, 'coverage must be above 80 %');
+// Executable-line coverage (not byte ratio): a code line counts as covered when its first token was executed.
+// Blank lines, comment-only lines and lines holding only closing punctuation are not executable.
+const lines = script.split('\n');
+let offset = 0;
+let executable = 0;
+let coveredLines = 0;
+const uncovered = [];
+lines.forEach((line, index) => {
+  const first = offset + (line.length - line.trimStart().length);
+  offset += line.length + 1;
+  const code = line.trim();
+  if (code === '' || /^(\/\/|\/\*|\*)/.test(code) || /^[\])}\s;,.]+$/.test(code)) return;
+  executable += 1;
+  if (union[first] === 1) coveredLines += 1;
+  else uncovered.push(index + 1);
+});
+const ratio = coveredLines / executable;
+console.log(`updates script line coverage: ${coveredLines}/${executable} = ${(ratio * 100).toFixed(1)} % (uncovered lines: ${uncovered.join(', ') || 'none'})`);
+assert.ok(ratio > 0.8, 'line coverage must be above 80 %');
 console.log('PASS: update check UI');

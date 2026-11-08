@@ -443,6 +443,38 @@ final class VerifiedUpdatesTest extends WP_UnitTestCase {
 		$this->assertSame( $next, get_site_option( Store::LOCK ) );
 	}
 
+	public function test_concurrent_acquisition_is_serialised_by_a_database_mutex(): void {
+		// A second connection (= a concurrent request) holds the acquisition mutex: this request must not get a lease.
+		[ $host, $port ] = array_pad( explode( ':', DB_HOST ), 2, '3306' );
+		$other           = new mysqli( $host, DB_USER, DB_PASSWORD, DB_NAME, (int) $port );
+		$held            = $other->query( "SELECT GET_LOCK('" . $other->real_escape_string( Store::guard_name() ) . "', 0)" )->fetch_row();
+		$this->assertSame( '1', (string) $held[0] );
+		try {
+			$this->assertFalse( Store::acquire() );
+			$this->assertFalse( get_site_option( Store::LOCK ), 'No lease row may be written without the mutex.' );
+			$this->assertSame( 'updates_busy', Service::check( true )->get_error_code() );
+			$this->assertCount( 0, $this->requests );
+		} finally {
+			$other->query( "SELECT RELEASE_LOCK('" . $other->real_escape_string( Store::guard_name() ) . "')" );
+			$other->close();
+		}
+		$this->assertIsArray( $lock = Store::acquire() );
+		Store::release( $lock );
+	}
+
+	public function test_lease_decisions_ignore_stale_object_cache(): void {
+		$lock = Store::acquire();
+		$this->assertIsArray( $lock );
+		// Another process removes the row; this request's object cache still holds the old value.
+		global $wpdb;
+		$table = is_multisite() ? $wpdb->sitemeta : $wpdb->options;
+		$col   = is_multisite() ? 'meta_key' : 'option_name';
+		$wpdb->query( $wpdb->prepare( "DELETE FROM {$table} WHERE {$col} = %s", Store::LOCK ) );
+		$this->assertFalse( Store::owns( $lock ) );
+		$this->assertIsArray( $next = Store::acquire() );
+		Store::release( $next );
+	}
+
 	public function test_expired_lock_is_taken_over_and_new_owner_is_preserved(): void {
 		$old = array( 'token' => 'expired', 'expires' => time() - 10 );
 		add_site_option( Store::LOCK, $old );
