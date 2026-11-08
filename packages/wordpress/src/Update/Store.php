@@ -44,7 +44,7 @@ final class Store {
 	 */
 	public static function guard_name(): string {
 		global $wpdb;
-		return 'swbi_upd_' . md5( $wpdb->prefix . self::name( true ) );
+		return 'swbi_upd_' . substr( hash( 'sha256', $wpdb->prefix . self::name( true ) ), 0, 32 );
 	}
 
 	/**
