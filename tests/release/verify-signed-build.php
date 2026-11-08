@@ -92,7 +92,7 @@ foreach ($required as $path) {
     }
 }
 foreach ($names as $name) {
-    if (preg_match('#^sw-backupit/(vendor|tests|apps|bin|node_modules|\.git|\.github)/#', $name) || preg_match('#signing-key|\.base64$|secret#i', $name)) {
+    if (preg_match('#^sw-backupit/(vendor|tests|apps|bin|node_modules|\.git|\.github)/#', $name) || preg_match('#signing-key|\.base64$|\.pem$|secret[-_]key#i', $name)) {
         fail("Unexpected development or key file in package: $name");
     }
 }

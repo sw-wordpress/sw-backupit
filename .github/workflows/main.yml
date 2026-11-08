@@ -82,21 +82,7 @@ jobs:
           shopt -s nullglob
           ZIPS=("$RUNNER_TEMP"/dist/*.zip)
           [ "${#ZIPS[@]}" -eq 1 ] || { echo "Expected exactly one ZIP" >&2; exit 1; }
-          [ "$(basename "${ZIPS[0]}")" = "$ZIP_FILE" ] || { echo "Unexpected ZIP name" >&2; exit 1; }
-          unzip -t "${ZIPS[0]}" >/dev/null
-          unzip -Z1 "${ZIPS[0]}" > "$RUNNER_TEMP/zip-contents.txt"
-          for path in sw-backupit.php vendor-prefixed/autoload.php restore-app/vendor/autoload.php assets/admin/app.js assets/js/swbackupit-updates.js packages/wordpress/src/Update/Service.php packages/wordpress/src/Update/Config/trusted-keys.php; do
-            grep -Fx "$PLUGIN_SLUG/$path" "$RUNNER_TEMP/zip-contents.txt"
-          done
-          if grep -Eq "^$PLUGIN_SLUG/(vendor|tests|apps|bin|node_modules|\.git|\.github)/" "$RUNNER_TEMP/zip-contents.txt"; then
-            echo "Unexpected development or unprefixed vendor files in ZIP" >&2
-            exit 1
-          fi
-          # The shipped key ring must contain this build's public key.
-          unzip -p "${ZIPS[0]}" "$PLUGIN_SLUG/packages/wordpress/src/Update/Config/trusted-keys.php" | grep -F "$KEY_ID"
-          unzip -q "${ZIPS[0]}" -d "$RUNNER_TEMP/unpacked"
-          php tests/bootstrap.php "$RUNNER_TEMP/unpacked/$PLUGIN_SLUG"
-          php "$RUNNER_TEMP/unpacked/$PLUGIN_SLUG/restore-app/bin/sw-backupit-restore" help
+          bash bin/verify-zip.sh "${ZIPS[0]}" "$ZIP_FILE"
 
       - name: Upload package to draft release
         env:
