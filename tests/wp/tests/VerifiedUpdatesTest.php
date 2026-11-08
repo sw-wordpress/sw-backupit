@@ -171,17 +171,21 @@ final class VerifiedUpdatesTest extends WP_UnitTestCase {
 		$this->assertMatchesRegularExpression( '~^ \* Update URI:\s+https://github.com/' . self::REPO . '$~m', $header );
 		$this->assertSame( 'swbi_verified_github_updates_v1', Store::STATE );
 		$this->assertSame( 'swbi_verified_github_updates_lock_v1', Store::LOCK );
-		$this->assertSame( array(), ( require SWBACKUPIT_DIR . 'packages/wordpress/src/Update/Config/trusted-keys.php' ), 'No production key may be committed before the operator generated one.' );
+		// The shipped key ring holds public Ed25519 keys only (32 bytes), never a 64-byte secret key.
+		foreach ( (array) require SWBACKUPIT_DIR . 'packages/wordpress/src/Update/Config/trusted-keys.php' as $id => $key ) {
+			$this->assertMatchesRegularExpression( '/^[a-zA-Z0-9_-]{1,64}$/', (string) $id );
+			$this->assertSame( 32, strlen( (string) base64_decode( (string) $key, true ) ), "Key $id is not a 32-byte public key." );
+		}
 	}
 
 	public function test_missing_key_blocks_everything_and_never_contacts_github(): void {
+		// Independent of whatever key ring the checkout ships.
 		remove_all_filters( 'swbi_verified_release_public_keys' );
+		add_filter( 'swbi_verified_release_public_keys', '__return_empty_array' );
 		$this->assertSame( array(), Service::keys() );
 		$this->assertSame( 'updates_not_configured', Service::check( true )->get_error_code() );
 		$this->assertCount( 0, $this->requests );
 		$this->assertStringContainsString( 'blocked', Provider::status_text() );
-		$GLOBALS['wp_filter']['swbi_verified_release_public_keys'] = null;
-		unset( $GLOBALS['wp_filter']['swbi_verified_release_public_keys'] );
 		$this->assertStringContainsString( 'blocked', Provider::row_meta( array(), $this->file() )[0] );
 	}
 
