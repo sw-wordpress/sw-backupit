@@ -98,3 +98,10 @@ See `docs/implementation-plan.md` and `docs/architecture.md`: NDJSON index (no p
 ## 2026-11-09 – Release Make command
 - `make release VERSION=X.Y.Z` updates both plugin versions, commits, creates an annotated tag and atomically pushes the current branch and tag to origin.
 - Disposable Git repositories cover successful publication, unchanged versions, rejected inputs/dirty trees/existing tags, and atomic rejection of divergent branch pushes.
+
+## 2026-11-09 – Storage targets in isolated releases
+- Reproduced the missing local Flysystem adapter through `StorageFactory` in the release build. Mozart 1.2.3 isolated
+  dependencies but left application references unchanged; the build now applies its AST replacements to all three source trees.
+- Release smoke tests construct local/S3/SFTP targets through the application factory and exercise the local connection test.
+- Validation: extracted release ZIP and disposable signing check pass; PHPStan and both coding standards pass. PHP suites:
+  182 tests (3 skipped), WordPress: 180 (6 skipped); merged PHP lines 81.94%, admin lines 82.52% (137 tests).
