@@ -51,6 +51,9 @@ Local ZIP builds and the GitHub release workflow share `bin/build-zip.sh`. It in
 temporary staging tree, smoke-tests the checkout, then runs `coenjacobs/mozart:1.2.3` (rewriting the staging copy, not the checkout).
 External classes use the namespace `SWBackupIt\Dependencies\`; classmapped symbols use `SWBackupIt_`. Only the resulting
 `vendor-prefixed/` tree is shipped, never the original top-level `vendor/` directory.
+`bin/mozart-compose.php` also applies Mozart's AST replacements to all three application source trees; Mozart 1.2.3
+otherwise leaves their dependency references unchanged. The release smoke test creates local, S3 and SFTP targets through
+`StorageFactory` and runs the local connection test without remote services.
 
 The plugin prefers `vendor-prefixed/autoload.php` and registers the Core, Restore and WordPress PSR-4 mappings on its loader. Source
 checkouts keep the normal `composer install` workflow and the `SWBACKUPIT_AUTOLOADER` test override.
