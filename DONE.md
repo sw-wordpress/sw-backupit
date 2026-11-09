@@ -90,3 +90,7 @@ See `docs/implementation-plan.md` and `docs/architecture.md`: NDJSON index (no p
 - #3: Resolve release/source autoloaders and register monorepo mappings during independent uninstall; release bootstrap smoke checks now execute uninstall in a fresh process.
 
 - #20: Require storage management before assigning or overriding backup destinations, including new profiles.
+
+## 2026-11-09 – Draft release signing pipeline
+- Resolve draft metadata through `gh release view` and fetch its REST API URL after uploading the ZIP; the tag endpoint returned 404 and skipped signing/publishing for 0.8.0.
+- Regression tests execute the workflow upload step with a simulated GitHub CLI: new/existing drafts, published-release protection and metadata API failure.

@@ -97,7 +97,9 @@ jobs:
             gh release create "$RELEASE_TAG" --draft --verify-tag --title "$RELEASE_TAG"
           fi
           gh release upload "$RELEASE_TAG" "$RUNNER_TEMP"/dist/*.zip --clobber
-          gh api "repos/$GITHUB_REPOSITORY/releases/tags/$RELEASE_TAG" > "$RUNNER_TEMP/release.json"
+          # The tag endpoint does not resolve drafts; gh release view also searches draft releases.
+          RELEASE_API_URL="$(gh release view "$RELEASE_TAG" --json apiUrl --jq .apiUrl)"
+          gh api "$RELEASE_API_URL" > "$RUNNER_TEMP/release.json"
 
       - name: Sign exact uploaded package
         env:
