@@ -4,6 +4,12 @@ NPM ?= npm
 ADMIN_DIR := apps/admin
 DEPS_STAMP := $(ADMIN_DIR)/node_modules/.make-install
 
+# Usage: make release VERSION=0.8.2 (publishes the current branch and release tag to origin).
+.PHONY: release
+release: export SWBI_RELEASE_VERSION = $(VERSION)
+release:
+	bash bin/release.sh
+
 .PHONY: build
 build: $(DEPS_STAMP)
 	cd $(ADMIN_DIR) && $(NPM) run build

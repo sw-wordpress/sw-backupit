@@ -32,6 +32,15 @@ are never echoed as HTML).
 `bin/build-zip.sh` creates `dist/sw-backupit-<version>.zip` (production Composer dependencies, compiled SPA, standalone restore in `restore-app/`).
 It needs Composer, Docker and Node.js on the *build* machine only. `bin/build-restore.sh <dir>` builds only the standalone restore application.
 
+### Release veröffentlichen
+`make release VERSION=0.8.2` setzt Header und `SWBACKUPIT_VERSION` in `sw-backupit.php`, committet die Änderung,
+erstellt den annotierten Tag `0.8.2` und pusht aktuellen Branch und Tag atomar zu `origin`. Der Tag startet den
+[signierten CI-Release](github-updates.md). Benötigt Make, Bash, PHP, Git und Push-Rechte; vorher Tests ausführen.
+Der Arbeitsbaum muss einschließlich ungetrackter Dateien sauber sein. Rückstufungen, inkonsistente Versionsangaben,
+Detached HEAD und vorhandene lokale/Remote-Tags werden abgelehnt. Eine bereits gesetzte Version wird ohne leeren Commit getaggt.
+Bei abgelehntem Push bleiben Commit und Tag lokal erhalten; zuerst die Ursache beheben, dann beide Refs erneut atomar pushen
+(`git push --atomic origin HEAD:refs/heads/<branch> refs/tags/<version>`). Der Befehl erzwingt keine Remote-Änderungen.
+
 ### Admin UI build
 `make build` (Make, Node.js >= 22.13, npm) builds only the admin UI into `assets/admin/` (including TypeScript checks), not the release ZIP
 or the restore application. Dependencies are installed with `npm ci --include=dev` on the first build and whenever

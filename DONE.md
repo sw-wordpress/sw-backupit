@@ -94,3 +94,7 @@ See `docs/implementation-plan.md` and `docs/architecture.md`: NDJSON index (no p
 ## 2026-11-09 – Draft release signing pipeline
 - Resolve draft metadata through `gh release view` and fetch its REST API URL after uploading the ZIP; the tag endpoint returned 404 and skipped signing/publishing for 0.8.0.
 - Regression tests execute the workflow upload step with a simulated GitHub CLI: new/existing drafts, published-release protection and metadata API failure.
+
+## 2026-11-09 – Release Make command
+- `make release VERSION=X.Y.Z` updates both plugin versions, commits, creates an annotated tag and atomically pushes the current branch and tag to origin.
+- Disposable Git repositories cover successful publication, unchanged versions, rejected inputs/dirty trees/existing tags, and atomic rejection of divergent branch pushes.
