@@ -90,3 +90,6 @@ fails): `tests/coverage/check.php` for the merged PHP Clover report, `apps/admin
 ## Conventions
 See `AGENTS.md` and `CODE-STYLE.md`. Gotchas learned the hard way: `wpdb::$field_types` maps columns named `object_id` to `%d` (pass explicit formats);
 ZipStream rewrites `\ : * ? " < > |` in entry names (we percent-encode them); the WordPress test suite creates tables as TEMPORARY (other connections cannot see them).
+
+### Temporary dev dependency overrides (#18)
+A version-scoped override replaces vulnerable minimatch 7–11.0.0 while preserving older unaffected minimatch majors. The glob override selects patched 14.0.4 for all current consumers; a version-scoped glob override breaks frozen installation with npm 10, although npm 11 accepts the same lockfile. These are development-tool dependencies; remove the overrides once upstream toolchains require patched versions. Validate override changes with frozen installation, audit, ESLint, tests/coverage and production build.
