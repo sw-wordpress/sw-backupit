@@ -83,6 +83,8 @@ class SecurityRegressionTest extends WP_UnitTestCase {
 		wp_set_current_user( 0 );
 		wp_set_current_user( $viewer );
 		$this->assertSame( 200, $this->request( 'POST', '/backups/' . $job->backupId . '/compare' )->get_status() );
+	}
+
 	public function test_delegated_profile_operators_cannot_select_storage_targets(): void {
 		$profile = Services::instance()->profiles()->create( array( 'name' => 'Operator', 'type' => 'files' ) );
 		$operator = self::factory()->user->create( array( 'role' => 'subscriber' ) );

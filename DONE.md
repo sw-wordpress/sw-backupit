@@ -90,3 +90,6 @@ See `docs/implementation-plan.md` and `docs/architecture.md`: NDJSON index (no p
 - #3: Resolve release/source autoloaders and register monorepo mappings during independent uninstall; release bootstrap smoke checks now execute uninstall in a fresh process.
 
 - #20: Require storage management before assigning or overriding backup destinations, including new profiles.
+
+## 2026-11-12 – PR #31 CI repair
+- Close the comparison permission regression test after a merge dropped its method delimiter. Validated 165 PHP tests (3 skips), 80 WordPress tests (6 skips), 13 multisite security/capability tests, PHPStan and coding standards; merged PHP line coverage 81.16%. Frontend lint, 138 tests, typecheck and build pass; line coverage 82.52%. PHP 8.5 emits existing deprecations.
