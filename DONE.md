@@ -119,3 +119,4 @@ See `docs/implementation-plan.md` and `docs/architecture.md`: NDJSON index (no p
 
 ## 2026-11-12 – PR #34 merge preparation
 - Synchronize with main; retain staging refusals and comparison/storage permission regressions. PHP: 169 unit/integration, 188 WordPress (6 skips), 6 multisite, 101 multisite updates and 14 e2e tests; 82.17% merged line coverage. Frontend: 138 tests, 82.55% line coverage, lint/typecheck/build. PHPStan, coding standards, translations and signed real ZIP validation pass. Three optional storage integration tests skip without their services.
+- PR #34 audit follow-up: patch shipped phpseclib 3.0.57 to 3.0.58 for GHSA-w3p9-g4p2-h3rr; shipped Composer/npm audits, storage tests and dependency bootstrap smoke checks pass.
