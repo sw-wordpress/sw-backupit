@@ -197,7 +197,7 @@ final class BackupsController extends BaseController {
 			array(
 				'methods'             => \WP_REST_Server::CREATABLE,
 				'callback'            => array( $this, 'compare' ),
-				'permission_callback' => $this->can( Capabilities::VIEW ),
+				'permission_callback' => $this->can( Capabilities::DOWNLOAD ),
 				'args'                => $id,
 			)
 		);

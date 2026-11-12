@@ -1,5 +1,8 @@
-name: Build release zip
+name: Build signed release
 
+# Builds the installable ZIP, uploads it to a DRAFT release, signs the exact uploaded assets and only then publishes.
+# Runs no test suites (those run on pull requests). Needs the protected environment `plugin-releases` with the secret
+# SW_PLUGIN_RELEASE_SIGNING_KEY and the variable SW_PLUGIN_RELEASE_KEY_ID (docs/github-updates.md).
 on:
   push:
     tags:
@@ -14,25 +17,34 @@ env:
 
 jobs:
   build:
-    name: Build release zip
+    name: Build, sign and publish
     runs-on: ubuntu-latest
+    environment: plugin-releases
 
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
 
-      - name: Determine repository name and version
+      - name: Determine and validate version
         id: metadata
-        env:
-          REPO_NAME: ${{ github.event.repository.name }}
         run: |
           RAW="${GITHUB_REF_NAME}"
+          # Only stable tags the runtime verifier accepts: [v]X.Y.Z[.W][-NN]
+          if ! printf '%s' "$RAW" | grep -Eq '^v?[0-9]+(\.[0-9]+){2,3}(-[0-9]{2})?$'; then
+            echo "Tag '$RAW' is not a stable release tag (expected [v]X.Y.Z[.W][-NN])." >&2
+            exit 1
+          fi
           VERSION="${RAW#v}"
           VERSION="${VERSION%-*}"
-
-          echo "repo=$REPO_NAME" >> "$GITHUB_OUTPUT"
+          HEADER="$(grep -m1 -E '^\s*\*?\s*Version:' sw-backupit.php | awk '{print $NF}' | tr -d '\r')"
+          CONSTANT="$(grep -m1 "define( 'SWBACKUPIT_VERSION'" sw-backupit.php | sed -E "s/.*'([0-9.]+)'.*/\1/")"
+          echo "tag=$VERSION header=$HEADER constant=$CONSTANT"
+          if [ "$VERSION" != "$HEADER" ] || [ "$VERSION" != "$CONSTANT" ]; then
+            echo "Tag, plugin header and SWBACKUPIT_VERSION must be identical" >&2
+            exit 1
+          fi
           echo "version=$VERSION" >> "$GITHUB_OUTPUT"
-          echo "zip=${REPO_NAME}-${VERSION}.zip" >> "$GITHUB_OUTPUT"
+          echo "zip=${PLUGIN_SLUG}-${VERSION}.zip" >> "$GITHUB_OUTPUT"
 
       - name: Setup PHP
         uses: shivammathur/setup-php@v2
@@ -46,44 +58,73 @@ jobs:
         run: composer validate --strict
 
       - name: Setup Node
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v7
         with:
           node-version: '22'
           cache: npm
           cache-dependency-path: apps/admin/package-lock.json
 
-      - name: Bundle WordPress plugin
+      # Aborts (before anything is built or published) when the secret or key ID is missing.
+      - name: Embed public verification key
         env:
-          REPO_NAME: ${{ steps.metadata.outputs.repo }}
-          VERSION: ${{ steps.metadata.outputs.version }}
-        run: |
-          # The local and CI builds share dependency isolation, restore bundling and smoke tests.
-          bash bin/build-zip.sh "$RUNNER_TEMP/dist"
-          PLUGIN_VERSION="$(grep -m1 'Version:' sw-backupit.php | awk '{print $NF}')"
-          cp "$RUNNER_TEMP/dist/$PLUGIN_SLUG-$PLUGIN_VERSION.zip" "$GITHUB_WORKSPACE/${REPO_NAME}-${VERSION}.zip"
+          SW_PLUGIN_RELEASE_SIGNING_KEY: ${{ secrets.SW_PLUGIN_RELEASE_SIGNING_KEY }}
+          SW_PLUGIN_RELEASE_KEY_ID: ${{ vars.SW_PLUGIN_RELEASE_KEY_ID }}
+        run: php bin/release-manifest.php public-key packages/wordpress/src/Update/Config/trusted-keys.php
+
+      - name: Build ZIP
+        run: bash bin/build-zip.sh "$RUNNER_TEMP/dist"
 
       - name: Verify ZIP contents
         env:
           ZIP_FILE: ${{ steps.metadata.outputs.zip }}
+          KEY_ID: ${{ vars.SW_PLUGIN_RELEASE_KEY_ID }}
         run: |
-          unzip -t "$ZIP_FILE"
-          unzip -Z1 "$ZIP_FILE" > "$RUNNER_TEMP/zip-contents.txt"
-          grep -Fx "$PLUGIN_SLUG/vendor-prefixed/autoload.php" "$RUNNER_TEMP/zip-contents.txt"
-          grep -Fx "$PLUGIN_SLUG/sw-backupit.php" "$RUNNER_TEMP/zip-contents.txt"
-          grep -Fx "$PLUGIN_SLUG/restore-app/vendor/autoload.php" "$RUNNER_TEMP/zip-contents.txt"
-          grep -Fx "$PLUGIN_SLUG/assets/admin/app.js" "$RUNNER_TEMP/zip-contents.txt"
+          shopt -s nullglob
+          ZIPS=("$RUNNER_TEMP"/dist/*.zip)
+          [ "${#ZIPS[@]}" -eq 1 ] || { echo "Expected exactly one ZIP" >&2; exit 1; }
+          [ "$(basename "${ZIPS[0]}")" = "$ZIP_FILE" ] || { echo "Unexpected ZIP name" >&2; exit 1; }
+          unzip -t "${ZIPS[0]}" >/dev/null
+          unzip -Z1 "${ZIPS[0]}" > "$RUNNER_TEMP/zip-contents.txt"
+          for path in sw-backupit.php vendor-prefixed/autoload.php restore-app/vendor/autoload.php assets/admin/app.js assets/js/swbackupit-updates.js packages/wordpress/src/Update/Service.php packages/wordpress/src/Update/Config/trusted-keys.php; do
+            grep -Fx "$PLUGIN_SLUG/$path" "$RUNNER_TEMP/zip-contents.txt"
+          done
           if grep -Eq "^$PLUGIN_SLUG/(vendor|tests|apps|bin|node_modules|\.git|\.github)/" "$RUNNER_TEMP/zip-contents.txt"; then
             echo "Unexpected development or unprefixed vendor files in ZIP" >&2
             exit 1
           fi
-
-          # Test the final archive, not only its staging input.
-          unzip -q "$ZIP_FILE" -d "$RUNNER_TEMP/unpacked"
+          # The shipped key ring must contain this build's public key.
+          unzip -p "${ZIPS[0]}" "$PLUGIN_SLUG/packages/wordpress/src/Update/Config/trusted-keys.php" | grep -F "$KEY_ID"
+          unzip -q "${ZIPS[0]}" -d "$RUNNER_TEMP/unpacked"
           php tests/bootstrap.php "$RUNNER_TEMP/unpacked/$PLUGIN_SLUG"
           php "$RUNNER_TEMP/unpacked/$PLUGIN_SLUG/restore-app/bin/sw-backupit-restore" help
 
-      - name: Create release and attach ZIP
-        uses: softprops/action-gh-release@v2
-        with:
-          name: ${{ steps.metadata.outputs.version }}
-          files: ${{ steps.metadata.outputs.zip }}
+      - name: Upload package to draft release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RELEASE_TAG: ${{ github.ref_name }}
+        run: |
+          # An already published release is immutable: never overwrite it.
+          if gh release view "$RELEASE_TAG" --json isDraft > "$RUNNER_TEMP/existing-release.json" 2>/dev/null; then
+            php -r '$r=json_decode(file_get_contents($argv[1]),true); exit(empty($r["isDraft"])?1:0);' "$RUNNER_TEMP/existing-release.json" \
+              || { echo "Release $RELEASE_TAG is already published; refusing to modify it." >&2; exit 1; }
+          else
+            gh release create "$RELEASE_TAG" --draft --verify-tag --title "$RELEASE_TAG"
+          fi
+          gh release upload "$RELEASE_TAG" "$RUNNER_TEMP"/dist/*.zip --clobber
+          # The tag endpoint does not resolve drafts; gh release view also searches draft releases.
+          RELEASE_API_URL="$(gh release view "$RELEASE_TAG" --json apiUrl --jq .apiUrl)"
+          gh api "$RELEASE_API_URL" > "$RUNNER_TEMP/release.json"
+
+      - name: Sign exact uploaded package
+        env:
+          SW_PLUGIN_RELEASE_SIGNING_KEY: ${{ secrets.SW_PLUGIN_RELEASE_SIGNING_KEY }}
+          SW_PLUGIN_RELEASE_KEY_ID: ${{ vars.SW_PLUGIN_RELEASE_KEY_ID }}
+        run: php bin/release-manifest.php sign "$RUNNER_TEMP/release.json" "$RUNNER_TEMP/dist" "$GITHUB_SHA"
+
+      - name: Publish complete signed release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RELEASE_TAG: ${{ github.ref_name }}
+        run: |
+          gh release upload "$RELEASE_TAG" "$RUNNER_TEMP/dist/sw-plugin-release.json" "$RUNNER_TEMP/dist/sw-plugin-release.json.sig" --clobber
+          gh release edit "$RELEASE_TAG" --draft=false

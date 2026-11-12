@@ -128,6 +128,59 @@ class SecurityRegressionTest extends WP_UnitTestCase {
 		$this->assertDirectoryDoesNotExist( $public );
 	}
 
+	public function test_view_only_users_can_list_files_but_cannot_compare(): void {
+		$profile = Services::instance()->profiles()->create(
+			array(
+				'name'          => 'Compare permission',
+				'type'          => 'files',
+				'include_paths' => array( 'wp-includes/js/jquery' ),
+			)
+		);
+		$job     = Services::instance()->job_service()->start( $profile, 'manual', null, false );
+		for ( $i = 0; $i < 100; $i++ ) {
+			$result = Services::instance()->job_service()->tick( $job->id, 10.0 );
+			if ( ! $result->shouldContinue ) {
+				break;
+			}
+		}
+		$job = Services::instance()->jobs()->find( $job->id );
+		$this->assertSame( 'completed', $job->status->value );
+		$viewer = self::factory()->user->create( array( 'role' => 'subscriber' ) );
+		$user   = new WP_User( $viewer );
+		$user->add_cap( Capabilities::VIEW );
+		wp_set_current_user( $viewer );
+		$this->assertSame( 200, $this->request( 'GET', '/backups/' . $job->backupId . '/files' )->get_status() );
+		$this->assertSame( 403, $this->request( 'POST', '/backups/' . $job->backupId . '/compare' )->get_status() );
+		$user->add_cap( Capabilities::DOWNLOAD );
+		if ( is_multisite() ) {
+			grant_super_admin( $viewer );
+		}
+		wp_set_current_user( 0 );
+		wp_set_current_user( $viewer );
+		$this->assertSame( 200, $this->request( 'POST', '/backups/' . $job->backupId . '/compare' )->get_status() );
+	}
+
+	public function test_delegated_profile_operators_cannot_select_storage_targets(): void {
+		$profile = Services::instance()->profiles()->create( array( 'name' => 'Operator', 'type' => 'files' ) );
+		$operator = self::factory()->user->create( array( 'role' => 'subscriber' ) );
+		$user = new WP_User( $operator );
+		$user->add_cap( Capabilities::MANAGE_PROFILES );
+		$user->add_cap( Capabilities::RUN );
+		wp_set_current_user( $operator );
+		foreach ( array( 0, 1, 99999 ) as $target ) {
+			$this->assertSame( 403, $this->request( 'POST', '/profiles/' . $profile->id . '/run', array( 'storage_target_id' => $target ) )->get_status() );
+		}
+		$this->assertSame( 403, $this->request( 'PUT', '/profiles/' . $profile->id, array( 'storage_target_ids' => array( 1 ) ) )->get_status() );
+		$this->assertSame( 403, $this->request( 'POST', '/profiles', array( 'name' => 'Denied', 'storage_target_ids' => array( 1 ) ) )->get_status() );
+		if ( ! is_multisite() ) {
+			$this->assertSame( 200, $this->request( 'PUT', '/profiles/' . $profile->id, array( 'description' => 'Still editable', 'storage_target_ids' => array() ) )->get_status() );
+			$user->add_cap( Capabilities::MANAGE_STORAGE );
+			wp_set_current_user( 0 );
+			wp_set_current_user( $operator );
+			$this->assertSame( 200, $this->request( 'PUT', '/profiles/' . $profile->id, array( 'storage_target_ids' => array( 1 ) ) )->get_status() );
+		}
+	}
+
 	public function test_malformed_identifiers_never_reach_the_database_layer(): void {
 		foreach ( array( '/jobs/not-a-uuid', '/jobs/..%2F..%2Fetc', "/backups/' OR 1=1 --", '/backups/../../etc/passwd/files', '/profiles/abc', '/schedules/1;DROP TABLE x' ) as $route ) {
 			$status = $this->request( 'GET', $route )->get_status();
