@@ -83,6 +83,7 @@ See `docs/implementation-plan.md` and `docs/architecture.md`: NDJSON index (no p
   `symfony/filesystem` dependency. Updated only that package from 7.4.21 to patched 7.4.23 in both Composer lockfiles.
 - Production dependency audits and Composer validation pass; no advisory suppressions or dependency constraints changed.
 
+- #21: Require download capability for live comparison; retain read-only file listings and hide the comparison action from viewers.
 - #4: Confirm verified backups participate in retention; document upgrade dry runs and regression-test bulk verified catalogs with chain/protection safety.
 - #27: Discover storage backups on the first sheet opening; regression covered by the storage view test.
 - #5: Upgrade the coupled Vite/Quasar/Vue build plugins and ESLint toolchain; retain Vitest 5, TypeScript 5.9 and strict coverage gates.
@@ -92,6 +93,8 @@ See `docs/implementation-plan.md` and `docs/architecture.md`: NDJSON index (no p
 
 - #20: Require storage management before assigning or overriding backup destinations, including new profiles.
 
+## 2026-11-12 – PR #31 CI repair
+- Close the comparison permission regression test after a merge dropped its method delimiter. Validated 165 PHP tests (3 skips), 80 WordPress tests (6 skips), 13 multisite security/capability tests, PHPStan and coding standards; merged PHP line coverage 81.16%. Frontend lint, 138 tests, typecheck and build pass; line coverage 82.52%. PHP 8.5 emits existing deprecations.
 ## 2026-11-09 – Draft release signing pipeline
 - Resolve draft metadata through `gh release view` and fetch its REST API URL after uploading the ZIP; the tag endpoint returned 404 and skipped signing/publishing for 0.8.0.
 - Regression tests execute the workflow upload step with a simulated GitHub CLI: new/existing drafts, published-release protection and metadata API failure.
