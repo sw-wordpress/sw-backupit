@@ -22,6 +22,7 @@ Open and future work. Everything else is listed in `DONE.md`. See `docs/implemen
 - [ ] **Selective database restore in the web wizard** – available in the restore CLI (`--tables`) and the engine; the wizard restores all tables.
 - [ ] **Web server matrix test** that staging and restore-state directories are not served (Apache/nginx/IIS, WordPress in a subdirectory);
   directories inside the web root are refused by default and flagged by the health check, the nginx rule is in the user guide.
+  POSIX state ownership/permission regressions are covered; verify private Windows ACLs on real IIS.
 - [ ] **max_allowed_packet pre-check** before a restore (a too large row currently stops the import with an explicit message; resumable).
 - [ ] Tables without primary key are exported in physical order with LIMIT/OFFSET (unstable under concurrent writes); MyISAM tables can
   repeat a single statement after a crash during import.

@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace SWBackupIt\Restore\Web;
 
 use SWBackupIt\Core\Support\AtomicFile;
+use SWBackupIt\Core\Support\PathGuard;
 
 /**
  * Authentication for the web based restore wizard (PLAN.md §13.1/§13.6, §24).
@@ -30,8 +31,6 @@ final class Auth
     public function __construct(private readonly array $config, private readonly string $stateDirectory)
     {
         WebSetup::protectStateDirectory($stateDirectory);
-        AtomicFile::ensureDirectory($stateDirectory . '/sessions');
-        @chmod($stateDirectory, 0700);
     }
 
     public function isEnabled(): bool
@@ -49,7 +48,7 @@ final class Auth
 
     public function lock(): void
     {
-        AtomicFile::write($this->stateDirectory . '/locked', gmdate('c') . "\n");
+        AtomicFile::write(PathGuard::resolveBelow($this->stateDirectory, 'locked'), gmdate('c') . "\n");
     }
 
     /**
@@ -58,7 +57,7 @@ final class Auth
     public function login(string $token): array
     {
         $now = time();
-        $file = $this->stateDirectory . '/ratelimit.json';
+        $file = PathGuard::resolveBelow($this->stateDirectory, 'ratelimit.json');
         $failures = array_values(array_filter(
             is_file($file) ? (array) (AtomicFile::readJson($file)['failures'] ?? []) : [],
             static fn (mixed $time): bool => is_int($time) && $time > $now - self::WINDOW,
@@ -76,7 +75,7 @@ final class Auth
         }
         // One-time token: exactly one login per token (exclusive create is atomic, also for parallel requests). The session
         // created by that login stays valid; a new token (WebSetup::initialize) is needed for another login.
-        $used = @fopen($this->stateDirectory . '/token-used', 'x');
+        $used = @fopen(PathGuard::resolveBelow($this->stateDirectory, 'token-used'), 'x');
         if ($used === false) {
             $failures[] = $now;
             AtomicFile::writeJson($file, ['failures' => $failures]);
@@ -152,7 +151,7 @@ final class Auth
 
     private function sessionFile(string $id): string
     {
-        return $this->stateDirectory . '/sessions/' . $id . '.json';
+        return PathGuard::resolveBelow($this->stateDirectory, 'sessions/' . $id . '.json');
     }
 
     /**

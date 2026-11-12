@@ -512,7 +512,7 @@ msgstr "Profil jest używany przez harmonogram. Najpierw usuń harmonogram."
 
 #: packages/wordpress/src/Rest/ProfilesController.php:184
 #: packages/wordpress/src/Runner/TransferService.php:83
-#: packages/wordpress/src/Support/CoreMessages.php:208
+#: packages/wordpress/src/Support/CoreMessages.php:209
 msgid "The storage target does not exist."
 msgstr "Miejsce docelowe nie istnieje."
 
@@ -1458,154 +1458,158 @@ msgid "The restore has not completed successfully; the application stays availab
 msgstr "Przywracanie nie zakończyło się pomyślnie; aplikacja pozostaje dostępna."
 
 #: packages/wordpress/src/Support/CoreMessages.php:203
+msgid "The restore state directory is not private or owned by the current user."
+msgstr "Katalog stanu przywracania nie jest prywatny lub nie należy do bieżącego użytkownika."
+
+#: packages/wordpress/src/Support/CoreMessages.php:204
 msgid "The restore target and the backup directory must not contain each other."
 msgstr "Cel przywracania i katalog kopii zapasowej nie mogą się wzajemnie zawierać."
 
-#: packages/wordpress/src/Support/CoreMessages.php:204
+#: packages/wordpress/src/Support/CoreMessages.php:205
 msgid "The restore target directory does not exist."
 msgstr "Katalog docelowy przywracania nie istnieje."
 
-#: packages/wordpress/src/Support/CoreMessages.php:205
+#: packages/wordpress/src/Support/CoreMessages.php:206
 msgid "The scratch database could not be created (missing privilege)."
 msgstr "Nie udało się utworzyć tymczasowej bazy danych (brak uprawnień)."
 
-#: packages/wordpress/src/Support/CoreMessages.php:206
+#: packages/wordpress/src/Support/CoreMessages.php:207
 msgid "The selected tables are not part of the backup."
 msgstr "Wybrane tabele nie są częścią kopii zapasowej."
 
-#: packages/wordpress/src/Support/CoreMessages.php:207
+#: packages/wordpress/src/Support/CoreMessages.php:208
 msgid "The staging directory is not writable."
 msgstr "Katalog tymczasowy nie jest zapisywalny."
 
-#: packages/wordpress/src/Support/CoreMessages.php:209
+#: packages/wordpress/src/Support/CoreMessages.php:210
 msgid "The target database name was not confirmed correctly."
 msgstr "Nazwa docelowej bazy danych nie została poprawnie potwierdzona."
 
-#: packages/wordpress/src/Support/CoreMessages.php:210
+#: packages/wordpress/src/Support/CoreMessages.php:211
 msgid "The target directory must be an existing absolute path."
 msgstr "Katalog docelowy musi być istniejącą ścieżką bezwzględną."
 
-#: packages/wordpress/src/Support/CoreMessages.php:211
+#: packages/wordpress/src/Support/CoreMessages.php:212
 msgid "The target is outside the permitted restore locations."
 msgstr "Cel znajduje się poza dozwolonymi lokalizacjami przywracania."
 
-#: packages/wordpress/src/Support/CoreMessages.php:212
+#: packages/wordpress/src/Support/CoreMessages.php:213
 msgid "The token lifetime must be between 1 minute and 7 days."
 msgstr "Czas ważności tokenu musi mieścić się w zakresie od 1 minuty do 7 dni."
 
-#: packages/wordpress/src/Support/CoreMessages.php:213
+#: packages/wordpress/src/Support/CoreMessages.php:214
 msgid "These files changed while the backup was running; their restored content may be inconsistent:"
 msgstr "Te pliki zmieniły się podczas tworzenia kopii zapasowej; ich przywrócona zawartość może być niespójna:"
 
-#: packages/wordpress/src/Support/CoreMessages.php:214
+#: packages/wordpress/src/Support/CoreMessages.php:215
 msgid "This backup is encrypted. Provide the encryption key to read its contents."
 msgstr "Ta kopia zapasowa jest zaszyfrowana. Podaj klucz szyfrowania, aby odczytać jej zawartość."
 
-#: packages/wordpress/src/Support/CoreMessages.php:215
+#: packages/wordpress/src/Support/CoreMessages.php:216
 msgid "Time budget must be between 1 and 3600 seconds."
 msgstr "Budżet czasu musi mieścić się w zakresie od 1 do 3600 sekund."
 
-#: packages/wordpress/src/Support/CoreMessages.php:216
+#: packages/wordpress/src/Support/CoreMessages.php:217
 msgid "Type the database name twice to confirm the database restore."
 msgstr "Wpisz nazwę bazy danych dwukrotnie, aby potwierdzić przywrócenie bazy danych."
 
-#: packages/wordpress/src/Support/CoreMessages.php:217
+#: packages/wordpress/src/Support/CoreMessages.php:218
 msgid "URL migration needs a valid old and new URL (http:// or https://)."
 msgstr "Migracja adresów URL wymaga prawidłowego starego i nowego adresu URL (http:// lub https://)."
 
-#: packages/wordpress/src/Support/CoreMessages.php:218
+#: packages/wordpress/src/Support/CoreMessages.php:219
 msgid "Unencrypted http endpoints require the private network opt-in."
 msgstr "Niezaszyfrowane punkty końcowe http wymagają jawnej zgody na sieć prywatną."
 
-#: packages/wordpress/src/Support/CoreMessages.php:219
+#: packages/wordpress/src/Support/CoreMessages.php:220
 msgid "Unexpected BIT value."
 msgstr "Nieoczekiwana wartość BIT."
 
-#: packages/wordpress/src/Support/CoreMessages.php:220
+#: packages/wordpress/src/Support/CoreMessages.php:221
 msgid "Unexpected data after the end of the encrypted stream."
 msgstr "Nieoczekiwane dane po końcu zaszyfrowanego strumienia."
 
-#: packages/wordpress/src/Support/CoreMessages.php:221
+#: packages/wordpress/src/Support/CoreMessages.php:222
 msgid "Unknown backup type."
 msgstr "Nieznany typ kopii zapasowej."
 
-#: packages/wordpress/src/Support/CoreMessages.php:222
+#: packages/wordpress/src/Support/CoreMessages.php:223
 msgid "Unsafe path: absolute path."
 msgstr "Niebezpieczna ścieżka: ścieżka bezwzględna."
 
-#: packages/wordpress/src/Support/CoreMessages.php:223
+#: packages/wordpress/src/Support/CoreMessages.php:224
 msgid "Unsafe path: control character."
 msgstr "Niebezpieczna ścieżka: znak sterujący."
 
-#: packages/wordpress/src/Support/CoreMessages.php:224
+#: packages/wordpress/src/Support/CoreMessages.php:225
 msgid "Unsafe path: empty or too long."
 msgstr "Niebezpieczna ścieżka: pusta lub zbyt długa."
 
-#: packages/wordpress/src/Support/CoreMessages.php:225
+#: packages/wordpress/src/Support/CoreMessages.php:226
 msgid "Unsafe path: forbidden character."
 msgstr "Niebezpieczna ścieżka: niedozwolony znak."
 
-#: packages/wordpress/src/Support/CoreMessages.php:226
+#: packages/wordpress/src/Support/CoreMessages.php:227
 msgid "Unsafe path: traversal or empty segment."
 msgstr "Niebezpieczna ścieżka: przejście do katalogu nadrzędnego lub pusty segment."
 
-#: packages/wordpress/src/Support/CoreMessages.php:227
+#: packages/wordpress/src/Support/CoreMessages.php:228
 msgid "Unsupported compression method."
 msgstr "Nieobsługiwana metoda kompresji."
 
-#: packages/wordpress/src/Support/CoreMessages.php:228
+#: packages/wordpress/src/Support/CoreMessages.php:229
 msgid "Unsupported encryption format version."
 msgstr "Nieobsługiwana wersja formatu szyfrowania."
 
-#: packages/wordpress/src/Support/CoreMessages.php:229
+#: packages/wordpress/src/Support/CoreMessages.php:230
 msgid "Unsupported encryption parameters."
 msgstr "Nieobsługiwane parametry szyfrowania."
 
-#: packages/wordpress/src/Support/CoreMessages.php:230
+#: packages/wordpress/src/Support/CoreMessages.php:231
 msgid "Unsupported storage type."
 msgstr "Nieobsługiwany typ miejsca docelowego."
 
-#: packages/wordpress/src/Support/CoreMessages.php:231
+#: packages/wordpress/src/Support/CoreMessages.php:232
 msgid "Unsupported success policy."
 msgstr "Nieobsługiwana polityka powodzenia."
 
-#: packages/wordpress/src/Support/CoreMessages.php:232
+#: packages/wordpress/src/Support/CoreMessages.php:233
 msgid "Upload to one or more storage targets failed temporarily and will be retried."
 msgstr "Przesyłanie do jednego lub większej liczby miejsc docelowych nie powiodło się tymczasowo i zostanie ponowione."
 
-#: packages/wordpress/src/Support/CoreMessages.php:233
+#: packages/wordpress/src/Support/CoreMessages.php:234
 msgid "Volume already closed."
 msgstr "Wolumen jest już zamknięty."
 
-#: packages/wordpress/src/Support/CoreMessages.php:234
+#: packages/wordpress/src/Support/CoreMessages.php:235
 msgid "Volume size is too small."
 msgstr "Rozmiar wolumenu jest zbyt mały."
 
-#: packages/wordpress/src/Support/CoreMessages.php:235
+#: packages/wordpress/src/Support/CoreMessages.php:236
 msgid "Writing failed (disk full?)."
 msgstr "Zapis nie powiódł się (dysk pełny?)."
 
-#: packages/wordpress/src/Support/CoreMessages.php:236
+#: packages/wordpress/src/Support/CoreMessages.php:237
 msgid "Writing the archive entry failed."
 msgstr "Zapis wpisu archiwum nie powiódł się."
 
-#: packages/wordpress/src/Support/CoreMessages.php:237
+#: packages/wordpress/src/Support/CoreMessages.php:238
 msgid "Writing the recovery package failed."
 msgstr "Zapisywanie pakietu odzyskiwania nie powiodło się."
 
-#: packages/wordpress/src/Support/CoreMessages.php:238
+#: packages/wordpress/src/Support/CoreMessages.php:239
 msgid "Writing to the restore target failed (disk full?)."
 msgstr "Zapis w miejscu docelowym przywracania nie powiódł się (dysk pełny?)."
 
-#: packages/wordpress/src/Support/CoreMessages.php:239
+#: packages/wordpress/src/Support/CoreMessages.php:240
 msgid "siteurl option missing in the restored database."
 msgstr "Brak opcji siteurl w przywróconej bazie danych."
 
-#: packages/wordpress/src/Support/CoreMessages.php:240
+#: packages/wordpress/src/Support/CoreMessages.php:241
 msgid "wp-config.php was not found in the restore target."
 msgstr "Nie znaleziono pliku wp-config.php w miejscu docelowym przywracania."
 
-#: packages/wordpress/src/Support/CoreMessages.php:241
+#: packages/wordpress/src/Support/CoreMessages.php:242
 msgid "wp-config.php was not found in the target; database settings were not updated."
 msgstr "Nie znaleziono pliku wp-config.php w miejscu docelowym; ustawienia bazy danych nie zostały zaktualizowane."
 
