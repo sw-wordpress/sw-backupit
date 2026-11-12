@@ -87,6 +87,25 @@ describe('schedules view', () => {
 });
 
 describe('profiles view', () => {
+  it('renders backend profiles that have no GFS retention settings', async () => {
+    const original = fetchMock.getMockImplementation()!;
+    fetchMock.mockImplementation(async (...args) => {
+      const response = await original(...args);
+      if (new URL(String(args[0])).pathname.endsWith('/profiles')) {
+        const data = (await response.json()) as { items: Array<{ retention: unknown }> };
+        for (const profile of data.items) profile.retention = {};
+        return new Response(JSON.stringify(data), {
+          headers: { 'Content-Type': 'application/json' },
+        });
+      }
+      return response;
+    });
+    const { wrapper } = await open('/profiles', /Nightly Full/);
+    expect(document.body.textContent).toContain('Nightly Full');
+    expect(document.body.textContent).toContain('Keep everything');
+    wrapper.unmount();
+  });
+
   it('runs, duplicates and deletes profiles', async () => {
     const { wrapper } = await open('/profiles', /Nightly Full/);
     await click(/Run now/);
@@ -123,10 +142,6 @@ describe('storage view', () => {
     const finders = Array.from(document.querySelectorAll<HTMLElement>('button')).filter((b) =>
       /Find backups/.test(b.textContent ?? ''),
     );
-    // The sheet is mounted already open on the first click, so discovery runs from the second open on.
-    finders.at(-1)!.click();
-    await settle(6);
-    await click('Close');
     finders.at(-1)!.click();
     await waitFor(() => sent(/\/storage-targets\/\d+\/discover/));
     expect(sent(/\/storage-targets\/\d+\/discover/)).toBe(true);

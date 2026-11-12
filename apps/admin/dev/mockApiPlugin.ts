@@ -1,6 +1,6 @@
 import type { IncomingMessage } from 'node:http';
 import type { Plugin } from 'vite';
-import { handle } from './mockApi';
+import { handle } from './mockApi.ts';
 
 const PREFIX = '/wp-json/sw-backupit/v1/';
 

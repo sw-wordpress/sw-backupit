@@ -98,6 +98,24 @@ class MultisiteTest extends WP_UnitTestCase {
 		$this->assertTrue( get_role( 'administrator' )->has_cap( Capabilities::DOWNLOAD ), 'the main site role has the caps' );
 	}
 
+	public function test_subsite_administrators_cannot_change_network_schedules_or_run_jobs(): void {
+		$admin = self::factory()->user->create( array( 'role' => 'administrator' ) );
+		$user = new WP_User( $admin );
+		$user->add_cap( Capabilities::MANAGE_PROFILES );
+		$user->add_cap( Capabilities::RUN );
+		wp_set_current_user( $admin );
+		$this->assertFalse( current_user_can( Capabilities::MANAGE_PROFILES ) );
+		$this->assertFalse( current_user_can( Capabilities::RUN ) );
+		foreach ( array( 'POST', 'PUT', 'PATCH', 'DELETE' ) as $method ) {
+			$route = 'POST' === $method ? '/schedules' : '/schedules/1';
+			$response = rest_get_server()->dispatch( new WP_REST_Request( $method, '/sw-backupit/v1' . $route ) );
+			$this->assertSame( 403, $response->get_status(), $method );
+		}
+		grant_super_admin( $admin );
+		$this->assertTrue( current_user_can( Capabilities::MANAGE_PROFILES ) );
+		$this->assertTrue( current_user_can( Capabilities::RUN ) );
+	}
+
 	public function test_sensitive_capabilities_require_a_super_admin_even_if_a_role_has_them(): void {
 		$blog_id = self::factory()->blog->create();
 		$admin   = self::factory()->user->create( array( 'role' => 'subscriber' ) );

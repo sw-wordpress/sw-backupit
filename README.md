@@ -102,7 +102,7 @@ AI agents must follow the project rules before changing code:
 
 ## Development
 
-Requirements: PHP 8.2+, Composer, Node.js 18.18+ with npm, Make, and Docker for the release build.
+Requirements: PHP 8.2+, Composer, Node.js 22.13+ (22/24 LTS or 26+) with npm, Make, and Docker for the release build.
 
 ```sh
 composer install

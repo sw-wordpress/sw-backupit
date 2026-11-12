@@ -50,13 +50,13 @@ final class Capabilities {
 	 * @return list<string>
 	 */
 	public static function network_sensitive(): array {
-		return array( self::DOWNLOAD, self::RESTORE, self::SETTINGS, self::MANAGE_STORAGE, self::DELETE );
+		return array( self::RUN, self::MANAGE_PROFILES, self::DOWNLOAD, self::RESTORE, self::SETTINGS, self::MANAGE_STORAGE, self::DELETE );
 	}
 
 	/**
 	 * On multisite all sw-backupit data (backups, settings, keys, storage) is network wide, so the sensitive capabilities
 	 * are reserved to super admins. Roles of individual sites (including a subsite administrator that got the caps by
-	 * accident) are never sufficient for them; view/run/profile capabilities can still be delegated per role.
+	 * accident) are never sufficient for them; only the view capability can still be delegated per role.
 	 *
 	 * @param array<string> $caps    Primitive capabilities required.
 	 * @param string        $cap     Capability being checked.

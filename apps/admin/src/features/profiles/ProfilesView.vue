@@ -83,7 +83,7 @@ function retentionSummary(p: Profile): string {
     parts.push(t('profiles.keepCount', { n: p.retention.max_count }, p.retention.max_count));
   if (p.retention.max_age_days > 0)
     parts.push(t('profiles.keepDays', { n: p.retention.max_age_days }, p.retention.max_age_days));
-  const g = p.retention.gfs;
+  const g = p.retention.gfs ?? { daily: 0, weekly: 0, monthly: 0, yearly: 0 };
   if (g.daily + g.weekly + g.monthly + g.yearly > 0)
     parts.push(t('profiles.gfsShort', { d: g.daily, w: g.weekly, m: g.monthly, y: g.yearly }));
   return parts.length > 0 ? parts.join(' · ') : t('profiles.keepAll');

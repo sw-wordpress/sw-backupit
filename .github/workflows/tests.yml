@@ -1,9 +1,11 @@
 name: Tests and SonarQube
+# Test suites run on pull requests only (the release workflow runs none).
 on:
-  push:
-    branches:
-    - '**'
   pull_request: null
+
+concurrency:
+  group: tests-pr-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
 permissions:
   contents: read
 jobs:
@@ -16,7 +18,7 @@ jobs:
       SWBI_TEST_DB_USER: root
       SWBI_TEST_DB_PASSWORD: wordpress-test
     steps:
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@v7
     - uses: shivammathur/setup-php@v2
       with:
         php-version: '8.2'
@@ -42,14 +44,21 @@ jobs:
     - name: WordPress coverage
       working-directory: tests/wp
       run: vendor/bin/phpunit -c phpunit.xml.dist --coverage-clover ../../coverage/wordpress.xml
+    - name: Multisite capability coverage
+      working-directory: tests/wp
+      run: vendor/bin/phpunit -c phpunit-ms.xml.dist --filter MultisiteTest --coverage-filter ../../packages/wordpress/src --coverage-clover ../../coverage/multisite.xml
+    # The multisite suite and the browser/ZIP checks share the disposable test database: keep these steps sequential.
+    - name: Verified GitHub updates on multisite (network rights, admin-ajax.php)
+      working-directory: tests/wp
+      run: vendor/bin/phpunit -c phpunit-ms.xml.dist --filter VerifiedUpdatesTest
     - name: Backup and restore scenarios
       run: vendor/bin/phpunit --testsuite e2e --coverage-clover coverage/e2e.xml
     - name: Merge and normalize Clover paths
-      run: php tests/coverage/merge.php coverage/unit.xml coverage/wordpress.xml coverage/e2e.xml
+      run: php tests/coverage/merge.php coverage/unit.xml coverage/wordpress.xml coverage/e2e.xml coverage/multisite.xml
     - name: Enforce PHP line coverage > 80 %
       run: php tests/coverage/check.php coverage/clover.xml 80
     - name: Upload Clover coverage
-      uses: actions/upload-artifact@v4
+      uses: actions/upload-artifact@v7
       with:
         name: php-coverage
         path: coverage/clover.xml
@@ -65,14 +74,33 @@ jobs:
         ports:
         - 33077:3306
         options: --health-cmd="healthcheck.sh --connect --innodb_initialized" --health-interval=5s --health-timeout=5s --health-retries=20
+  release-package:
+    name: Real build ZIP and signing tool
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v7
+    - uses: shivammathur/setup-php@v2
+      with:
+        php-version: '8.2'
+        extensions: mbstring, sodium, zip, pdo_mysql
+        tools: composer:v2
+        coverage: none
+    - uses: actions/setup-node@v7
+      with:
+        node-version: '22'
+        cache: npm
+        cache-dependency-path: apps/admin/package-lock.json
+    - run: bash bin/build-zip.sh "$RUNNER_TEMP/dist"
+    - name: Sign the real ZIP with a disposable key and verify it with the runtime verifier
+      run: php tests/release/verify-signed-build.php "$RUNNER_TEMP/dist"
   frontend:
     runs-on: ubuntu-latest
     defaults:
       run:
         working-directory: apps/admin
     steps:
-    - uses: actions/checkout@v4
-    - uses: actions/setup-node@v4
+    - uses: actions/checkout@v7
+    - uses: actions/setup-node@v7
       with:
         node-version: '22'
         cache: npm
@@ -83,8 +111,12 @@ jobs:
     - name: Tests with strict line coverage > 80 %
       run: npm run test:coverage
     - run: npm run build
+    - name: Update check script in a real browser (coverage > 80 %)
+      run: |
+        npx playwright-core install --with-deps chromium
+        npm run test:updates-ui
     - name: Upload lcov coverage
-      uses: actions/upload-artifact@v4
+      uses: actions/upload-artifact@v7
       with:
         name: frontend-coverage
         path: apps/admin/coverage/lcov.info
@@ -95,22 +127,20 @@ jobs:
     needs:
     - php
     - frontend
+    - release-package
     if: |-
-      (github.event_name == 'pull_request' &&
-       github.event.pull_request.head.repo.full_name == github.repository &&
-       github.event.pull_request.user.login != 'dependabot[bot]') ||
-      (github.event_name == 'push' &&
-       github.ref_name == github.event.repository.default_branch)
+      github.event.pull_request.head.repo.full_name == github.repository &&
+      github.event.pull_request.user.login != 'dependabot[bot]'
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@v7
       with:
         fetch-depth: 0
-    - uses: actions/download-artifact@v4
+    - uses: actions/download-artifact@v8
       with:
         name: php-coverage
         path: coverage
-    - uses: actions/download-artifact@v4
+    - uses: actions/download-artifact@v8
       with:
         name: frontend-coverage
         path: apps/admin/coverage
@@ -130,7 +160,7 @@ jobs:
         test -s coverage/clover.xml
         test -s apps/admin/coverage/lcov.info
     - name: Analyze code and import coverage
-      uses: SonarSource/sonarqube-scan-action@d209202bc7d53ff1cc128f7f907dac145c9d6ae9
+      uses: SonarSource/sonarqube-scan-action@e805d875275f728fac1885b413934be6d7c63f65
       with:
         args: -Dsonar.organization=${{ vars.SONAR_ORGANIZATION }}
       env:

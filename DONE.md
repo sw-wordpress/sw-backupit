@@ -84,4 +84,29 @@ See `docs/implementation-plan.md` and `docs/architecture.md`: NDJSON index (no p
 - Production dependency audits and Composer validation pass; no advisory suppressions or dependency constraints changed.
 
 - #22: Guard comparison paths before metadata classification or hashing, rejecting traversal and symlinks.
+- #21: Require download capability for live comparison; retain read-only file listings and hide the comparison action from viewers.
+- #4: Confirm verified backups participate in retention; document upgrade dry runs and regression-test bulk verified catalogs with chain/protection safety.
+- #27: Discover storage backups on the first sheet opening; regression covered by the storage view test.
+- #5: Upgrade the coupled Vite/Quasar/Vue build plugins and ESLint toolchain; retain Vitest 5, TypeScript 5.9 and strict coverage gates.
+- #5 browser validation: tolerate backend profiles without optional GFS retention settings.
+- #23: Reserve network-wide schedule/profile mutations and job execution to multisite super administrators.
 - #3: Resolve release/source autoloaders and register monorepo mappings during independent uninstall; release bootstrap smoke checks now execute uninstall in a fresh process.
+
+- #20: Require storage management before assigning or overriding backup destinations, including new profiles.
+
+## 2026-11-12 – PR #31 CI repair
+- Close the comparison permission regression test after a merge dropped its method delimiter. Validated 165 PHP tests (3 skips), 80 WordPress tests (6 skips), 13 multisite security/capability tests, PHPStan and coding standards; merged PHP line coverage 81.16%. Frontend lint, 138 tests, typecheck and build pass; line coverage 82.52%. PHP 8.5 emits existing deprecations.
+## 2026-11-09 – Draft release signing pipeline
+- Resolve draft metadata through `gh release view` and fetch its REST API URL after uploading the ZIP; the tag endpoint returned 404 and skipped signing/publishing for 0.8.0.
+- Regression tests execute the workflow upload step with a simulated GitHub CLI: new/existing drafts, published-release protection and metadata API failure.
+
+## 2026-11-09 – Release Make command
+- `make release VERSION=X.Y.Z` updates both plugin versions, commits, creates an annotated tag and atomically pushes the current branch and tag to origin.
+- Disposable Git repositories cover successful publication, unchanged versions, rejected inputs/dirty trees/existing tags, and atomic rejection of divergent branch pushes.
+
+## 2026-11-09 – Storage targets in isolated releases
+- Reproduced the missing local Flysystem adapter through `StorageFactory` in the release build. Mozart 1.2.3 isolated
+  dependencies but left application references unchanged; the build now applies its AST replacements to all three source trees.
+- Release smoke tests construct local/S3/SFTP targets through the application factory and exercise the local connection test.
+- Validation: extracted release ZIP and disposable signing check pass; PHPStan and both coding standards pass. PHP suites:
+  182 tests (3 skipped), WordPress: 180 (6 skipped); merged PHP lines 81.94%, admin lines 82.52% (137 tests).

@@ -32,8 +32,17 @@ are never echoed as HTML).
 `bin/build-zip.sh` creates `dist/sw-backupit-<version>.zip` (production Composer dependencies, compiled SPA, standalone restore in `restore-app/`).
 It needs Composer, Docker and Node.js on the *build* machine only. `bin/build-restore.sh <dir>` builds only the standalone restore application.
 
+### Release veröffentlichen
+`make release VERSION=0.8.2` setzt Header und `SWBACKUPIT_VERSION` in `sw-backupit.php`, committet die Änderung,
+erstellt den annotierten Tag `0.8.2` und pusht aktuellen Branch und Tag atomar zu `origin`. Der Tag startet den
+[signierten CI-Release](github-updates.md). Benötigt Make, Bash, PHP, Git und Push-Rechte; vorher Tests ausführen.
+Der Arbeitsbaum muss einschließlich ungetrackter Dateien sauber sein. Rückstufungen, inkonsistente Versionsangaben,
+Detached HEAD und vorhandene lokale/Remote-Tags werden abgelehnt. Eine bereits gesetzte Version wird ohne leeren Commit getaggt.
+Bei abgelehntem Push bleiben Commit und Tag lokal erhalten; zuerst die Ursache beheben, dann beide Refs erneut atomar pushen
+(`git push --atomic origin HEAD:refs/heads/<branch> refs/tags/<version>`). Der Befehl erzwingt keine Remote-Änderungen.
+
 ### Admin UI build
-`make build` (Make, Node.js >= 18.18, npm) builds only the admin UI into `assets/admin/` (including TypeScript checks), not the release ZIP
+`make build` (Make, Node.js >= 22.13, npm) builds only the admin UI into `assets/admin/` (including TypeScript checks), not the release ZIP
 or the restore application. Dependencies are installed with `npm ci --include=dev` on the first build and whenever
 `apps/admin/package.json` or its lockfile changes.
 
@@ -42,6 +51,9 @@ Local ZIP builds and the GitHub release workflow share `bin/build-zip.sh`. It in
 temporary staging tree, smoke-tests the checkout, then runs `coenjacobs/mozart:1.2.3` (rewriting the staging copy, not the checkout).
 External classes use the namespace `SWBackupIt\Dependencies\`; classmapped symbols use `SWBackupIt_`. Only the resulting
 `vendor-prefixed/` tree is shipped, never the original top-level `vendor/` directory.
+`bin/mozart-compose.php` also applies Mozart's AST replacements to all three application source trees; Mozart 1.2.3
+otherwise leaves their dependency references unchanged. The release smoke test creates local, S3 and SFTP targets through
+`StorageFactory` and runs the local connection test without remote services.
 
 The plugin prefers `vendor-prefixed/autoload.php` and registers the Core, Restore and WordPress PSR-4 mappings on its loader. Source
 checkouts keep the normal `composer install` workflow and the `SWBACKUPIT_AUTOLOADER` test override.
@@ -60,7 +72,7 @@ runtime packages; `npm audit --omit=dev --audit-level=high` in `apps/admin`). Ne
 `.github/workflows/security-audit.yml` audits all dependencies, including dev tooling, daily and keeps one open `security-audit` issue
 (closed when clean). `.github/dependabot.yml` opens weekly grouped PRs (security fixes, peer-coupled toolchain packages, dev tools, runtime
 minor/patch; runtime majors individually). Dependabot PRs get no secrets, so the SonarQube job skips them. Enable Dependabot alerts and
-security updates in the repository settings. The admin app needs Node >= 22 (vue-i18n 11; `apps/admin/.nvmrc`, CI uses 22).
+security updates in the repository settings. The admin app needs Node 22.13+, 24 or 26+ (vue-i18n 11; `apps/admin/.nvmrc`, CI uses 22).
 PHPStan level 8 covers all production PHP (core, restore, WordPress adapter, `sw-backupit.php`, `uninstall.php`) with no baseline; WordPress
 (`szepeviktor/phpstan-wordpress`), WP-CLI and constants come from `tests/phpstan/` (bootstrap, stubs, corrected core PHPDoc). `bin/` holds
 dev/build scripts and is not analysed. `tests/wp` is a separate Composer project and outside Dependabot and the audits.
@@ -78,3 +90,6 @@ fails): `tests/coverage/check.php` for the merged PHP Clover report, `apps/admin
 ## Conventions
 See `AGENTS.md` and `CODE-STYLE.md`. Gotchas learned the hard way: `wpdb::$field_types` maps columns named `object_id` to `%d` (pass explicit formats);
 ZipStream rewrites `\ : * ? " < > |` in entry names (we percent-encode them); the WordPress test suite creates tables as TEMPORARY (other connections cannot see them).
+
+### Verified backups and retention (#4)
+`verified` means trustworthy metadata, not deletion protection. Verified backups intentionally participate in retention and parent selection. Explicit protection, the newest valid/self-contained backup and required chain dependencies still win over count, age and size limits. Before upgrading existing installations with many verified backups, run `wp sw-backupit retention run --dry-run` and inspect the deletion plan; protect backups that must survive. The first real run may delete a large historical backlog. No automatic migration or artificial deletion cap is introduced. Regression tests plan count/age/size retention against 100 old verified catalog entries and a multi-level chain without deleting files.

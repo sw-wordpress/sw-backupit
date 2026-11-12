@@ -281,59 +281,60 @@ msgstr "Die Wiederherstellung wurde erfolgreich abgeschlossen."
 msgid "Connection lost. Reload this page to resume the restore."
 msgstr "Verbindung unterbrochen. Laden Sie diese Seite neu, um die Wiederherstellung fortzusetzen."
 
-#: packages/restore/src/Web/WebApp.php:64
+#: packages/restore/src/Web/WebApp.php:65
 msgid "Forbidden"
 msgstr "Zugriff verweigert"
 
-#: packages/restore/src/Web/WebApp.php:64
+#: packages/restore/src/Web/WebApp.php:65
 msgid "Invalid or missing security token. Reload the page."
 msgstr "Ungültiges oder fehlendes Sicherheits-Token. Laden Sie die Seite neu."
 
-#: packages/restore/src/Web/WebApp.php:88
+#: packages/restore/src/Web/WebApp.php:89
 #, php-format
 msgid "Too many failed attempts. Try again in %d minutes."
 msgstr "Zu viele fehlgeschlagene Versuche. Versuchen Sie es in %d Minuten erneut."
 
-#: packages/restore/src/Web/WebApp.php:89
+#: packages/restore/src/Web/WebApp.php:90
 msgid "The token is not valid."
 msgstr "Das Token ist ungültig."
 
-#: packages/restore/src/Web/WebApp.php:103
+#: packages/restore/src/Web/WebApp.php:104
 msgid "You were signed out."
 msgstr "Sie wurden abgemeldet."
 
-#: packages/restore/src/Web/WebApp.php:227
+#: packages/restore/src/Web/WebApp.php:228
 msgid "No restore is running."
 msgstr "Es läuft keine Wiederherstellung."
 
-#: packages/restore/src/Web/WebApp.php:277
+#: packages/restore/src/Web/WebApp.php:278
 msgid "The restore completed. The restore application is now locked and its files were removed."
 msgstr "Die Wiederherstellung ist abgeschlossen. Die Restore-Anwendung ist nun gesperrt und ihre Dateien wurden entfernt."
 
-#: packages/restore/src/Web/WebApp.php:277
+#: packages/restore/src/Web/WebApp.php:278
 msgid "The restore completed. The restore application is now locked. Please delete the restore directory from your server manually."
 msgstr "Die Wiederherstellung ist abgeschlossen. Die Restore-Anwendung ist nun gesperrt. Bitte löschen Sie das Restore-Verzeichnis manuell von Ihrem Server."
 
-#: packages/restore/src/Web/WebApp.php:279
+#: packages/restore/src/Web/WebApp.php:280
 msgid "Restore finished"
 msgstr "Wiederherstellung abgeschlossen"
 
 #: packages/wordpress/src/Admin/AdminPage.php:29
 #: packages/wordpress/src/Admin/AdminPage.php:30
 msgid "sw-backupit"
-msgstr "sw-backupit"
+msgstr "BackupIt"
 
 #: packages/wordpress/src/Admin/AdminPage.php:41
+#: packages/wordpress/src/Rest/ProfilesController.php:197
 msgid "You do not have permission to access this page."
 msgstr "Sie haben keine Berechtigung, auf diese Seite zuzugreifen."
 
 #: packages/wordpress/src/Admin/AdminPage.php:44
 msgid "The sw-backupit admin interface has not been built. Install the release package or run \"npm run build\" in apps/admin."
-msgstr "Die sw-backupit-Verwaltungsoberfläche wurde nicht gebaut. Installieren Sie das Release-Paket oder führen Sie \"npm run build\" in apps/admin aus."
+msgstr "Die BackupIt-Verwaltungsoberfläche wurde nicht gebaut. Installieren Sie das Release-Paket oder führen Sie \"npm run build\" in apps/admin aus."
 
 #: packages/wordpress/src/Admin/AdminPage.php:47
 msgid "sw-backupit requires JavaScript."
-msgstr "sw-backupit benötigt JavaScript."
+msgstr "BackupIt benötigt JavaScript."
 
 #: packages/wordpress/src/Repository/BackupRepository.php:239
 #: packages/wordpress/src/Runner/TransferService.php:516
@@ -494,84 +495,84 @@ msgid "Overdue schedules: %s"
 msgstr "Überfällige Zeitpläne: %s"
 
 #: packages/wordpress/src/Rest/ProfilesController.php:110
-#: packages/wordpress/src/Rest/ProfilesController.php:134
-#: packages/wordpress/src/Rest/ProfilesController.php:153
-#: packages/wordpress/src/Rest/ProfilesController.php:159
-#: packages/wordpress/src/Rest/ProfilesController.php:166
+#: packages/wordpress/src/Rest/ProfilesController.php:144
+#: packages/wordpress/src/Rest/ProfilesController.php:163
+#: packages/wordpress/src/Rest/ProfilesController.php:169
+#: packages/wordpress/src/Rest/ProfilesController.php:176
 msgid "Profile not found."
 msgstr "Profil nicht gefunden."
 
-#: packages/wordpress/src/Rest/ProfilesController.php:140
+#: packages/wordpress/src/Rest/ProfilesController.php:150
 msgid "Deleting a profile requires confirmation."
 msgstr "Zum Löschen eines Profils ist eine Bestätigung erforderlich."
 
-#: packages/wordpress/src/Rest/ProfilesController.php:145
+#: packages/wordpress/src/Rest/ProfilesController.php:155
 msgid "The profile is used by a schedule. Delete the schedule first."
 msgstr "Das Profil wird von einem Zeitplan verwendet. Löschen Sie zuerst den Zeitplan."
 
-#: packages/wordpress/src/Rest/ProfilesController.php:171
+#: packages/wordpress/src/Rest/ProfilesController.php:184
 #: packages/wordpress/src/Runner/TransferService.php:83
 #: packages/wordpress/src/Support/CoreMessages.php:208
 msgid "The storage target does not exist."
 msgstr "Das Speicherziel existiert nicht."
 
-#: packages/wordpress/src/Rest/SchedulesController.php:87
-#: packages/wordpress/src/Rest/SchedulesController.php:106
-#: packages/wordpress/src/Rest/SchedulesController.php:124
-#: packages/wordpress/src/Rest/SchedulesController.php:130
+#: packages/wordpress/src/Rest/SchedulesController.php:88
+#: packages/wordpress/src/Rest/SchedulesController.php:107
+#: packages/wordpress/src/Rest/SchedulesController.php:125
+#: packages/wordpress/src/Rest/SchedulesController.php:131
 msgid "Schedule not found."
 msgstr "Zeitplan nicht gefunden."
 
-#: packages/wordpress/src/Rest/SchedulesController.php:135
+#: packages/wordpress/src/Rest/SchedulesController.php:136
 msgid "The schedule could not be started."
 msgstr "Der Zeitplan konnte nicht gestartet werden."
 
-#: packages/wordpress/src/Rest/SchedulesController.php:181
+#: packages/wordpress/src/Rest/SchedulesController.php:182
 msgid "Name is required."
 msgstr "Ein Name ist erforderlich."
 
-#: packages/wordpress/src/Rest/SchedulesController.php:184
+#: packages/wordpress/src/Rest/SchedulesController.php:185
 msgid "Profile does not exist."
 msgstr "Das Profil existiert nicht."
 
-#: packages/wordpress/src/Rest/SchedulesController.php:187
+#: packages/wordpress/src/Rest/SchedulesController.php:188
 msgid "Unknown frequency."
 msgstr "Unbekannte Häufigkeit."
 
-#: packages/wordpress/src/Rest/SchedulesController.php:190
+#: packages/wordpress/src/Rest/SchedulesController.php:191
 msgid "Invalid cron expression."
 msgstr "Ungültiger Cron-Ausdruck."
 
-#: packages/wordpress/src/Rest/SchedulesController.php:193
+#: packages/wordpress/src/Rest/SchedulesController.php:194
 #: packages/wordpress/src/Support/Settings.php:115
 msgid "Unknown timezone."
 msgstr "Unbekannte Zeitzone."
 
-#: packages/wordpress/src/Rest/SchedulesController.php:196
+#: packages/wordpress/src/Rest/SchedulesController.php:197
 msgid "Time must be HH:MM."
 msgstr "Die Uhrzeit muss im Format HH:MM angegeben werden."
 
-#: packages/wordpress/src/Rest/SchedulesController.php:199
+#: packages/wordpress/src/Rest/SchedulesController.php:200
 msgid "Weekday or day of month out of range."
 msgstr "Wochentag oder Tag des Monats außerhalb des gültigen Bereichs."
 
-#: packages/wordpress/src/Rest/SchedulesController.php:202
+#: packages/wordpress/src/Rest/SchedulesController.php:203
 msgid "Retry settings are out of range."
 msgstr "Die Wiederholungseinstellungen liegen außerhalb des gültigen Bereichs."
 
-#: packages/wordpress/src/Rest/SchedulesController.php:205
+#: packages/wordpress/src/Rest/SchedulesController.php:206
 msgid "The schedule is invalid."
 msgstr "Der Zeitplan ist ungültig."
 
-#: packages/wordpress/src/Rest/StorageTargetsController.php:99
-#: packages/wordpress/src/Rest/StorageTargetsController.php:134
-#: packages/wordpress/src/Rest/StorageTargetsController.php:141
-#: packages/wordpress/src/Rest/StorageTargetsController.php:170
-#: packages/wordpress/src/Rest/StorageTargetsController.php:210
+#: packages/wordpress/src/Rest/StorageTargetsController.php:101
+#: packages/wordpress/src/Rest/StorageTargetsController.php:136
+#: packages/wordpress/src/Rest/StorageTargetsController.php:143
+#: packages/wordpress/src/Rest/StorageTargetsController.php:172
+#: packages/wordpress/src/Rest/StorageTargetsController.php:212
 msgid "Storage target not found."
 msgstr "Speicherziel nicht gefunden."
 
-#: packages/wordpress/src/Rest/StorageTargetsController.php:125
+#: packages/wordpress/src/Rest/StorageTargetsController.php:127
 msgid "The storage target is used by a profile."
 msgstr "Das Speicherziel wird von einem Profil verwendet."
 
@@ -587,7 +588,7 @@ msgstr "Backup %1$s ist beschädigt oder unvollständig: %2$s"
 
 #: packages/wordpress/src/Runner/CronManager.php:30
 msgid "Every minute (sw-backupit)"
-msgstr "Jede Minute (sw-backupit)"
+msgstr "Jede Minute (BackupIt)"
 
 #. translators: %s: schedule name
 #: packages/wordpress/src/Runner/HealthMonitor.php:31
@@ -695,7 +696,7 @@ msgstr "Das Backup %s hat keine vollständige lokale Kopie. Laden Sie es zuerst 
 #: packages/wordpress/src/Runner/RecoveryPackage.php:90
 #, php-format
 msgid "sw-backupit recovery package for backup %s"
-msgstr "sw-backupit-Recovery-Paket für Backup %s"
+msgstr "BackupIt-Recovery-Paket für Backup %s"
 
 #: packages/wordpress/src/Runner/RecoveryPackage.php:92
 msgid "Contents: backups/ holds the backup and every base backup it needs, sw-backupit-restore/ the standalone restore application (needs PHP 8.2 with zip and PDO MySQL, no WordPress)."
@@ -1209,11 +1210,11 @@ msgstr "Es ist kein Storage-Manager konfiguriert."
 
 #: packages/wordpress/src/Support/CoreMessages.php:141
 msgid "Not a sw-backupit manifest."
-msgstr "Kein sw-backupit-Manifest."
+msgstr "Kein BackupIt-Manifest."
 
 #: packages/wordpress/src/Support/CoreMessages.php:142
 msgid "Not an sw-backupit encrypted file."
-msgstr "Keine mit sw-backupit verschlüsselte Datei."
+msgstr "Keine mit BackupIt verschlüsselte Datei."
 
 #: packages/wordpress/src/Support/CoreMessages.php:143
 msgid "Not enough free disk space in the staging directory."
@@ -1657,15 +1658,169 @@ msgstr "Das Staging-Verzeichnis liegt im Web-Root, wo Backups von jedem herunter
 msgid "Invalid notification recipient."
 msgstr "Ungültiger Benachrichtigungsempfänger."
 
+#: packages/wordpress/src/Update/Manifest.php:46
+msgid "Release verification failed. The release was not accepted."
+msgstr "Die Release-Verifikation ist fehlgeschlagen. Das Release wurde nicht akzeptiert."
+
+#: packages/wordpress/src/Update/Package.php:30
+msgid "ZIP size or SHA-256 does not match, or ZIP verification is unavailable."
+msgstr "ZIP-Größe oder SHA-256 stimmt nicht, oder die ZIP-Prüfung ist nicht verfügbar."
+
+#: packages/wordpress/src/Update/Package.php:34
+msgid "Invalid ZIP archive."
+msgstr "Ungültiges ZIP-Archiv."
+
+#: packages/wordpress/src/Update/Package.php:40
+msgid "The update package failed the safety checks."
+msgstr "Das Update-Paket hat die Sicherheitsprüfungen nicht bestanden."
+
+#: packages/wordpress/src/Update/Provider.php:67
+msgid "Manual updates only"
+msgstr "Nur manuelle Aktualisierung"
+
+#: packages/wordpress/src/Update/Provider.php:87
+msgid "GitHub installation is only allowed manually in the WordPress backend."
+msgstr "Die GitHub-Installation ist nur manuell im WordPress-Backend erlaubt."
+
+#: packages/wordpress/src/Update/Provider.php:91
+msgid "Automatic GitHub installation is blocked."
+msgstr "Die automatische GitHub-Installation ist gesperrt."
+
+#: packages/wordpress/src/Update/Provider.php:110
+msgid "No valid manual WordPress update request."
+msgstr "Kein gültiger manueller WordPress-Updateauftrag."
+
+#: packages/wordpress/src/Update/Provider.php:213
+msgid "Signed GitHub release. Install only manually through WordPress."
+msgstr "Signiertes GitHub-Release. Installation nur manuell über WordPress."
+
+#: packages/wordpress/src/Update/Provider.php:231
+msgid "Check for updates now"
+msgstr "Jetzt auf Updates prüfen"
+
+#: packages/wordpress/src/Update/Provider.php:242
+msgid "GitHub updates are blocked: no public release key is configured."
+msgstr "GitHub-Updates sind gesperrt: Es ist kein öffentlicher Release-Schlüssel konfiguriert."
+
+#: packages/wordpress/src/Update/Provider.php:246
+msgid "No verified update check yet."
+msgstr "Noch keine verifizierte Update-Prüfung."
+
+#. translators: %s: time span, e.g. "2 hours"
+#: packages/wordpress/src/Update/Provider.php:249
+#, php-format
+msgid "Last verified check: %s ago."
+msgstr "Letzte verifizierte Prüfung: vor %s."
+
+#. translators: %s: error message
+#: packages/wordpress/src/Update/Provider.php:253
+#, php-format
+msgid "Last error: %s"
+msgstr "Letzter Fehler: %s"
+
+#: packages/wordpress/src/Update/Provider.php:289
+msgid "Checking signed releases …"
+msgstr "Signierte Releases werden geprüft …"
+
+#: packages/wordpress/src/Update/Provider.php:290
+msgid "Check finished."
+msgstr "Prüfung abgeschlossen."
+
+#: packages/wordpress/src/Update/Provider.php:291
+msgid "GitHub could not be reached. Please try again later."
+msgstr "GitHub konnte nicht erreicht werden. Bitte später erneut prüfen."
+
+#: packages/wordpress/src/Update/Service.php:51
+msgid "Update checks are only allowed in an authorised backend session."
+msgstr "Update-Prüfungen sind nur in einer berechtigten Backend-Sitzung erlaubt."
+
+#: packages/wordpress/src/Update/Service.php:54
+msgid "No public release key or Sodium is available. GitHub updates are blocked."
+msgstr "Öffentlicher Release-Schlüssel oder Sodium fehlt. GitHub-Updates sind gesperrt."
+
+#: packages/wordpress/src/Update/Service.php:58
+msgid "An update check is already running."
+msgstr "Eine Update-Prüfung läuft bereits."
+
+#: packages/wordpress/src/Update/Service.php:64
+msgid "The last update check is still within the check interval."
+msgstr "Die letzte Update-Prüfung liegt noch innerhalb des Prüfintervalls."
+
+#: packages/wordpress/src/Update/Service.php:71
+msgid "The check took too long. The result was not adopted."
+msgstr "Die Prüfung dauerte zu lange. Das Ergebnis wurde nicht übernommen."
+
+#: packages/wordpress/src/Update/Service.php:79
+msgid "Signed release information verified. Install updates only through the WordPress plugin list."
+msgstr "Signierte Release-Informationen geprüft. Installation ausschließlich über die Plugin-Verwaltung von WordPress."
+
+#: packages/wordpress/src/Update/Service.php:81
+msgid "Invalid release response."
+msgstr "Ungültige Release-Antwort."
+
+#: packages/wordpress/src/Update/Service.php:103
+msgid "No valid stable release response."
+msgstr "Keine gültige stabile Release-Antwort."
+
+#: packages/wordpress/src/Update/Service.php:112
+msgid "Release manifest or signature is missing."
+msgstr "Release-Manifest oder Signatur fehlt."
+
+#: packages/wordpress/src/Update/Service.php:128
+msgid "An already verified newer version must not be rolled back."
+msgstr "Eine bereits geprüfte neuere Version darf nicht zurückgenommen werden."
+
+#: packages/wordpress/src/Update/Service.php:150
+msgid "Please check for updates again before installing."
+msgstr "Bitte vor der Installation die Updates erneut prüfen."
+
+#: packages/wordpress/src/Update/Service.php:157
+msgid "Outdated release offer."
+msgstr "Veraltetes Release-Angebot."
+
+#: packages/wordpress/src/Update/Service.php:178
+msgid "Package, version or system requirements do not match."
+msgstr "Paket, Version oder Systemvoraussetzungen stimmen nicht."
+
+#: packages/wordpress/src/Update/Service.php:186
+msgid "Temporary update file unavailable."
+msgstr "Temporäre Update-Datei nicht verfügbar."
+
+#: packages/wordpress/src/Update/Transport.php:27
+msgid "Update address not allowed."
+msgstr "Nicht erlaubte Update-Adresse."
+
+#: packages/wordpress/src/Update/Transport.php:47
+msgid "GitHub could not be reached."
+msgstr "GitHub konnte nicht erreicht werden."
+
+#: packages/wordpress/src/Update/Transport.php:53
+msgid "Invalid redirect."
+msgstr "Ungültige Weiterleitung."
+
+#. translators: %d: HTTP status code
+#: packages/wordpress/src/Update/Transport.php:60
+#, php-format
+msgid "GitHub responded with HTTP %d."
+msgstr "GitHub-Antwort: HTTP %d."
+
+#: packages/wordpress/src/Update/Transport.php:65
+msgid "The update response exceeds the size limit."
+msgstr "Die Update-Antwort überschreitet das Größenlimit."
+
+#: packages/wordpress/src/Update/Transport.php:69
+msgid "Too many update redirects."
+msgstr "Zu viele Update-Weiterleitungen."
+
 #. translators: 1: required PHP version, 2: current PHP version
-#: sw-backupit.php:35
+#: sw-backupit.php:36
 #, php-format
 msgid "sw-backupit requires PHP %1$s or newer. You are running PHP %2$s."
-msgstr "sw-backupit benötigt PHP %1$s oder neuer. Sie verwenden PHP %2$s."
+msgstr "BackupIt benötigt PHP %1$s oder neuer. Sie verwenden PHP %2$s."
 
-#: sw-backupit.php:58
+#: sw-backupit.php:59
 msgid "sw-backupit: the vendor directory is missing. Install the release package or run \"composer install\"."
-msgstr "sw-backupit: Das Verzeichnis \"vendor\" fehlt. Installieren Sie das Release-Paket oder führen Sie \"composer install\" aus."
+msgstr "BackupIt: Das Verzeichnis \"vendor\" fehlt. Installieren Sie das Release-Paket oder führen Sie \"composer install\" aus."
 
 #~ msgid "The staging directory is inside the web root. Make sure the web server denies access or choose a directory outside the web root in the settings."
 #~ msgstr "Das Staging-Verzeichnis liegt innerhalb des Web-Roots. Stellen Sie sicher, dass der Webserver den Zugriff verweigert, oder wählen Sie in den Einstellungen ein Verzeichnis außerhalb des Web-Roots."
