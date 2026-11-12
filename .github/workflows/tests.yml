@@ -1,9 +1,11 @@
 name: Tests and SonarQube
+# Test suites run on pull requests only (the release workflow runs none).
 on:
-  push:
-    branches:
-    - '**'
   pull_request: null
+
+concurrency:
+  group: tests-pr-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
 permissions:
   contents: read
 jobs:
@@ -45,6 +47,10 @@ jobs:
     - name: Multisite capability coverage
       working-directory: tests/wp
       run: vendor/bin/phpunit -c phpunit-ms.xml.dist --filter MultisiteTest --coverage-filter ../../packages/wordpress/src --coverage-clover ../../coverage/multisite.xml
+    # The multisite suite and the browser/ZIP checks share the disposable test database: keep these steps sequential.
+    - name: Verified GitHub updates on multisite (network rights, admin-ajax.php)
+      working-directory: tests/wp
+      run: vendor/bin/phpunit -c phpunit-ms.xml.dist --filter VerifiedUpdatesTest
     - name: Backup and restore scenarios
       run: vendor/bin/phpunit --testsuite e2e --coverage-clover coverage/e2e.xml
     - name: Merge and normalize Clover paths
@@ -68,6 +74,25 @@ jobs:
         ports:
         - 33077:3306
         options: --health-cmd="healthcheck.sh --connect --innodb_initialized" --health-interval=5s --health-timeout=5s --health-retries=20
+  release-package:
+    name: Real build ZIP and signing tool
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v7
+    - uses: shivammathur/setup-php@v2
+      with:
+        php-version: '8.2'
+        extensions: mbstring, sodium, zip, pdo_mysql
+        tools: composer:v2
+        coverage: none
+    - uses: actions/setup-node@v7
+      with:
+        node-version: '22'
+        cache: npm
+        cache-dependency-path: apps/admin/package-lock.json
+    - run: bash bin/build-zip.sh "$RUNNER_TEMP/dist"
+    - name: Sign the real ZIP with a disposable key and verify it with the runtime verifier
+      run: php tests/release/verify-signed-build.php "$RUNNER_TEMP/dist"
   frontend:
     runs-on: ubuntu-latest
     defaults:
@@ -86,6 +111,10 @@ jobs:
     - name: Tests with strict line coverage > 80 %
       run: npm run test:coverage
     - run: npm run build
+    - name: Update check script in a real browser (coverage > 80 %)
+      run: |
+        npx playwright-core install --with-deps chromium
+        npm run test:updates-ui
     - name: Upload lcov coverage
       uses: actions/upload-artifact@v7
       with:
@@ -98,12 +127,10 @@ jobs:
     needs:
     - php
     - frontend
+    - release-package
     if: |-
-      (github.event_name == 'pull_request' &&
-       github.event.pull_request.head.repo.full_name == github.repository &&
-       github.event.pull_request.user.login != 'dependabot[bot]') ||
-      (github.event_name == 'push' &&
-       github.ref_name == github.event.repository.default_branch)
+      github.event.pull_request.head.repo.full_name == github.repository &&
+      github.event.pull_request.user.login != 'dependabot[bot]'
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v7
@@ -133,7 +160,7 @@ jobs:
         test -s coverage/clover.xml
         test -s apps/admin/coverage/lcov.info
     - name: Analyze code and import coverage
-      uses: SonarSource/sonarqube-scan-action@4d1dc0c91ee400dcf8a6dddf2f705ac36542e304
+      uses: SonarSource/sonarqube-scan-action@e805d875275f728fac1885b413934be6d7c63f65
       with:
         args: -Dsonar.organization=${{ vars.SONAR_ORGANIZATION }}
       env:

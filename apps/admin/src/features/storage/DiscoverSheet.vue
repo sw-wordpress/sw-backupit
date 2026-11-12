@@ -27,13 +27,17 @@ const importable = computed(() =>
   items.value.filter((b) => !b.already_imported && b.error === null),
 );
 
-watch(open, (isOpen) => {
-  if (isOpen) {
-    selected.value = [];
-    download.value = false;
-    void found.load();
-  }
-});
+watch(
+  open,
+  (isOpen) => {
+    if (isOpen) {
+      selected.value = [];
+      download.value = false;
+      void found.load();
+    }
+  },
+  { immediate: true },
+);
 
 async function runImport(): Promise<void> {
   importing.value = true;

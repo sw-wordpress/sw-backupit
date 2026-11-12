@@ -108,6 +108,23 @@ $temp = sys_get_temp_dir() . '/sw-backupit-smoke-' . bin2hex(random_bytes(8));
 $localClass = $prefix . 'League\\Flysystem\\Local\\LocalFilesystemAdapter';
 $filesystemClass = $prefix . 'League\\Flysystem\\Filesystem';
 try {
+    // Exercise the shipped application references as well as the dependency's own loader.
+    $storage = (new \SWBackupIt\Core\Storage\StorageFactory())->create(
+        new \SWBackupIt\Core\Storage\StorageTarget(1, 'Smoke test', 'local', ['path' => $temp]),
+    );
+    if (!$storage->test()->ok) {
+        throw new RuntimeException('StorageFactory local connection test failed.');
+    }
+    // Construction resolves SDK/adapter references without connecting to either remote service.
+    $remoteTargets = [
+        new \SWBackupIt\Core\Storage\StorageTarget(2, 'S3 smoke test', 's3', ['bucket' => 'test']),
+        new \SWBackupIt\Core\Storage\StorageTarget(3, 'SFTP smoke test', 'sftp', [
+            'host' => '127.0.0.1', 'allow_private_network' => true, 'trust_unknown_host' => true,
+        ]),
+    ];
+    foreach ($remoteTargets as $target) {
+        (new \SWBackupIt\Core\Storage\StorageFactory())->create($target);
+    }
     $filesystem = new $filesystemClass(new $localClass($temp));
     $filesystem->write('probe.txt', 'isolated');
     if ($filesystem->read('probe.txt') !== 'isolated') {
