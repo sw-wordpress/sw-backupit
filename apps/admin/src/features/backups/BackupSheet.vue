@@ -216,6 +216,7 @@ const verifyOk = computed(
           </q-menu>
         </q-btn>
         <q-btn
+          v-if="can('swbi_download')"
           outline
           no-caps
           icon="r_compare_arrows"

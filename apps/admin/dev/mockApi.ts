@@ -19,7 +19,7 @@ import type {
   Settings,
   Severity,
   StorageTarget,
-} from '../src/types/api';
+} from '../src/types/api.ts';
 
 export interface MockResponse {
   status: number;

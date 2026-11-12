@@ -6,7 +6,7 @@
 #, fuzzy
 msgid ""
 msgstr ""
-"Project-Id-Version: sw-backupit 0.1.0\n"
+"Project-Id-Version: sw-backupit 0.8.1\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
@@ -324,6 +324,7 @@ msgid "sw-backupit"
 msgstr ""
 
 #: packages/wordpress/src/Admin/AdminPage.php:41
+#: packages/wordpress/src/Rest/ProfilesController.php:197
 msgid "You do not have permission to access this page."
 msgstr ""
 
@@ -336,7 +337,7 @@ msgid "sw-backupit requires JavaScript."
 msgstr ""
 
 #: packages/wordpress/src/Repository/BackupRepository.php:239
-#: packages/wordpress/src/Runner/TransferService.php:516
+#: packages/wordpress/src/Runner/TransferService.php:517
 msgid "Local staging"
 msgstr ""
 
@@ -494,72 +495,72 @@ msgid "Overdue schedules: %s"
 msgstr ""
 
 #: packages/wordpress/src/Rest/ProfilesController.php:110
-#: packages/wordpress/src/Rest/ProfilesController.php:134
-#: packages/wordpress/src/Rest/ProfilesController.php:153
-#: packages/wordpress/src/Rest/ProfilesController.php:159
-#: packages/wordpress/src/Rest/ProfilesController.php:166
+#: packages/wordpress/src/Rest/ProfilesController.php:144
+#: packages/wordpress/src/Rest/ProfilesController.php:163
+#: packages/wordpress/src/Rest/ProfilesController.php:169
+#: packages/wordpress/src/Rest/ProfilesController.php:176
 msgid "Profile not found."
 msgstr ""
 
-#: packages/wordpress/src/Rest/ProfilesController.php:140
+#: packages/wordpress/src/Rest/ProfilesController.php:150
 msgid "Deleting a profile requires confirmation."
 msgstr ""
 
-#: packages/wordpress/src/Rest/ProfilesController.php:145
+#: packages/wordpress/src/Rest/ProfilesController.php:155
 msgid "The profile is used by a schedule. Delete the schedule first."
 msgstr ""
 
-#: packages/wordpress/src/Rest/ProfilesController.php:171
+#: packages/wordpress/src/Rest/ProfilesController.php:184
 #: packages/wordpress/src/Runner/TransferService.php:83
 #: packages/wordpress/src/Support/CoreMessages.php:208
 msgid "The storage target does not exist."
 msgstr ""
 
-#: packages/wordpress/src/Rest/SchedulesController.php:87
-#: packages/wordpress/src/Rest/SchedulesController.php:106
-#: packages/wordpress/src/Rest/SchedulesController.php:124
-#: packages/wordpress/src/Rest/SchedulesController.php:130
+#: packages/wordpress/src/Rest/SchedulesController.php:88
+#: packages/wordpress/src/Rest/SchedulesController.php:107
+#: packages/wordpress/src/Rest/SchedulesController.php:125
+#: packages/wordpress/src/Rest/SchedulesController.php:131
 msgid "Schedule not found."
 msgstr ""
 
-#: packages/wordpress/src/Rest/SchedulesController.php:135
+#: packages/wordpress/src/Rest/SchedulesController.php:136
 msgid "The schedule could not be started."
 msgstr ""
 
-#: packages/wordpress/src/Rest/SchedulesController.php:181
+#: packages/wordpress/src/Rest/SchedulesController.php:182
 msgid "Name is required."
 msgstr ""
 
-#: packages/wordpress/src/Rest/SchedulesController.php:184
+#: packages/wordpress/src/Rest/SchedulesController.php:185
 msgid "Profile does not exist."
 msgstr ""
 
-#: packages/wordpress/src/Rest/SchedulesController.php:187
+#: packages/wordpress/src/Rest/SchedulesController.php:188
 msgid "Unknown frequency."
 msgstr ""
 
-#: packages/wordpress/src/Rest/SchedulesController.php:190
+#: packages/wordpress/src/Rest/SchedulesController.php:191
 msgid "Invalid cron expression."
 msgstr ""
 
-#: packages/wordpress/src/Rest/SchedulesController.php:193
+#: packages/wordpress/src/Rest/SchedulesController.php:194
 #: packages/wordpress/src/Support/Settings.php:115
 msgid "Unknown timezone."
 msgstr ""
 
-#: packages/wordpress/src/Rest/SchedulesController.php:196
+#: packages/wordpress/src/Rest/SchedulesController.php:197
 msgid "Time must be HH:MM."
 msgstr ""
 
-#: packages/wordpress/src/Rest/SchedulesController.php:199
+#: packages/wordpress/src/Rest/SchedulesController.php:200
 msgid "Weekday or day of month out of range."
 msgstr ""
 
-#: packages/wordpress/src/Rest/SchedulesController.php:202
+#: packages/wordpress/src/Rest/SchedulesController.php:203
 msgid "Retry settings are out of range."
 msgstr ""
 
-#: packages/wordpress/src/Rest/SchedulesController.php:205
+#: packages/wordpress/src/Rest/SchedulesController.php:206
 msgid "The schedule is invalid."
 msgstr ""
 
@@ -676,7 +677,8 @@ msgstr ""
 msgid "The backup \"%1$s\" failed: %2$s"
 msgstr ""
 
-#: packages/wordpress/src/Runner/PreUpdateBackup.php:155
+#: packages/wordpress/src/Runner/PreUpdateBackup.php:152
+#: packages/wordpress/src/Runner/PreUpdateBackup.php:162
 msgid "The update was stopped because the backup before the update failed."
 msgstr ""
 
@@ -783,7 +785,7 @@ msgstr ""
 msgid "The backup is already being copied or moved."
 msgstr ""
 
-#: packages/wordpress/src/Runner/TransferService.php:408
+#: packages/wordpress/src/Runner/TransferService.php:409
 msgid "The backup was copied, but it cannot be removed from the source (immutable storage target or retention lock)."
 msgstr ""
 
@@ -1658,12 +1660,166 @@ msgstr ""
 msgid "Invalid notification recipient."
 msgstr ""
 
+#: packages/wordpress/src/Update/Manifest.php:46
+msgid "Release verification failed. The release was not accepted."
+msgstr ""
+
+#: packages/wordpress/src/Update/Package.php:30
+msgid "ZIP size or SHA-256 does not match, or ZIP verification is unavailable."
+msgstr ""
+
+#: packages/wordpress/src/Update/Package.php:34
+msgid "Invalid ZIP archive."
+msgstr ""
+
+#: packages/wordpress/src/Update/Package.php:40
+msgid "The update package failed the safety checks."
+msgstr ""
+
+#: packages/wordpress/src/Update/Provider.php:67
+msgid "Manual updates only"
+msgstr ""
+
+#: packages/wordpress/src/Update/Provider.php:87
+msgid "GitHub installation is only allowed manually in the WordPress backend."
+msgstr ""
+
+#: packages/wordpress/src/Update/Provider.php:91
+msgid "Automatic GitHub installation is blocked."
+msgstr ""
+
+#: packages/wordpress/src/Update/Provider.php:110
+msgid "No valid manual WordPress update request."
+msgstr ""
+
+#: packages/wordpress/src/Update/Provider.php:213
+msgid "Signed GitHub release. Install only manually through WordPress."
+msgstr ""
+
+#: packages/wordpress/src/Update/Provider.php:231
+msgid "Check for updates now"
+msgstr ""
+
+#: packages/wordpress/src/Update/Provider.php:242
+msgid "GitHub updates are blocked: no public release key is configured."
+msgstr ""
+
+#: packages/wordpress/src/Update/Provider.php:246
+msgid "No verified update check yet."
+msgstr ""
+
+#. translators: %s: time span, e.g. "2 hours"
+#: packages/wordpress/src/Update/Provider.php:249
+#, php-format
+msgid "Last verified check: %s ago."
+msgstr ""
+
+#. translators: %s: error message
+#: packages/wordpress/src/Update/Provider.php:253
+#, php-format
+msgid "Last error: %s"
+msgstr ""
+
+#: packages/wordpress/src/Update/Provider.php:289
+msgid "Checking signed releases …"
+msgstr ""
+
+#: packages/wordpress/src/Update/Provider.php:290
+msgid "Check finished."
+msgstr ""
+
+#: packages/wordpress/src/Update/Provider.php:291
+msgid "GitHub could not be reached. Please try again later."
+msgstr ""
+
+#: packages/wordpress/src/Update/Service.php:51
+msgid "Update checks are only allowed in an authorised backend session."
+msgstr ""
+
+#: packages/wordpress/src/Update/Service.php:54
+msgid "No public release key or Sodium is available. GitHub updates are blocked."
+msgstr ""
+
+#: packages/wordpress/src/Update/Service.php:58
+msgid "An update check is already running."
+msgstr ""
+
+#: packages/wordpress/src/Update/Service.php:64
+msgid "The last update check is still within the check interval."
+msgstr ""
+
+#: packages/wordpress/src/Update/Service.php:71
+msgid "The check took too long. The result was not adopted."
+msgstr ""
+
+#: packages/wordpress/src/Update/Service.php:79
+msgid "Signed release information verified. Install updates only through the WordPress plugin list."
+msgstr ""
+
+#: packages/wordpress/src/Update/Service.php:81
+msgid "Invalid release response."
+msgstr ""
+
+#: packages/wordpress/src/Update/Service.php:103
+msgid "No valid stable release response."
+msgstr ""
+
+#: packages/wordpress/src/Update/Service.php:112
+msgid "Release manifest or signature is missing."
+msgstr ""
+
+#: packages/wordpress/src/Update/Service.php:128
+msgid "An already verified newer version must not be rolled back."
+msgstr ""
+
+#: packages/wordpress/src/Update/Service.php:150
+msgid "Please check for updates again before installing."
+msgstr ""
+
+#: packages/wordpress/src/Update/Service.php:157
+msgid "Outdated release offer."
+msgstr ""
+
+#: packages/wordpress/src/Update/Service.php:178
+msgid "Package, version or system requirements do not match."
+msgstr ""
+
+#: packages/wordpress/src/Update/Service.php:186
+msgid "Temporary update file unavailable."
+msgstr ""
+
+#: packages/wordpress/src/Update/Transport.php:27
+msgid "Update address not allowed."
+msgstr ""
+
+#: packages/wordpress/src/Update/Transport.php:47
+msgid "GitHub could not be reached."
+msgstr ""
+
+#: packages/wordpress/src/Update/Transport.php:53
+msgid "Invalid redirect."
+msgstr ""
+
+#. translators: %d: HTTP status code
+#: packages/wordpress/src/Update/Transport.php:60
+#, php-format
+msgid "GitHub responded with HTTP %d."
+msgstr ""
+
+#: packages/wordpress/src/Update/Transport.php:65
+msgid "The update response exceeds the size limit."
+msgstr ""
+
+#: packages/wordpress/src/Update/Transport.php:69
+msgid "Too many update redirects."
+msgstr ""
+
 #. translators: 1: required PHP version, 2: current PHP version
-#: sw-backupit.php:35
+#: sw-backupit.php:37
 #, php-format
 msgid "sw-backupit requires PHP %1$s or newer. You are running PHP %2$s."
 msgstr ""
 
-#: sw-backupit.php:58
+#: sw-backupit.php:60
 msgid "sw-backupit: the vendor directory is missing. Install the release package or run \"composer install\"."
 msgstr ""

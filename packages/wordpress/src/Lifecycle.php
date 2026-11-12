@@ -43,6 +43,8 @@ final class Lifecycle {
 	 * executable copies of the restore application inside the web root and must not outlive the active plugin.
 	 */
 	public static function deactivate(): void {
+		// Own cached offers go first, while the guard hooks are still registered.
+		Update\Provider::deactivate();
 		( new CronManager() )->clear_all();
 		( new Runner\RestorePreparer() )->remove_all();
 	}
@@ -52,6 +54,7 @@ final class Lifecycle {
 	 * always removed. Backups in the staging directory and on storage targets are never deleted here.
 	 */
 	public static function uninstall(): void {
+		Update\Provider::uninstall();
 		( new CronManager() )->clear_all();
 		( new Runner\RestorePreparer() )->remove_all();
 		$settings = \SWBackupIt\WordPress\Support\Options::get( 'swbi_settings', array() );

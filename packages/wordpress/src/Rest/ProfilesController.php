@@ -112,6 +112,9 @@ final class ProfilesController extends BaseController {
 	}
 
 	public function create( \WP_REST_Request $request ): \WP_REST_Response|\WP_Error {
+		if ( ! empty( $this->body( $request )['storage_target_ids'] ) && ! current_user_can( Capabilities::MANAGE_STORAGE ) ) {
+			return $this->storage_forbidden();
+		}
 		try {
 			$profile = $this->services()->profiles()->create( DefaultProfiles::apply_creation_defaults( $this->sanitize( $this->body( $request ) ) ) );
 		} catch ( ConfigurationException $exception ) {
@@ -122,6 +125,13 @@ final class ProfilesController extends BaseController {
 	}
 
 	public function update( \WP_REST_Request $request ): \WP_REST_Response|\WP_Error {
+		$input = $this->body( $request );
+		if ( array_key_exists( 'storage_target_ids', $input ) && ! current_user_can( Capabilities::MANAGE_STORAGE ) ) {
+			$current = $this->services()->profiles()->find( (int) $request['id'] );
+			if ( null !== $current && $input['storage_target_ids'] !== $current->toArray()['storage_target_ids'] ) {
+				return $this->storage_forbidden();
+			}
+		}
 		try {
 			$profile = $this->services()->profiles()->update( (int) $request['id'], $this->sanitize( $this->body( $request ) ) );
 		} catch ( ConfigurationException $exception ) {
@@ -167,6 +177,9 @@ final class ProfilesController extends BaseController {
 		}
 		$target_id = $request['storage_target_id'];
 		if ( null !== $target_id ) {
+			if ( ! current_user_can( Capabilities::MANAGE_STORAGE ) ) {
+				return $this->storage_forbidden();
+			}
 			if ( 0 !== (int) $target_id && null === $this->services()->storage_targets()->find( (int) $target_id ) ) {
 				return $this->error( 'swbi_invalid_param', __( 'The storage target does not exist.', 'sw-backupit' ), 400 );
 			}
@@ -178,6 +191,10 @@ final class ProfilesController extends BaseController {
 			return $this->from_exception( $throwable );
 		}
 		return new \WP_REST_Response( JobPresenter::to_rest( $job ), 201 );
+	}
+
+	private function storage_forbidden(): \WP_Error {
+		return new \WP_Error( 'rest_forbidden', __( 'You do not have permission to access this page.', 'sw-backupit' ), array( 'status' => 403 ) );
 	}
 
 	/**
