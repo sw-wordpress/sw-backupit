@@ -83,6 +83,7 @@ See `docs/implementation-plan.md` and `docs/architecture.md`: NDJSON index (no p
   `symfony/filesystem` dependency. Updated only that package from 7.4.21 to patched 7.4.23 in both Composer lockfiles.
 - Production dependency audits and Composer validation pass; no advisory suppressions or dependency constraints changed.
 
+- #22: Guard comparison paths before metadata classification or hashing, rejecting traversal and symlinks.
 - #21: Require download capability for live comparison; retain read-only file listings and hide the comparison action from viewers.
 - #4: Confirm verified backups participate in retention; document upgrade dry runs and regression-test bulk verified catalogs with chain/protection safety.
 - #27: Discover storage backups on the first sheet opening; regression covered by the storage view test.
@@ -109,3 +110,7 @@ See `docs/implementation-plan.md` and `docs/architecture.md`: NDJSON index (no p
 - Release smoke tests construct local/S3/SFTP targets through the application factory and exercise the local connection test.
 - Validation: extracted release ZIP and disposable signing check pass; PHPStan and both coding standards pass. PHP suites:
   182 tests (3 skipped), WordPress: 180 (6 skipped); merged PHP lines 81.94%, admin lines 82.52% (137 tests).
+
+## 2026-11-12 – PR #30 browser CI compatibility
+- Pin the frontend job to Ubuntu 24.04: Playwright 1.55.1 cannot install Chromium on the Ubuntu 26.04 `ubuntu-latest` image.
+- Local validation: comparison regression (3 tests, 26 assertions), targeted PHPCS, workflow YAML, browser update check (100% lines), frontend lint, 138 tests (82.52% lines), typecheck and build pass. Existing PR-head CI has PHP coverage 82.09% and a passing release ZIP/signing check. Local browser validation uses Playwright's Ubuntu 24.04 platform override; the hosted runner change awaits CI.

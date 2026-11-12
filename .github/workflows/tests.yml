@@ -94,7 +94,8 @@ jobs:
     - name: Sign the real ZIP with a disposable key and verify it with the runtime verifier
       run: php tests/release/verify-signed-build.php "$RUNNER_TEMP/dist"
   frontend:
-    runs-on: ubuntu-latest
+    # Playwright 1.55.1 supports Ubuntu 24.04, but not the 26.04 latest image.
+    runs-on: ubuntu-24.04
     defaults:
       run:
         working-directory: apps/admin
