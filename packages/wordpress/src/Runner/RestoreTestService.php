@@ -25,7 +25,7 @@ final class RestoreTestService {
 		if ( null === Services::instance()->backups()->find_row( $backup_id ) ) {
 			throw new SwbiException( __( 'Backup not found.', 'sw-backupit' ) );
 		}
-		$work = untrailingslashit( Settings::staging_dir() ) . '/tmp';
+		$work = untrailingslashit( Settings::staging_dir_for_writes() ) . '/tmp';
 		wp_mkdir_p( $work );
 		if ( function_exists( 'set_time_limit' ) ) {
 			@set_time_limit( 0 ); // phpcs:ignore WordPress.PHP.NoSilencedErrors.Discouraged -- may be disabled by the host.

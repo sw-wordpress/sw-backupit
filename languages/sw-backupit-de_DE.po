@@ -337,7 +337,7 @@ msgid "sw-backupit requires JavaScript."
 msgstr "BackupIt benötigt JavaScript."
 
 #: packages/wordpress/src/Repository/BackupRepository.php:239
-#: packages/wordpress/src/Runner/TransferService.php:516
+#: packages/wordpress/src/Runner/TransferService.php:517
 msgid "Local staging"
 msgstr "Lokales Staging"
 
@@ -610,24 +610,24 @@ msgstr "Der Speicherplatz für Backups wird knapp"
 msgid "Only %s are free in the backup staging directory."
 msgstr "Im Backup-Staging-Verzeichnis sind nur noch %s frei."
 
-#: packages/wordpress/src/Runner/JobService.php:105
-#: packages/wordpress/src/Runner/JobService.php:121
+#: packages/wordpress/src/Runner/JobService.php:106
+#: packages/wordpress/src/Runner/JobService.php:122
 msgid "Another backup is already running."
 msgstr "Es läuft bereits ein anderes Backup."
 
-#: packages/wordpress/src/Runner/JobService.php:159
+#: packages/wordpress/src/Runner/JobService.php:160
 msgid "The job cannot be paused in its current state."
 msgstr "Der Job kann im aktuellen Zustand nicht pausiert werden."
 
-#: packages/wordpress/src/Runner/JobService.php:170
+#: packages/wordpress/src/Runner/JobService.php:171
 msgid "Only paused jobs can be resumed."
 msgstr "Nur pausierte Jobs können fortgesetzt werden."
 
-#: packages/wordpress/src/Runner/JobService.php:185
+#: packages/wordpress/src/Runner/JobService.php:186
 msgid "The job has already finished."
 msgstr "Der Job ist bereits beendet."
 
-#: packages/wordpress/src/Runner/JobService.php:207
+#: packages/wordpress/src/Runner/JobService.php:208
 msgid "Only failed jobs can be retried."
 msgstr "Nur fehlgeschlagene Jobs können wiederholt werden."
 
@@ -677,7 +677,8 @@ msgstr "Backup \"%s\" fehlgeschlagen"
 msgid "The backup \"%1$s\" failed: %2$s"
 msgstr "Das Backup \"%1$s\" ist fehlgeschlagen: %2$s"
 
-#: packages/wordpress/src/Runner/PreUpdateBackup.php:155
+#: packages/wordpress/src/Runner/PreUpdateBackup.php:152
+#: packages/wordpress/src/Runner/PreUpdateBackup.php:162
 msgid "The update was stopped because the backup before the update failed."
 msgstr "Das Update wurde gestoppt, weil das Backup vor dem Update fehlgeschlagen ist."
 
@@ -784,7 +785,7 @@ msgstr "Für das Basis-Backup %s gibt es keine Kopie, die übertragen werden kan
 msgid "The backup is already being copied or moved."
 msgstr "Das Backup wird bereits kopiert oder verschoben."
 
-#: packages/wordpress/src/Runner/TransferService.php:408
+#: packages/wordpress/src/Runner/TransferService.php:409
 msgid "The backup was copied, but it cannot be removed from the source (immutable storage target or retention lock)."
 msgstr "Das Backup wurde kopiert, kann aber nicht von der Quelle entfernt werden (unveränderliches Speicherziel oder Sperrfrist)."
 
@@ -1651,6 +1652,7 @@ msgid "The staging directory must be an absolute path without \"..\"."
 msgstr "Das Staging-Verzeichnis muss ein absoluter Pfad ohne \"..\" sein."
 
 #: packages/wordpress/src/Support/Settings.php:125
+#: packages/wordpress/src/Support/Settings.php:198
 msgid "The staging directory is inside the web root, where backups could be downloaded by anyone. Choose a directory outside the web root."
 msgstr "Das Staging-Verzeichnis liegt im Web-Root, wo Backups von jedem heruntergeladen werden könnten. Wählen Sie ein Verzeichnis außerhalb des Web-Roots."
 
@@ -1813,12 +1815,12 @@ msgid "Too many update redirects."
 msgstr "Zu viele Update-Weiterleitungen."
 
 #. translators: 1: required PHP version, 2: current PHP version
-#: sw-backupit.php:36
+#: sw-backupit.php:37
 #, php-format
 msgid "sw-backupit requires PHP %1$s or newer. You are running PHP %2$s."
 msgstr "BackupIt benötigt PHP %1$s oder neuer. Sie verwenden PHP %2$s."
 
-#: sw-backupit.php:59
+#: sw-backupit.php:60
 msgid "sw-backupit: the vendor directory is missing. Install the release package or run \"composer install\"."
 msgstr "BackupIt: Das Verzeichnis \"vendor\" fehlt. Installieren Sie das Release-Paket oder führen Sie \"composer install\" aus."
 

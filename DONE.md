@@ -83,6 +83,8 @@ See `docs/implementation-plan.md` and `docs/architecture.md`: NDJSON index (no p
   `symfony/filesystem` dependency. Updated only that package from 7.4.21 to patched 7.4.23 in both Composer lockfiles.
 - Production dependency audits and Composer validation pass; no advisory suppressions or dependency constraints changed.
 
+- #2: Enforce resolved staging privacy before job creation/execution and restore preparation; never cache new public fallbacks. Existing backups stay in place. Refusals produce job/REST errors, allow cancellation cleanup and honor required pre-update backups.
+
 - #22: Guard comparison paths before metadata classification or hashing, rejecting traversal and symlinks.
 - #21: Require download capability for live comparison; retain read-only file listings and hide the comparison action from viewers.
 - #4: Confirm verified backups participate in retention; document upgrade dry runs and regression-test bulk verified catalogs with chain/protection safety.
@@ -114,3 +116,7 @@ See `docs/implementation-plan.md` and `docs/architecture.md`: NDJSON index (no p
 ## 2026-11-12 – PR #30 browser CI compatibility
 - Pin the frontend job to Ubuntu 24.04: Playwright 1.55.1 cannot install Chromium on the Ubuntu 26.04 `ubuntu-latest` image.
 - Local validation: comparison regression (3 tests, 26 assertions), targeted PHPCS, workflow YAML, browser update check (100% lines), frontend lint, 138 tests (82.52% lines), typecheck and build pass. Existing PR-head CI has PHP coverage 82.09% and a passing release ZIP/signing check. Local browser validation uses Playwright's Ubuntu 24.04 platform override; the hosted runner change awaits CI.
+
+## 2026-11-12 – PR #34 merge preparation
+- Synchronize with main; retain staging refusals and comparison/storage permission regressions. PHP: 169 unit/integration, 188 WordPress (6 skips), 6 multisite, 101 multisite updates and 14 e2e tests; 82.17% merged line coverage. Frontend: 138 tests, 82.55% line coverage, lint/typecheck/build. PHPStan, coding standards, translations and signed real ZIP validation pass. Three optional storage integration tests skip without their services.
+- PR #34 audit follow-up: patch shipped phpseclib 3.0.57 to 3.0.58 for GHSA-w3p9-g4p2-h3rr; shipped Composer/npm audits, storage tests and dependency bootstrap smoke checks pass.

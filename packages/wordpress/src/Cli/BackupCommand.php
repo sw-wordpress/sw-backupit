@@ -262,7 +262,7 @@ final class BackupCommand {
 		if ( ! \SWBackupIt\Core\Support\Uuid::isValid( $id ) ) {
 			\WP_CLI::error( 'Invalid backup id.' );
 		}
-		$work = untrailingslashit( Settings::staging_dir() ) . '/tmp/compare-' . bin2hex( random_bytes( 4 ) );
+		$work = untrailingslashit( Settings::staging_dir_for_writes() ) . '/tmp/compare-' . bin2hex( random_bytes( 4 ) );
 		try {
 			$set = BackupSet::open( Settings::staging_dir() . '/' . $id, Services::instance()->keys(), $work );
 			try {
@@ -325,7 +325,7 @@ final class BackupCommand {
 		$with_db  = ! isset( $assoc_args['no-database'] );
 		$database = $with_db ? \SWBackupIt\Core\Database\ConnectionConfig::fromWordPressHost( DB_HOST, DB_NAME, DB_USER, DB_PASSWORD ) : null;
 		$keys     = isset( $assoc_args['key'] ) ? new \SWBackupIt\Core\Crypto\StaticKeyProvider( (string) $assoc_args['key'] ) : Services::instance()->keys();
-		$state    = untrailingslashit( Settings::staging_dir() ) . '/restore-state-' . $id;
+		$state    = untrailingslashit( Settings::staging_dir_for_writes() ) . '/restore-state-' . $id;
 		$request  = new \SWBackupIt\Restore\RestoreRequest(
 			Settings::staging_dir() . '/' . $id,
 			$target,

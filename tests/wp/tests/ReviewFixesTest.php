@@ -416,6 +416,25 @@ class ReviewFixesTest extends WP_UnitTestCase {
 
 	// 9. Pre-update backups.
 
+	public function test_required_pre_update_backup_blocks_repeated_staging_refusals(): void {
+		$profile = Services::instance()->profiles()->create( array( 'name' => 'Required before update', 'type' => 'files' ) );
+		$settings = Settings::all();
+		$settings['staging_dir'] = untrailingslashit( ABSPATH ) . '/unsafe-pre-update';
+		$settings['pre_update_backup'] = array( 'plugins' => true, 'profile_id' => $profile->id, 'block_on_failure' => true );
+		Options::update( 'swbi_settings', $settings );
+		$backup = new PreUpdateBackup();
+		for ( $i = 0; $i < 2; $i++ ) {
+			$result = $backup->before_install( true, array( 'type' => 'plugin', 'action' => 'update' ) );
+			$this->assertWPError( $result );
+			$this->assertSame( 'swbi_pre_update_backup_failed', $result->get_error_code() );
+			$this->assertFalse( get_transient( 'swbi_pre_update_lock' ) );
+		}
+		$settings['pre_update_backup']['block_on_failure'] = false;
+		Options::update( 'swbi_settings', $settings );
+		$this->assertTrue( $backup->before_install( true, array( 'type' => 'plugin', 'action' => 'update' ) ) );
+		$this->assertSame( 0, Services::instance()->jobs()->count() );
+	}
+
 	public function test_pre_update_backup_ignores_installs_and_handles_bulk_updates(): void {
 		$this->assertNull( PreUpdateBackup::update_type( array( 'type' => 'plugin', 'action' => 'install' ) ) );
 		$this->assertNull( PreUpdateBackup::update_type( array( 'type' => 'theme', 'action' => 'install' ) ) );
