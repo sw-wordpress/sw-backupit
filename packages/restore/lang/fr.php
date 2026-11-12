@@ -238,6 +238,7 @@ return array (
   'The restore completed. The restore application is now locked and its files were removed.' => 'La restauration est terminée. L\'application de restauration est maintenant verrouillée et ses fichiers ont été supprimés.',
   'The restore completed. The restore application is now locked. Please delete the restore directory from your server manually.' => 'La restauration est terminée. L\'application de restauration est maintenant verrouillée. Veuillez supprimer manuellement le répertoire de restauration de votre serveur.',
   'The restore has not completed successfully; the application stays available.' => 'La restauration ne s\'est pas terminée avec succès ; l\'application reste disponible.',
+  'The restore state directory is not private or owned by the current user.' => 'Le répertoire d’état de restauration n’est pas privé ou n’appartient pas à l’utilisateur actuel.',
   'The restore target and the backup directory must not contain each other.' => 'La cible de restauration et le répertoire de sauvegarde ne doivent pas se contenir mutuellement.',
   'The restore target directory does not exist.' => 'Le répertoire cible de la restauration n\'existe pas.',
   'The scratch database could not be created (missing privilege).' => 'La base de données temporaire n\'a pas pu être créée (privilège manquant).',

@@ -40,3 +40,8 @@ Backups contain credentials, personal data and `wp-config.php`. They are treated
 No atomic file+database snapshots, no guaranteed rollback of a failed restore (strategy: verify first, atomic per-file
 replacement, resumable phases), and a successful backup job does not prove that a restore will work: use the verification
 and restore-test features.
+
+### Restore state
+Standalone web setup atomically allocates an unpredictable system-temporary state directory with mode 0700; explicitly supplied state must also be outside the document root. State directories deny all HTTP access on Apache and IIS, including sessions and extensionless token/lock markers. These rules are defense in depth: nginx and servers ignoring directory rules require private staging and state paths. Do not enable public staging as a substitute for server access controls. Previously prepared public wizards should be removed and prepared again after relocating staging.
+
+State startup rejects symlinks and, on POSIX, foreign-owned or group/world-writable state and session directories before reading sessions. Owned read-only-to-others directories are tightened to 0700 and checked; ownership follows the effective process user (CLI and PHP-FPM must use the same account). Windows needs private filesystem ACLs in addition to the shipped IIS rules. Reinitialize rejected legacy state in a new private directory; do not reuse untrusted sessions.

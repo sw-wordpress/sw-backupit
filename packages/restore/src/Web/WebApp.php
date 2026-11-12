@@ -38,7 +38,7 @@ final class WebApp
      */
     public function __construct(private readonly array $config)
     {
-        $this->state = (string) ($config['state_dir'] ?? sys_get_temp_dir() . '/swbi-restore-' . substr(hash('sha256', (string) ($config['app_dir'] ?? __DIR__)), 0, 12));
+        $this->state = (string) ($config['state_dir'] ?? WebSetup::createStateDirectory());
         $this->auth = new Auth($config, $this->state);
     }
 

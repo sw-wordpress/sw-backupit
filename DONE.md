@@ -85,6 +85,8 @@ See `docs/implementation-plan.md` and `docs/architecture.md`: NDJSON index (no p
 
 - #2: Enforce resolved staging privacy before job creation/execution and restore preparation; never cache new public fallbacks. Existing backups stay in place. Refusals produce job/REST errors, allow cancellation cleanup and honor required pre-update backups.
 
+- #24: Protect restore state itself on Apache/IIS, cover extensionless markers and default standalone state to private temporary storage.
+
 - #22: Guard comparison paths before metadata classification or hashing, rejecting traversal and symlinks.
 - #21: Require download capability for live comparison; retain read-only file listings and hide the comparison action from viewers.
 - #4: Confirm verified backups participate in retention; document upgrade dry runs and regression-test bulk verified catalogs with chain/protection safety.
@@ -120,3 +122,7 @@ See `docs/implementation-plan.md` and `docs/architecture.md`: NDJSON index (no p
 ## 2026-11-12 – PR #34 merge preparation
 - Synchronize with main; retain staging refusals and comparison/storage permission regressions. PHP: 169 unit/integration, 188 WordPress (6 skips), 6 multisite, 101 multisite updates and 14 e2e tests; 82.17% merged line coverage. Frontend: 138 tests, 82.55% line coverage, lint/typecheck/build. PHPStan, coding standards, translations and signed real ZIP validation pass. Three optional storage integration tests skip without their services.
 - PR #34 audit follow-up: patch shipped phpseclib 3.0.57 to 3.0.58 for GHSA-w3p9-g4p2-h3rr; shipped Composer/npm audits, storage tests and dependency bootstrap smoke checks pass.
+
+## 2026-11-12 – PR #35 review correction
+- Fix the valid P1 review: allocate random state with exclusive mkdir(0700); reject foreign-owned, group/world-writable or symlinked state/session directories before authentication. Verify chmod and use path guards for protection files and session writes. Ownership uses the effective process user without requiring ext-posix.
+- Eight new state regressions (25 assertions), ten wizard tests (71 assertions), WordPress/multisite suites, PHPStan, coding standards, translations and shipped dependency audits pass. A disposable UID-65534 fixture is rejected without modification. Frontend: 138 tests, 82.52% line coverage and browser update check pass. Windows private ACLs and remaining server-matrix validation stay explicit requirements in docs/security.md and TODO.md.
