@@ -200,6 +200,7 @@ final class CoreMessages {
 			__( 'The port is invalid.', 'sw-backupit' ),
 			__( 'The restore application directory does not exist.', 'sw-backupit' ),
 			__( 'The restore has not completed successfully; the application stays available.', 'sw-backupit' ),
+			__( 'The restore state directory is not private or owned by the current user.', 'sw-backupit' ),
 			__( 'The restore target and the backup directory must not contain each other.', 'sw-backupit' ),
 			__( 'The restore target directory does not exist.', 'sw-backupit' ),
 			__( 'The scratch database could not be created (missing privilege).', 'sw-backupit' ),

@@ -238,6 +238,7 @@ return array (
   'The restore completed. The restore application is now locked and its files were removed.' => 'Die Wiederherstellung ist abgeschlossen. Die Restore-Anwendung ist nun gesperrt und ihre Dateien wurden entfernt.',
   'The restore completed. The restore application is now locked. Please delete the restore directory from your server manually.' => 'Die Wiederherstellung ist abgeschlossen. Die Restore-Anwendung ist nun gesperrt. Bitte löschen Sie das Restore-Verzeichnis manuell von Ihrem Server.',
   'The restore has not completed successfully; the application stays available.' => 'Die Wiederherstellung wurde nicht erfolgreich abgeschlossen; die Anwendung bleibt verfügbar.',
+  'The restore state directory is not private or owned by the current user.' => 'Das Restore-Statusverzeichnis ist nicht privat oder gehört nicht dem aktuellen Benutzer.',
   'The restore target and the backup directory must not contain each other.' => 'Wiederherstellungsziel und Backup-Verzeichnis dürfen einander nicht enthalten.',
   'The restore target directory does not exist.' => 'Das Zielverzeichnis der Wiederherstellung existiert nicht.',
   'The scratch database could not be created (missing privilege).' => 'Die temporäre Datenbank konnte nicht erstellt werden (fehlende Berechtigung).',

@@ -21,7 +21,7 @@ Status codes: 400 validation, 401/403 auth/capability, 404 missing, 409 conflict
 | `swbi_run` | start/pause/resume/cancel jobs |
 | `swbi_manage_profiles` | profiles + schedules CRUD |
 | `swbi_manage_storage` | storage targets CRUD/test |
-| `swbi_download` | download backups |
+| `swbi_download` | download backups and compare against the live installation |
 | `swbi_delete` | delete backups |
 | `swbi_restore` | prepare/execute restore |
 | `swbi_settings` | settings |

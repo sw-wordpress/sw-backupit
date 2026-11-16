@@ -4,11 +4,13 @@ declare(strict_types=1);
 
 namespace SWBackupIt\Restore\Files;
 
+use SWBackupIt\Core\Exception\PathViolationException;
 use SWBackupIt\Core\Scanner\FileIndexReader;
 use SWBackupIt\Core\Scanner\FileScanner;
 use SWBackupIt\Core\Scanner\RuleSet;
 use SWBackupIt\Core\Support\AtomicFile;
 use SWBackupIt\Core\Support\PathOrder;
+use SWBackupIt\Core\Support\PathGuard;
 use SWBackupIt\Core\Support\ResourceBudget;
 use SWBackupIt\Restore\Backup\BackupSet;
 
@@ -101,6 +103,11 @@ final class Comparator
      */
     private function classify(array $backup, array $local, string $root, string $mode): string
     {
+        try {
+            $path = PathGuard::resolveBelow($root, (string) $backup['p']);
+        } catch (PathViolationException) {
+            return 'incomparable';
+        }
         if (!$this->isRestorable($backup) || $backup['t'] !== $local['t'] || ($local['st'] ?? 'ok') !== 'ok') {
             return 'incomparable';
         }
@@ -114,7 +121,7 @@ final class Comparator
             if (!isset($backup['h'])) {
                 return 'incomparable';
             }
-            $hash = hash_file('sha256', rtrim($root, '/') . '/' . $backup['p']);
+            $hash = hash_file('sha256', $path);
 
             return $hash !== false && hash_equals((string) $backup['h'], $hash) ? 'identical' : 'modified';
         }

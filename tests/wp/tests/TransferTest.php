@@ -168,6 +168,28 @@ class TransferTest extends WP_UnitTestCase {
 		$this->assertFalse( BackgroundChecks::has_local_data( $incremental['backup_id'] ) );
 	}
 
+	public function test_cancelled_transfers_can_be_cleaned_after_staging_becomes_public(): void {
+		$target = $this->target( 'Cancelled destination' );
+		$id = $this->run_profile( $this->profile(), 0 )['backup_id'];
+		$public = untrailingslashit( ABSPATH ) . '/swbi-cancel-' . bin2hex( random_bytes( 4 ) );
+		$this->remotes[] = $public;
+		foreach ( array( false, true ) as $with_scratch ) {
+			\SWBackupIt\WordPress\Support\Options::update( 'swbi_settings', array( 'staging_dir' => $this->staging ) );
+			$queued = $this->request( 'POST', '/backups/' . $id . '/transfer', array( 'target_id' => (int) $target['id'] ) )->get_data();
+			$this->assertSame( 200, $this->request( 'POST', '/transfers/' . $queued['id'] . '/cancel' )->get_status() );
+			$scratch = $public . '/tmp/transfer-' . $queued['id'];
+			if ( $with_scratch ) {
+				\SWBackupIt\Core\Support\AtomicFile::ensureDirectory( $scratch );
+				file_put_contents( $scratch . '/dummy', 'DUMMY_ONLY' );
+			}
+			\SWBackupIt\WordPress\Support\Options::update( 'swbi_settings', array( 'staging_dir' => $public ) );
+			Services::instance()->transfers()->tick( 5.0 );
+			$transfers = \SWBackupIt\WordPress\Support\Options::get_fresh( \SWBackupIt\WordPress\Runner\TransferService::OPTION, array() );
+			$this->assertTrue( (bool) $transfers[ $queued['id'] ]['cleaned'] );
+			$this->assertDirectoryDoesNotExist( $scratch );
+		}
+	}
+
 	public function test_guards_and_cancel(): void {
 		$locked = $this->target( 'Vault', true );
 		$other  = $this->target( 'Other' );

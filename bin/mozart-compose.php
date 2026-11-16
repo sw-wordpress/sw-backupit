@@ -1,11 +1,12 @@
 <?php
 
-declare(strict_types=1);
-
 /**
- * Build-only workaround for Mozart 1.2.3's recursive package loading (Flysystem cycle).
- * Runs inside the pinned Mozart container. Remove when upstream handles dependency cycles.
+ * Build-only workarounds for Mozart 1.2.3's recursive package loading (Flysystem cycle)
+ * and missing dependency-reference rewriting in the root application's source directories.
+ * Runs inside the pinned Mozart container. Remove when upstream handles these cases.
  */
+
+declare(strict_types=1);
 
 require '/mozart/vendor/autoload.php';
 
@@ -39,5 +40,39 @@ try {
     require $patched;
 } finally {
     unlink($patched);
+}
+
+// Mozart rewrites dependencies inside vendor-prefixed, but never visits the root PSR-4 sources.
+// Apply its AST replacer there too, using the same resolved dependency graph and symbol mappings.
+$composeSource = file_get_contents('/mozart/src/Commands/Compose.php');
+$search = '$parentReplacer->replaceParentInTree($packages);';
+$replacement = $search . <<<'PHP'
+
+        foreach (['packages/core/src', 'packages/restore/src', 'packages/wordpress/src'] as $directory) {
+            $applicationDirectory = $config->getWorkingDir() . $directory;
+            foreach ($packages as $dependency) {
+                if ($config->isExcludedPackage($dependency)) {
+                    continue;
+                }
+                foreach ($dependency->getAutoloaders() as $autoloader) {
+                    if ($autoloader instanceof \CoenJacobs\Mozart\Composer\Autoload\NamespaceAutoloader) {
+                        $replacer->replaceInDirectory($autoloader, $applicationDirectory);
+                    }
+                }
+            }
+            $parentReplacer->replaceParentClassesInDirectory($directory);
+        }
+PHP;
+if ($composeSource === false || substr_count($composeSource, $search) !== 1) {
+    throw new RuntimeException('Mozart Compose changed; review application dependency rewriting before building.');
+}
+$patchedCompose = tempnam(sys_get_temp_dir(), 'swbackupit-mozart-compose-');
+if ($patchedCompose === false || file_put_contents($patchedCompose, str_replace($search, $replacement, $composeSource)) === false) {
+    throw new RuntimeException('Cannot create the temporary Mozart application rewrite workaround.');
+}
+try {
+    require $patchedCompose;
+} finally {
+    unlink($patchedCompose);
 }
 require '/mozart/bin/mozart';

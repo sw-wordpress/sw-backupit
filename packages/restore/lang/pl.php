@@ -238,6 +238,7 @@ return array (
   'The restore completed. The restore application is now locked and its files were removed.' => 'Przywracanie zostało zakończone. Aplikacja przywracania jest teraz zablokowana, a jej pliki zostały usunięte.',
   'The restore completed. The restore application is now locked. Please delete the restore directory from your server manually.' => 'Przywracanie zostało zakończone. Aplikacja przywracania jest teraz zablokowana. Usuń ręcznie katalog przywracania z serwera.',
   'The restore has not completed successfully; the application stays available.' => 'Przywracanie nie zakończyło się pomyślnie; aplikacja pozostaje dostępna.',
+  'The restore state directory is not private or owned by the current user.' => 'Katalog stanu przywracania nie jest prywatny lub nie należy do bieżącego użytkownika.',
   'The restore target and the backup directory must not contain each other.' => 'Cel przywracania i katalog kopii zapasowej nie mogą się wzajemnie zawierać.',
   'The restore target directory does not exist.' => 'Katalog docelowy przywracania nie istnieje.',
   'The scratch database could not be created (missing privilege).' => 'Nie udało się utworzyć tymczasowej bazy danych (brak uprawnień).',

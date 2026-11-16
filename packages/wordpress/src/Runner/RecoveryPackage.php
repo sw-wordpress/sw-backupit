@@ -44,7 +44,7 @@ final class RecoveryPackage {
 		if ( ! Uuid::isValid( $backup_id ) ) {
 			throw new ConfigurationException( __( 'Invalid backup id.', 'sw-backupit' ) );
 		}
-		$staging   = untrailingslashit( Settings::staging_dir() );
+		$staging   = untrailingslashit( Settings::staging_dir_for_writes() );
 		$set       = BackupSet::open( $staging . '/' . $backup_id );
 		$ids       = array_merge( array( $backup_id ), array_map( 'strval', (array) ( $set->manifest()->section( 'chain' )['requires'] ?? array() ) ) );
 		$encrypted = $set->manifest()->isEncrypted();

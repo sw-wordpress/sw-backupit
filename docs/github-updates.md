@@ -147,6 +147,8 @@ Referenzen: [Environment-Secrets](https://docs.github.com/en/actions/how-tos/wri
   alten Schlüssel signiert ist und beide öffentlichen Schlüssel ausliefert. Nach dessen Installation Secret und Variable auf den neuen Schlüssel umstellen; den alten Eintrag erst im Folgerelease entfernen.
 - **Release:** Tag `vX.Y.Z` (oder `X.Y.Z`, optional `-NN`) = Header `Version` = `SWBACKUPIT_VERSION`. Der Workflow baut das ZIP, lädt es in einen Draft, signiert die tatsächlichen
   Asset-IDs, lädt Manifest und Signatur hoch und veröffentlicht erst dann. Fehlen Secret/Variable, bricht er vor dem Build ab; veröffentlichte Releases werden nie überschrieben.
+  Draft-Metadaten werden nach dem ZIP-Upload über die von `gh release view` ermittelte API-URL geladen; der REST-Endpunkt `/releases/tags/<tag>` liefert für Drafts HTTP 404.
+  Ein erneuter Lauf von Tag `0.8.0` verwendet weiterhin den alten Workflow: Für den Fix ist ein neuer Tag mit dem korrigierten Workflow nötig.
 - **Wechsel zu WordPress.org:** Store-Builds müssen den temporären GitHub-Provider (`Update\Provider::init()`-Aufruf, `Update/`-Klassen, Skript) und den Header `Update URI` entfernen;
   anschließend liefert wordpress.org die Updates. Bestehende GitHub-Installationen erhalten dafür ein letztes signiertes Übergangsrelease.
 
