@@ -21,7 +21,7 @@ final class WpSourceInfoProvider implements SourceInfoProviderInterface {
 		global $wpdb, $wp_version;
 		return new SourceInfo(
 			untrailingslashit( ABSPATH ),
-			Settings::staging_dir(),
+			Settings::staging_dir_for_writes(),
 			(string) site_url(),
 			(string) home_url(),
 			(string) $wp_version,

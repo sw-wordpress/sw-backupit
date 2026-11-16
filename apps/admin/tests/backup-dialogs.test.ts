@@ -1,4 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import BackupSheet from '../src/features/backups/BackupSheet.vue';
 import BackupFileBrowser from '../src/features/backups/BackupFileBrowser.vue';
 import CompareDialog from '../src/features/backups/CompareDialog.vue';
 import RestoreDialog from '../src/features/backups/RestoreDialog.vue';
@@ -20,6 +21,18 @@ afterEach(() => {
   vi.unstubAllGlobals();
   vi.restoreAllMocks();
   document.body.innerHTML = '';
+});
+
+describe('BackupSheet comparison permission', () => {
+  it('hides comparison from viewers and offers it to download-capable users', async () => {
+    for (const allowed of [false, true]) {
+      setup(allowed ? ['swbi_view', 'swbi_download'] : ['swbi_view']);
+      const w = mountComponent(BackupSheet, { modelValue: true, backupId: listBackups()[0]!.id });
+      await settle(8);
+      expect(Boolean(buttonByText(/Compare/))).toBe(allowed);
+      w.unmount();
+    }
+  });
 });
 
 describe('CompareDialog', () => {

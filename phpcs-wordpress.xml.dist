@@ -8,6 +8,8 @@
     <file>packages/wordpress/src</file>
     <file>sw-backupit.php</file>
     <file>uninstall.php</file>
+    <!-- Machine written public key ring (docs/github-updates.md, bin/release-manifest.php): data only, var_export format. -->
+    <exclude-pattern>packages/wordpress/src/Update/Config/trusted-keys.php</exclude-pattern>
 
     <config name="minimum_wp_version" value="6.4"/>
     <config name="testVersion" value="8.2-"/>

@@ -222,11 +222,11 @@ final class StorageTargetsController extends BaseController {
 				if ( null === $read['manifest'] ) {
 					continue;
 				}
-				$dir = PathGuard::resolveBelow( Settings::staging_dir(), $backup_id );
+				$dir = PathGuard::resolveBelow( Settings::staging_dir_for_writes(), $backup_id );
 				if ( $download ) {
-					( new BackupDownloader() )->download( $storage, $backup_id, Settings::staging_dir() );
+					( new BackupDownloader() )->download( $storage, $backup_id, Settings::staging_dir_for_writes() );
 				} elseif ( ! is_dir( $dir ) ) {
-					AtomicFile::writeJson( PathGuard::resolveBelow( Settings::staging_dir(), $backup_id . '/manifest.json' ), $read['manifest']->toArray() );
+					AtomicFile::writeJson( PathGuard::resolveBelow( Settings::staging_dir_for_writes(), $backup_id . '/manifest.json' ), $read['manifest']->toArray() );
 				}
 				$this->services()->backups()->register( $read['manifest'], null, null, $dir );
 				$this->services()->backups()->set_location( $backup_id, $target_id, 'verified', '', $backup_id );
@@ -243,7 +243,7 @@ final class StorageTargetsController extends BaseController {
 	}
 
 	private function temp_dir(): string {
-		$root = Settings::staging_dir();
+		$root = Settings::staging_dir_for_writes();
 		AtomicFile::ensureDirectory( $root );
 		$dir = PathGuard::resolveBelow( $root, 'tmp' );
 		AtomicFile::ensureDirectory( $dir );

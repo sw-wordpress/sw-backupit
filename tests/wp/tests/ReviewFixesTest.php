@@ -416,6 +416,25 @@ class ReviewFixesTest extends WP_UnitTestCase {
 
 	// 9. Pre-update backups.
 
+	public function test_required_pre_update_backup_blocks_repeated_staging_refusals(): void {
+		$profile = Services::instance()->profiles()->create( array( 'name' => 'Required before update', 'type' => 'files' ) );
+		$settings = Settings::all();
+		$settings['staging_dir'] = untrailingslashit( ABSPATH ) . '/unsafe-pre-update';
+		$settings['pre_update_backup'] = array( 'plugins' => true, 'profile_id' => $profile->id, 'block_on_failure' => true );
+		Options::update( 'swbi_settings', $settings );
+		$backup = new PreUpdateBackup();
+		for ( $i = 0; $i < 2; $i++ ) {
+			$result = $backup->before_install( true, array( 'type' => 'plugin', 'action' => 'update' ) );
+			$this->assertWPError( $result );
+			$this->assertSame( 'swbi_pre_update_backup_failed', $result->get_error_code() );
+			$this->assertFalse( get_transient( 'swbi_pre_update_lock' ) );
+		}
+		$settings['pre_update_backup']['block_on_failure'] = false;
+		Options::update( 'swbi_settings', $settings );
+		$this->assertTrue( $backup->before_install( true, array( 'type' => 'plugin', 'action' => 'update' ) ) );
+		$this->assertSame( 0, Services::instance()->jobs()->count() );
+	}
+
 	public function test_pre_update_backup_ignores_installs_and_handles_bulk_updates(): void {
 		$this->assertNull( PreUpdateBackup::update_type( array( 'type' => 'plugin', 'action' => 'install' ) ) );
 		$this->assertNull( PreUpdateBackup::update_type( array( 'type' => 'theme', 'action' => 'install' ) ) );
@@ -445,6 +464,75 @@ class ReviewFixesTest extends WP_UnitTestCase {
 		delete_transient( 'swbi_pre_update_lock' );
 		( new PreUpdateBackup() )->before_install( true, array( 'type' => 'plugin', 'action' => 'update' ) );
 		$this->assertSame( 2, Services::instance()->jobs()->count(), 'the new intact backup is reused' );
+	}
+
+	public function test_verified_backups_remain_usable_delta_parents(): void {
+		[ $profile, $base ] = $this->backup();
+		Services::instance()->backups()->mark_verified( $base['backup_id'], 'verified' );
+		foreach ( array( 'incremental', 'differential' ) as $type ) {
+			$this->assertSame( 200, $this->request( 'PUT', '/profiles/' . $profile['id'], array( 'type' => $type ) )->get_status() );
+			$job = $this->request( 'POST', '/profiles/' . $profile['id'] . '/run' )->get_data();
+			for ( $i = 0; $i < 300; $i++ ) {
+				$job = $this->request( 'POST', '/jobs/' . $job['id'] . '/tick' )->get_data();
+				if ( in_array( $job['status'], array( 'completed', 'failed' ), true ) ) {
+					break;
+				}
+			}
+			$this->assertSame( 'completed', $job['status'] );
+			$manifest = \SWBackupIt\Core\Manifest\Manifest::read( $this->staging . '/' . $job['backup_id'] );
+			$this->assertSame( $base['backup_id'], $manifest->section( 'parent' )['backup_id'] );
+		}
+	}
+
+	public function test_verified_retention_dry_run_preserves_chains_and_explicit_protection(): void {
+		[ , $job ] = $this->backup();
+		global $wpdb;
+		$template = Services::instance()->backups()->find_row( $job['backup_id'] );
+		$ids = array();
+		foreach ( array( 'base', 'middle', 'tip', 'protected', 'corrupt', 'new-full' ) as $key ) {
+			$ids[ $key ] = wp_generate_uuid4();
+		}
+		$ages = array( 'base' => 30, 'middle' => 20, 'tip' => 1, 'protected' => 40, 'corrupt' => 50, 'new-full' => 2 );
+		foreach ( $ids as $key => $id ) {
+			$row = $template;
+			$row['id'] = $id;
+			$row['job_id'] = null;
+			$row['status'] = 'corrupt' === $key ? 'corrupt' : 'verified';
+			$row['type'] = in_array( $key, array( 'middle', 'tip' ), true ) ? 'incremental' : 'full';
+			$row['protected'] = 'protected' === $key ? 1 : 0;
+			$row['created_at'] = gmdate( 'Y-m-d H:i:s', time() - $ages[ $key ] * DAY_IN_SECONDS );
+			$row['parent_id'] = 'middle' === $key ? $ids['base'] : ( 'tip' === $key ? $ids['middle'] : null );
+			$row['meta'] = wp_json_encode( array( 'requires' => 'tip' === $key ? array( $ids['base'], $ids['middle'] ) : array() ) );
+			$wpdb->insert( Schema::table( 'backups' ), $row );
+		}
+		$expired = array();
+		for ( $i = 0; $i < 100; $i++ ) {
+			$row = $template;
+			$row['id'] = wp_generate_uuid4();
+			$row['job_id'] = null;
+			$row['status'] = 'verified';
+			$row['type'] = 'full';
+			$row['created_at'] = gmdate( 'Y-m-d H:i:s', time() - ( 1000 + $i ) * DAY_IN_SECONDS );
+			$wpdb->insert( Schema::table( 'backups' ), $row );
+			$expired[] = $row['id'];
+		}
+		$wpdb->delete( Schema::table( 'backups' ), array( 'id' => $job['backup_id'] ) );
+		$records = Services::instance()->catalog()->records();
+		$policies = array(
+			new \SWBackupIt\Core\Retention\RetentionPolicy( maxCount: 1 ),
+			new \SWBackupIt\Core\Retention\RetentionPolicy( maxAgeDays: 7 ),
+			new \SWBackupIt\Core\Retention\RetentionPolicy( maxStorageBytes: 1 ),
+		);
+		foreach ( $policies as $policy ) {
+			$plan = ( new \SWBackupIt\Core\Retention\RetentionPlanner() )->plan( $records, $policy, new DateTimeImmutable( 'now', new DateTimeZone( 'UTC' ) ) );
+			foreach ( $ids as $id ) {
+				$this->assertNotContains( $id, $plan->deletions() );
+			}
+			foreach ( $expired as $id ) {
+				$this->assertContains( $id, $plan->deletions() );
+				$this->assertNotNull( Services::instance()->backups()->find_row( $id ), 'planning is a dry run' );
+			}
+		}
 	}
 
 	public function test_verified_backups_are_reliable_catalog_records_but_corrupt_ones_are_not(): void {

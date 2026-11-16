@@ -142,10 +142,6 @@ describe('storage view', () => {
     const finders = Array.from(document.querySelectorAll<HTMLElement>('button')).filter((b) =>
       /Find backups/.test(b.textContent ?? ''),
     );
-    // The sheet is mounted already open on the first click, so discovery runs from the second open on.
-    finders.at(-1)!.click();
-    await settle(6);
-    await click('Close');
     finders.at(-1)!.click();
     await waitFor(() => sent(/\/storage-targets\/\d+\/discover/));
     expect(sent(/\/storage-targets\/\d+\/discover/)).toBe(true);

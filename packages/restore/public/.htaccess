@@ -1,5 +1,5 @@
 # Deny direct access to internals; only index.php is a public entry point.
-<FilesMatch "^(config\.php|.*\.json)$">
+<FilesMatch "^(config\.php|.*\.json|token-used|locked)$">
     Require all denied
 </FilesMatch>
 Options -Indexes

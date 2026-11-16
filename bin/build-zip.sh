@@ -65,6 +65,9 @@ EXCLUDES
 echo ">> installing production dependencies"
 cp "$ROOT/composer.json" "$ROOT/composer.lock" "$STAGE/$NAME/"
 (cd "$STAGE/$NAME" && composer validate --strict && composer install --no-dev --prefer-dist --optimize-autoloader --no-interaction --no-progress --no-scripts)
+# The AWS SDK ships ~500 services; only S3 and its credential providers are used (composer.json extra). Pruning
+# keeps Mozart's rewrite at a few minutes instead of ~30 and the package small.
+(cd "$STAGE/$NAME" && composer run-script prune-aws --no-interaction)
 php "$ROOT/tests/bootstrap.php" "$STAGE/$NAME"
 
 echo ">> isolating production dependencies with Mozart"
@@ -72,6 +75,7 @@ docker run --rm --user "$(id -u):$(id -g)" \
   -v "$STAGE/$NAME:/project" \
   coenjacobs/mozart:1.2.3 php -d memory_limit=1G /project/bin/mozart-compose.php compose
 test -f "$STAGE/$NAME/vendor-prefixed/autoload.php"
+php "$ROOT/bin/mozart-fixups.php" "$STAGE/$NAME"
 
 echo ">> building the standalone restore distribution"
 # Use the rewritten core/restore classes and PSR Log from the isolated staging tree.

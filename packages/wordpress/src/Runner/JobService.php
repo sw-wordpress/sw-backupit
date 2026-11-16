@@ -62,6 +62,7 @@ final class JobService {
 	 * @throws SwbiException With code context 'conflict' when another backup is running.
 	 */
 	public function start( BackupProfile $profile, string $trigger = 'manual', ?int $schedule_id = null, bool $dispatch = true ): Job {
+		Settings::staging_dir_for_writes();
 		$settings = Settings::all();
 		$data     = $profile->toArray();
 		// Global resource limits are the ceiling for the profile's own limits.

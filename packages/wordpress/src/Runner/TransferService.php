@@ -353,6 +353,7 @@ final class TransferService {
 		foreach ( $transfer['items'] as $other ) {
 			$done_before += 'done' === $other['status'] ? (int) $other['size'] : 0;
 		}
+		Settings::staging_dir_for_writes();
 		$state = ( new BackupTransfer( $this->work_directory( $id ) ) )->run(
 			$backup_id,
 			$local,

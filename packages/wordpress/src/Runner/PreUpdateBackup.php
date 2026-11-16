@@ -143,8 +143,14 @@ final class PreUpdateBackup {
 		$service = Services::instance()->job_service();
 		try {
 			$job = $service->start( $profile, 'pre_update', null, false );
-		} catch ( SwbiException ) {
-			return $response; // Another backup is already running: do not stack a second one and never block.
+		} catch ( SwbiException $exception ) {
+			if ( ! empty( $exception->context()['conflict'] ) ) {
+				return $response; // Another backup is already running: do not stack a second one.
+			}
+			delete_transient( self::LOCK );
+			return ! empty( $settings['block_on_failure'] )
+				? new \WP_Error( 'swbi_pre_update_backup_failed', __( 'The update was stopped because the backup before the update failed.', 'sw-backupit' ) )
+				: $response;
 		}
 		$deadline = microtime( true ) + max( 1, min( 60, (int) ( $settings['wait_seconds'] ?? 20 ) ) );
 		do {
@@ -152,6 +158,7 @@ final class PreUpdateBackup {
 		} while ( $result->shouldContinue && microtime( true ) < $deadline );
 		$status = Services::instance()->jobs()->find( $job->id )->status;
 		if ( JobStatus::Failed === $status && ! empty( $settings['block_on_failure'] ) ) {
+			delete_transient( self::LOCK );
 			return new \WP_Error( 'swbi_pre_update_backup_failed', __( 'The update was stopped because the backup before the update failed.', 'sw-backupit' ) );
 		}
 		if ( ! $status->isTerminal() ) {

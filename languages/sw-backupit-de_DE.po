@@ -321,7 +321,7 @@ msgstr "Wiederherstellung abgeschlossen"
 #: packages/wordpress/src/Admin/AdminPage.php:29
 #: packages/wordpress/src/Admin/AdminPage.php:30
 msgid "sw-backupit"
-msgstr "sw-backupit"
+msgstr "BackupIt"
 
 #: packages/wordpress/src/Admin/AdminPage.php:41
 #: packages/wordpress/src/Rest/ProfilesController.php:197
@@ -330,14 +330,14 @@ msgstr "Sie haben keine Berechtigung, auf diese Seite zuzugreifen."
 
 #: packages/wordpress/src/Admin/AdminPage.php:44
 msgid "The sw-backupit admin interface has not been built. Install the release package or run \"npm run build\" in apps/admin."
-msgstr "Die sw-backupit-Verwaltungsoberfläche wurde nicht gebaut. Installieren Sie das Release-Paket oder führen Sie \"npm run build\" in apps/admin aus."
+msgstr "Die BackupIt-Verwaltungsoberfläche wurde nicht gebaut. Installieren Sie das Release-Paket oder führen Sie \"npm run build\" in apps/admin aus."
 
 #: packages/wordpress/src/Admin/AdminPage.php:47
 msgid "sw-backupit requires JavaScript."
-msgstr "sw-backupit benötigt JavaScript."
+msgstr "BackupIt benötigt JavaScript."
 
 #: packages/wordpress/src/Repository/BackupRepository.php:239
-#: packages/wordpress/src/Runner/TransferService.php:516
+#: packages/wordpress/src/Runner/TransferService.php:517
 msgid "Local staging"
 msgstr "Lokales Staging"
 
@@ -512,7 +512,7 @@ msgstr "Das Profil wird von einem Zeitplan verwendet. Löschen Sie zuerst den Ze
 
 #: packages/wordpress/src/Rest/ProfilesController.php:184
 #: packages/wordpress/src/Runner/TransferService.php:83
-#: packages/wordpress/src/Support/CoreMessages.php:208
+#: packages/wordpress/src/Support/CoreMessages.php:209
 msgid "The storage target does not exist."
 msgstr "Das Speicherziel existiert nicht."
 
@@ -588,7 +588,7 @@ msgstr "Backup %1$s ist beschädigt oder unvollständig: %2$s"
 
 #: packages/wordpress/src/Runner/CronManager.php:30
 msgid "Every minute (sw-backupit)"
-msgstr "Jede Minute (sw-backupit)"
+msgstr "Jede Minute (BackupIt)"
 
 #. translators: %s: schedule name
 #: packages/wordpress/src/Runner/HealthMonitor.php:31
@@ -610,24 +610,24 @@ msgstr "Der Speicherplatz für Backups wird knapp"
 msgid "Only %s are free in the backup staging directory."
 msgstr "Im Backup-Staging-Verzeichnis sind nur noch %s frei."
 
-#: packages/wordpress/src/Runner/JobService.php:105
-#: packages/wordpress/src/Runner/JobService.php:121
+#: packages/wordpress/src/Runner/JobService.php:106
+#: packages/wordpress/src/Runner/JobService.php:122
 msgid "Another backup is already running."
 msgstr "Es läuft bereits ein anderes Backup."
 
-#: packages/wordpress/src/Runner/JobService.php:159
+#: packages/wordpress/src/Runner/JobService.php:160
 msgid "The job cannot be paused in its current state."
 msgstr "Der Job kann im aktuellen Zustand nicht pausiert werden."
 
-#: packages/wordpress/src/Runner/JobService.php:170
+#: packages/wordpress/src/Runner/JobService.php:171
 msgid "Only paused jobs can be resumed."
 msgstr "Nur pausierte Jobs können fortgesetzt werden."
 
-#: packages/wordpress/src/Runner/JobService.php:185
+#: packages/wordpress/src/Runner/JobService.php:186
 msgid "The job has already finished."
 msgstr "Der Job ist bereits beendet."
 
-#: packages/wordpress/src/Runner/JobService.php:207
+#: packages/wordpress/src/Runner/JobService.php:208
 msgid "Only failed jobs can be retried."
 msgstr "Nur fehlgeschlagene Jobs können wiederholt werden."
 
@@ -677,7 +677,8 @@ msgstr "Backup \"%s\" fehlgeschlagen"
 msgid "The backup \"%1$s\" failed: %2$s"
 msgstr "Das Backup \"%1$s\" ist fehlgeschlagen: %2$s"
 
-#: packages/wordpress/src/Runner/PreUpdateBackup.php:155
+#: packages/wordpress/src/Runner/PreUpdateBackup.php:152
+#: packages/wordpress/src/Runner/PreUpdateBackup.php:162
 msgid "The update was stopped because the backup before the update failed."
 msgstr "Das Update wurde gestoppt, weil das Backup vor dem Update fehlgeschlagen ist."
 
@@ -696,7 +697,7 @@ msgstr "Das Backup %s hat keine vollständige lokale Kopie. Laden Sie es zuerst 
 #: packages/wordpress/src/Runner/RecoveryPackage.php:90
 #, php-format
 msgid "sw-backupit recovery package for backup %s"
-msgstr "sw-backupit-Recovery-Paket für Backup %s"
+msgstr "BackupIt-Recovery-Paket für Backup %s"
 
 #: packages/wordpress/src/Runner/RecoveryPackage.php:92
 msgid "Contents: backups/ holds the backup and every base backup it needs, sw-backupit-restore/ the standalone restore application (needs PHP 8.2 with zip and PDO MySQL, no WordPress)."
@@ -784,7 +785,7 @@ msgstr "Für das Basis-Backup %s gibt es keine Kopie, die übertragen werden kan
 msgid "The backup is already being copied or moved."
 msgstr "Das Backup wird bereits kopiert oder verschoben."
 
-#: packages/wordpress/src/Runner/TransferService.php:408
+#: packages/wordpress/src/Runner/TransferService.php:409
 msgid "The backup was copied, but it cannot be removed from the source (immutable storage target or retention lock)."
 msgstr "Das Backup wurde kopiert, kann aber nicht von der Quelle entfernt werden (unveränderliches Speicherziel oder Sperrfrist)."
 
@@ -1210,11 +1211,11 @@ msgstr "Es ist kein Storage-Manager konfiguriert."
 
 #: packages/wordpress/src/Support/CoreMessages.php:141
 msgid "Not a sw-backupit manifest."
-msgstr "Kein sw-backupit-Manifest."
+msgstr "Kein BackupIt-Manifest."
 
 #: packages/wordpress/src/Support/CoreMessages.php:142
 msgid "Not an sw-backupit encrypted file."
-msgstr "Keine mit sw-backupit verschlüsselte Datei."
+msgstr "Keine mit BackupIt verschlüsselte Datei."
 
 #: packages/wordpress/src/Support/CoreMessages.php:143
 msgid "Not enough free disk space in the staging directory."
@@ -1457,154 +1458,158 @@ msgid "The restore has not completed successfully; the application stays availab
 msgstr "Die Wiederherstellung wurde nicht erfolgreich abgeschlossen; die Anwendung bleibt verfügbar."
 
 #: packages/wordpress/src/Support/CoreMessages.php:203
+msgid "The restore state directory is not private or owned by the current user."
+msgstr "Das Restore-Statusverzeichnis ist nicht privat oder gehört nicht dem aktuellen Benutzer."
+
+#: packages/wordpress/src/Support/CoreMessages.php:204
 msgid "The restore target and the backup directory must not contain each other."
 msgstr "Wiederherstellungsziel und Backup-Verzeichnis dürfen einander nicht enthalten."
 
-#: packages/wordpress/src/Support/CoreMessages.php:204
+#: packages/wordpress/src/Support/CoreMessages.php:205
 msgid "The restore target directory does not exist."
 msgstr "Das Zielverzeichnis der Wiederherstellung existiert nicht."
 
-#: packages/wordpress/src/Support/CoreMessages.php:205
+#: packages/wordpress/src/Support/CoreMessages.php:206
 msgid "The scratch database could not be created (missing privilege)."
 msgstr "Die temporäre Datenbank konnte nicht erstellt werden (fehlende Berechtigung)."
 
-#: packages/wordpress/src/Support/CoreMessages.php:206
+#: packages/wordpress/src/Support/CoreMessages.php:207
 msgid "The selected tables are not part of the backup."
 msgstr "Die ausgewählten Tabellen sind nicht Teil des Backups."
 
-#: packages/wordpress/src/Support/CoreMessages.php:207
+#: packages/wordpress/src/Support/CoreMessages.php:208
 msgid "The staging directory is not writable."
 msgstr "Das Staging-Verzeichnis ist nicht beschreibbar."
 
-#: packages/wordpress/src/Support/CoreMessages.php:209
+#: packages/wordpress/src/Support/CoreMessages.php:210
 msgid "The target database name was not confirmed correctly."
 msgstr "Der Name der Zieldatenbank wurde nicht korrekt bestätigt."
 
-#: packages/wordpress/src/Support/CoreMessages.php:210
+#: packages/wordpress/src/Support/CoreMessages.php:211
 msgid "The target directory must be an existing absolute path."
 msgstr "Das Zielverzeichnis muss ein vorhandener absoluter Pfad sein."
 
-#: packages/wordpress/src/Support/CoreMessages.php:211
+#: packages/wordpress/src/Support/CoreMessages.php:212
 msgid "The target is outside the permitted restore locations."
 msgstr "Das Ziel liegt außerhalb der zulässigen Wiederherstellungsorte."
 
-#: packages/wordpress/src/Support/CoreMessages.php:212
+#: packages/wordpress/src/Support/CoreMessages.php:213
 msgid "The token lifetime must be between 1 minute and 7 days."
 msgstr "Die Gültigkeitsdauer des Tokens muss zwischen 1 Minute und 7 Tagen liegen."
 
-#: packages/wordpress/src/Support/CoreMessages.php:213
+#: packages/wordpress/src/Support/CoreMessages.php:214
 msgid "These files changed while the backup was running; their restored content may be inconsistent:"
 msgstr "Diese Dateien wurden während der Sicherung geändert; ihr wiederhergestellter Inhalt kann inkonsistent sein:"
 
-#: packages/wordpress/src/Support/CoreMessages.php:214
+#: packages/wordpress/src/Support/CoreMessages.php:215
 msgid "This backup is encrypted. Provide the encryption key to read its contents."
 msgstr "Dieses Backup ist verschlüsselt. Geben Sie den Verschlüsselungsschlüssel an, um den Inhalt zu lesen."
 
-#: packages/wordpress/src/Support/CoreMessages.php:215
+#: packages/wordpress/src/Support/CoreMessages.php:216
 msgid "Time budget must be between 1 and 3600 seconds."
 msgstr "Das Zeitbudget muss zwischen 1 und 3600 Sekunden liegen."
 
-#: packages/wordpress/src/Support/CoreMessages.php:216
+#: packages/wordpress/src/Support/CoreMessages.php:217
 msgid "Type the database name twice to confirm the database restore."
 msgstr "Geben Sie den Datenbanknamen zur Bestätigung der Datenbankwiederherstellung zweimal ein."
 
-#: packages/wordpress/src/Support/CoreMessages.php:217
+#: packages/wordpress/src/Support/CoreMessages.php:218
 msgid "URL migration needs a valid old and new URL (http:// or https://)."
 msgstr "Für die URL-Migration sind eine gültige alte und neue URL erforderlich (http:// oder https://)."
 
-#: packages/wordpress/src/Support/CoreMessages.php:218
+#: packages/wordpress/src/Support/CoreMessages.php:219
 msgid "Unencrypted http endpoints require the private network opt-in."
 msgstr "Unverschlüsselte http-Endpunkte erfordern die ausdrückliche Freigabe für private Netzwerke."
 
-#: packages/wordpress/src/Support/CoreMessages.php:219
+#: packages/wordpress/src/Support/CoreMessages.php:220
 msgid "Unexpected BIT value."
 msgstr "Unerwarteter BIT-Wert."
 
-#: packages/wordpress/src/Support/CoreMessages.php:220
+#: packages/wordpress/src/Support/CoreMessages.php:221
 msgid "Unexpected data after the end of the encrypted stream."
 msgstr "Unerwartete Daten nach dem Ende des verschlüsselten Streams."
 
-#: packages/wordpress/src/Support/CoreMessages.php:221
+#: packages/wordpress/src/Support/CoreMessages.php:222
 msgid "Unknown backup type."
 msgstr "Unbekannter Backup-Typ."
 
-#: packages/wordpress/src/Support/CoreMessages.php:222
+#: packages/wordpress/src/Support/CoreMessages.php:223
 msgid "Unsafe path: absolute path."
 msgstr "Unsicherer Pfad: absoluter Pfad."
 
-#: packages/wordpress/src/Support/CoreMessages.php:223
+#: packages/wordpress/src/Support/CoreMessages.php:224
 msgid "Unsafe path: control character."
 msgstr "Unsicherer Pfad: Steuerzeichen."
 
-#: packages/wordpress/src/Support/CoreMessages.php:224
+#: packages/wordpress/src/Support/CoreMessages.php:225
 msgid "Unsafe path: empty or too long."
 msgstr "Unsicherer Pfad: leer oder zu lang."
 
-#: packages/wordpress/src/Support/CoreMessages.php:225
+#: packages/wordpress/src/Support/CoreMessages.php:226
 msgid "Unsafe path: forbidden character."
 msgstr "Unsicherer Pfad: unzulässiges Zeichen."
 
-#: packages/wordpress/src/Support/CoreMessages.php:226
+#: packages/wordpress/src/Support/CoreMessages.php:227
 msgid "Unsafe path: traversal or empty segment."
 msgstr "Unsicherer Pfad: Traversierung oder leeres Segment."
 
-#: packages/wordpress/src/Support/CoreMessages.php:227
+#: packages/wordpress/src/Support/CoreMessages.php:228
 msgid "Unsupported compression method."
 msgstr "Nicht unterstützte Kompressionsmethode."
 
-#: packages/wordpress/src/Support/CoreMessages.php:228
+#: packages/wordpress/src/Support/CoreMessages.php:229
 msgid "Unsupported encryption format version."
 msgstr "Nicht unterstützte Version des Verschlüsselungsformats."
 
-#: packages/wordpress/src/Support/CoreMessages.php:229
+#: packages/wordpress/src/Support/CoreMessages.php:230
 msgid "Unsupported encryption parameters."
 msgstr "Nicht unterstützte Verschlüsselungsparameter."
 
-#: packages/wordpress/src/Support/CoreMessages.php:230
+#: packages/wordpress/src/Support/CoreMessages.php:231
 msgid "Unsupported storage type."
 msgstr "Nicht unterstützter Speichertyp."
 
-#: packages/wordpress/src/Support/CoreMessages.php:231
+#: packages/wordpress/src/Support/CoreMessages.php:232
 msgid "Unsupported success policy."
 msgstr "Nicht unterstützte Erfolgsrichtlinie."
 
-#: packages/wordpress/src/Support/CoreMessages.php:232
+#: packages/wordpress/src/Support/CoreMessages.php:233
 msgid "Upload to one or more storage targets failed temporarily and will be retried."
 msgstr "Der Upload zu einem oder mehreren Speicherzielen ist vorübergehend fehlgeschlagen und wird wiederholt."
 
-#: packages/wordpress/src/Support/CoreMessages.php:233
+#: packages/wordpress/src/Support/CoreMessages.php:234
 msgid "Volume already closed."
 msgstr "Das Volume ist bereits geschlossen."
 
-#: packages/wordpress/src/Support/CoreMessages.php:234
+#: packages/wordpress/src/Support/CoreMessages.php:235
 msgid "Volume size is too small."
 msgstr "Die Volume-Größe ist zu klein."
 
-#: packages/wordpress/src/Support/CoreMessages.php:235
+#: packages/wordpress/src/Support/CoreMessages.php:236
 msgid "Writing failed (disk full?)."
 msgstr "Schreiben fehlgeschlagen (Datenträger voll?)."
 
-#: packages/wordpress/src/Support/CoreMessages.php:236
+#: packages/wordpress/src/Support/CoreMessages.php:237
 msgid "Writing the archive entry failed."
 msgstr "Das Schreiben des Archiveintrags ist fehlgeschlagen."
 
-#: packages/wordpress/src/Support/CoreMessages.php:237
+#: packages/wordpress/src/Support/CoreMessages.php:238
 msgid "Writing the recovery package failed."
 msgstr "Das Schreiben des Recovery-Pakets ist fehlgeschlagen."
 
-#: packages/wordpress/src/Support/CoreMessages.php:238
+#: packages/wordpress/src/Support/CoreMessages.php:239
 msgid "Writing to the restore target failed (disk full?)."
 msgstr "Das Schreiben in das Wiederherstellungsziel ist fehlgeschlagen (Datenträger voll?)."
 
-#: packages/wordpress/src/Support/CoreMessages.php:239
+#: packages/wordpress/src/Support/CoreMessages.php:240
 msgid "siteurl option missing in the restored database."
 msgstr "Die Option siteurl fehlt in der wiederhergestellten Datenbank."
 
-#: packages/wordpress/src/Support/CoreMessages.php:240
+#: packages/wordpress/src/Support/CoreMessages.php:241
 msgid "wp-config.php was not found in the restore target."
 msgstr "wp-config.php wurde im Wiederherstellungsziel nicht gefunden."
 
-#: packages/wordpress/src/Support/CoreMessages.php:241
+#: packages/wordpress/src/Support/CoreMessages.php:242
 msgid "wp-config.php was not found in the target; database settings were not updated."
 msgstr "wp-config.php wurde im Ziel nicht gefunden; die Datenbankeinstellungen wurden nicht angepasst."
 
@@ -1651,6 +1656,7 @@ msgid "The staging directory must be an absolute path without \"..\"."
 msgstr "Das Staging-Verzeichnis muss ein absoluter Pfad ohne \"..\" sein."
 
 #: packages/wordpress/src/Support/Settings.php:125
+#: packages/wordpress/src/Support/Settings.php:198
 msgid "The staging directory is inside the web root, where backups could be downloaded by anyone. Choose a directory outside the web root."
 msgstr "Das Staging-Verzeichnis liegt im Web-Root, wo Backups von jedem heruntergeladen werden könnten. Wählen Sie ein Verzeichnis außerhalb des Web-Roots."
 
@@ -1658,15 +1664,169 @@ msgstr "Das Staging-Verzeichnis liegt im Web-Root, wo Backups von jedem herunter
 msgid "Invalid notification recipient."
 msgstr "Ungültiger Benachrichtigungsempfänger."
 
+#: packages/wordpress/src/Update/Manifest.php:46
+msgid "Release verification failed. The release was not accepted."
+msgstr "Die Release-Verifikation ist fehlgeschlagen. Das Release wurde nicht akzeptiert."
+
+#: packages/wordpress/src/Update/Package.php:30
+msgid "ZIP size or SHA-256 does not match, or ZIP verification is unavailable."
+msgstr "ZIP-Größe oder SHA-256 stimmt nicht, oder die ZIP-Prüfung ist nicht verfügbar."
+
+#: packages/wordpress/src/Update/Package.php:34
+msgid "Invalid ZIP archive."
+msgstr "Ungültiges ZIP-Archiv."
+
+#: packages/wordpress/src/Update/Package.php:40
+msgid "The update package failed the safety checks."
+msgstr "Das Update-Paket hat die Sicherheitsprüfungen nicht bestanden."
+
+#: packages/wordpress/src/Update/Provider.php:67
+msgid "Manual updates only"
+msgstr "Nur manuelle Aktualisierung"
+
+#: packages/wordpress/src/Update/Provider.php:87
+msgid "GitHub installation is only allowed manually in the WordPress backend."
+msgstr "Die GitHub-Installation ist nur manuell im WordPress-Backend erlaubt."
+
+#: packages/wordpress/src/Update/Provider.php:91
+msgid "Automatic GitHub installation is blocked."
+msgstr "Die automatische GitHub-Installation ist gesperrt."
+
+#: packages/wordpress/src/Update/Provider.php:110
+msgid "No valid manual WordPress update request."
+msgstr "Kein gültiger manueller WordPress-Updateauftrag."
+
+#: packages/wordpress/src/Update/Provider.php:213
+msgid "Signed GitHub release. Install only manually through WordPress."
+msgstr "Signiertes GitHub-Release. Installation nur manuell über WordPress."
+
+#: packages/wordpress/src/Update/Provider.php:231
+msgid "Check for updates now"
+msgstr "Jetzt auf Updates prüfen"
+
+#: packages/wordpress/src/Update/Provider.php:242
+msgid "GitHub updates are blocked: no public release key is configured."
+msgstr "GitHub-Updates sind gesperrt: Es ist kein öffentlicher Release-Schlüssel konfiguriert."
+
+#: packages/wordpress/src/Update/Provider.php:246
+msgid "No verified update check yet."
+msgstr "Noch keine verifizierte Update-Prüfung."
+
+#. translators: %s: time span, e.g. "2 hours"
+#: packages/wordpress/src/Update/Provider.php:249
+#, php-format
+msgid "Last verified check: %s ago."
+msgstr "Letzte verifizierte Prüfung: vor %s."
+
+#. translators: %s: error message
+#: packages/wordpress/src/Update/Provider.php:253
+#, php-format
+msgid "Last error: %s"
+msgstr "Letzter Fehler: %s"
+
+#: packages/wordpress/src/Update/Provider.php:289
+msgid "Checking signed releases …"
+msgstr "Signierte Releases werden geprüft …"
+
+#: packages/wordpress/src/Update/Provider.php:290
+msgid "Check finished."
+msgstr "Prüfung abgeschlossen."
+
+#: packages/wordpress/src/Update/Provider.php:291
+msgid "GitHub could not be reached. Please try again later."
+msgstr "GitHub konnte nicht erreicht werden. Bitte später erneut prüfen."
+
+#: packages/wordpress/src/Update/Service.php:51
+msgid "Update checks are only allowed in an authorised backend session."
+msgstr "Update-Prüfungen sind nur in einer berechtigten Backend-Sitzung erlaubt."
+
+#: packages/wordpress/src/Update/Service.php:54
+msgid "No public release key or Sodium is available. GitHub updates are blocked."
+msgstr "Öffentlicher Release-Schlüssel oder Sodium fehlt. GitHub-Updates sind gesperrt."
+
+#: packages/wordpress/src/Update/Service.php:58
+msgid "An update check is already running."
+msgstr "Eine Update-Prüfung läuft bereits."
+
+#: packages/wordpress/src/Update/Service.php:64
+msgid "The last update check is still within the check interval."
+msgstr "Die letzte Update-Prüfung liegt noch innerhalb des Prüfintervalls."
+
+#: packages/wordpress/src/Update/Service.php:71
+msgid "The check took too long. The result was not adopted."
+msgstr "Die Prüfung dauerte zu lange. Das Ergebnis wurde nicht übernommen."
+
+#: packages/wordpress/src/Update/Service.php:79
+msgid "Signed release information verified. Install updates only through the WordPress plugin list."
+msgstr "Signierte Release-Informationen geprüft. Installation ausschließlich über die Plugin-Verwaltung von WordPress."
+
+#: packages/wordpress/src/Update/Service.php:81
+msgid "Invalid release response."
+msgstr "Ungültige Release-Antwort."
+
+#: packages/wordpress/src/Update/Service.php:103
+msgid "No valid stable release response."
+msgstr "Keine gültige stabile Release-Antwort."
+
+#: packages/wordpress/src/Update/Service.php:112
+msgid "Release manifest or signature is missing."
+msgstr "Release-Manifest oder Signatur fehlt."
+
+#: packages/wordpress/src/Update/Service.php:128
+msgid "An already verified newer version must not be rolled back."
+msgstr "Eine bereits geprüfte neuere Version darf nicht zurückgenommen werden."
+
+#: packages/wordpress/src/Update/Service.php:150
+msgid "Please check for updates again before installing."
+msgstr "Bitte vor der Installation die Updates erneut prüfen."
+
+#: packages/wordpress/src/Update/Service.php:157
+msgid "Outdated release offer."
+msgstr "Veraltetes Release-Angebot."
+
+#: packages/wordpress/src/Update/Service.php:178
+msgid "Package, version or system requirements do not match."
+msgstr "Paket, Version oder Systemvoraussetzungen stimmen nicht."
+
+#: packages/wordpress/src/Update/Service.php:186
+msgid "Temporary update file unavailable."
+msgstr "Temporäre Update-Datei nicht verfügbar."
+
+#: packages/wordpress/src/Update/Transport.php:27
+msgid "Update address not allowed."
+msgstr "Nicht erlaubte Update-Adresse."
+
+#: packages/wordpress/src/Update/Transport.php:47
+msgid "GitHub could not be reached."
+msgstr "GitHub konnte nicht erreicht werden."
+
+#: packages/wordpress/src/Update/Transport.php:53
+msgid "Invalid redirect."
+msgstr "Ungültige Weiterleitung."
+
+#. translators: %d: HTTP status code
+#: packages/wordpress/src/Update/Transport.php:60
+#, php-format
+msgid "GitHub responded with HTTP %d."
+msgstr "GitHub-Antwort: HTTP %d."
+
+#: packages/wordpress/src/Update/Transport.php:65
+msgid "The update response exceeds the size limit."
+msgstr "Die Update-Antwort überschreitet das Größenlimit."
+
+#: packages/wordpress/src/Update/Transport.php:69
+msgid "Too many update redirects."
+msgstr "Zu viele Update-Weiterleitungen."
+
 #. translators: 1: required PHP version, 2: current PHP version
-#: sw-backupit.php:35
+#: sw-backupit.php:37
 #, php-format
 msgid "sw-backupit requires PHP %1$s or newer. You are running PHP %2$s."
-msgstr "sw-backupit benötigt PHP %1$s oder neuer. Sie verwenden PHP %2$s."
+msgstr "BackupIt benötigt PHP %1$s oder neuer. Sie verwenden PHP %2$s."
 
-#: sw-backupit.php:58
+#: sw-backupit.php:60
 msgid "sw-backupit: the vendor directory is missing. Install the release package or run \"composer install\"."
-msgstr "sw-backupit: Das Verzeichnis \"vendor\" fehlt. Installieren Sie das Release-Paket oder führen Sie \"composer install\" aus."
+msgstr "BackupIt: Das Verzeichnis \"vendor\" fehlt. Installieren Sie das Release-Paket oder führen Sie \"composer install\" aus."
 
 #~ msgid "The staging directory is inside the web root. Make sure the web server denies access or choose a directory outside the web root in the settings."
 #~ msgstr "Das Staging-Verzeichnis liegt innerhalb des Web-Roots. Stellen Sie sicher, dass der Webserver den Zugriff verweigert, oder wählen Sie in den Einstellungen ein Verzeichnis außerhalb des Web-Roots."

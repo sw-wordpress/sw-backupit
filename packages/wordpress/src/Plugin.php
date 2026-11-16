@@ -41,6 +41,8 @@ final class Plugin {
 		$this->booted = true;
 
 		Support\Capabilities::register();
+		// Always registered: the guards must also hold in cron/REST/CLI requests (no automatic installation).
+		Update\Provider::init();
 		( new Support\AuditLogger() )->register();
 		( new Runner\PreUpdateBackup() )->register();
 		add_filter( 'load_textdomain_mofile', array( $this, 'fallback_mofile' ), 10, 2 );
