@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "2f56a388a6bb33752ded33588f7ac9ff",
+    "content-hash": "0c7f2fc1942b2087115c97505174a21c",
     "packages": [
         {
             "name": "aws/aws-crt-php",
@@ -918,7 +918,8 @@
                     "type": "github"
                 }
             ],
-            "time": "2025-01-27T12:07:53+00:00"
+            "time": "2025-01-27T12:07:53+00:00",
+            "published-time": "2025-01-27T12:09:57+00:00"
         },
         {
             "name": "mtdowling/jmespath.php",
@@ -4538,5 +4539,5 @@
     "platform-overrides": {
         "php": "8.2.0"
     },
-    "plugin-api-version": "2.9.0"
+    "plugin-api-version": "2.11.0"
 }

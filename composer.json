@@ -15,7 +15,7 @@
         "league/flysystem-aws-s3-v3": "^3.28",
         "league/flysystem-local": "^3.28",
         "league/flysystem-sftp-v3": "^3.28",
-        "maennchen/zipstream-php": "^3.1",
+        "maennchen/zipstream-php": "^3.1.2 <3.2",
         "psr/log": "^3.0"
     },
     "require-dev": {
