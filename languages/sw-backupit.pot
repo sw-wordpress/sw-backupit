@@ -328,12 +328,16 @@ msgstr ""
 msgid "You do not have permission to access this page."
 msgstr ""
 
-#: packages/wordpress/src/Admin/AdminPage.php:44
+#: packages/wordpress/src/Admin/AdminPage.php:45
 msgid "The sw-backupit admin interface has not been built. Install the release package or run \"npm run build\" in apps/admin."
 msgstr ""
 
 #: packages/wordpress/src/Admin/AdminPage.php:47
 msgid "sw-backupit requires JavaScript."
+msgstr ""
+
+#: packages/wordpress/src/Admin/AdminPage.php:51
+msgid "Open source by Stefan Warnat – free to use, free to change, better together."
 msgstr ""
 
 #: packages/wordpress/src/Repository/BackupRepository.php:239

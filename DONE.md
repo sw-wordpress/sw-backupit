@@ -128,3 +128,7 @@ See `docs/implementation-plan.md` and `docs/architecture.md`: NDJSON index (no p
 ## 2026-11-12 – PR #35 review correction
 - Fix the valid P1 review: allocate random state with exclusive mkdir(0700); reject foreign-owned, group/world-writable or symlinked state/session directories before authentication. Verify chmod and use path guards for protection files and session writes. Ownership uses the effective process user without requiring ext-posix.
 - Eight new state regressions (25 assertions), ten wizard tests (71 assertions), WordPress/multisite suites, PHPStan, coding standards, translations and shipped dependency audits pass. A disposable UID-65534 fixture is rejected without modification. Frontend: 138 tests, 82.52% line coverage and browser update check pass. Windows private ACLs and remaining server-matrix validation stay explicit requirements in docs/security.md and TODO.md.
+
+## 2026-11-17 – Shared authorship line
+- Add the translated open-source line below the plugin administration content and below the README title; remove the duplicate README license attribution. Update all PHP catalogs and compile them with gettext. WordPress regression checks the English rendering and the exact German translation from the compiled catalog.
+- Validation: PHP unit/integration/e2e 192 tests (3 optional skips), WordPress 189 tests (6 skips), merged PHP line coverage 82.09%; frontend 138 tests, 82.55% lines. PHPStan, coding standards and translation checks pass.

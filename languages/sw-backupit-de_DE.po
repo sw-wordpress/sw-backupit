@@ -328,13 +328,17 @@ msgstr "BackupIt"
 msgid "You do not have permission to access this page."
 msgstr "Sie haben keine Berechtigung, auf diese Seite zuzugreifen."
 
-#: packages/wordpress/src/Admin/AdminPage.php:44
+#: packages/wordpress/src/Admin/AdminPage.php:45
 msgid "The sw-backupit admin interface has not been built. Install the release package or run \"npm run build\" in apps/admin."
 msgstr "Die BackupIt-Verwaltungsoberfläche wurde nicht gebaut. Installieren Sie das Release-Paket oder führen Sie \"npm run build\" in apps/admin aus."
 
 #: packages/wordpress/src/Admin/AdminPage.php:47
 msgid "sw-backupit requires JavaScript."
 msgstr "BackupIt benötigt JavaScript."
+
+#: packages/wordpress/src/Admin/AdminPage.php:51
+msgid "Open source by Stefan Warnat – free to use, free to change, better together."
+msgstr "Open Source von Stefan Warnat – frei nutzbar, frei veränderbar, gemeinsam besser."
 
 #: packages/wordpress/src/Repository/BackupRepository.php:239
 #: packages/wordpress/src/Runner/TransferService.php:517

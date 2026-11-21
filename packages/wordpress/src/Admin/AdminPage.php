@@ -40,11 +40,18 @@ final class AdminPage {
 		if ( ! current_user_can( Capabilities::VIEW ) ) {
 			wp_die( esc_html__( 'You do not have permission to access this page.', 'sw-backupit' ), 403 );
 		}
+		echo '<div class="wrap swbi-wrap">';
 		if ( ! is_readable( SWBACKUPIT_DIR . 'assets/admin/app.js' ) ) {
-			echo '<div class="wrap"><div class="notice notice-error"><p>' . esc_html__( 'The sw-backupit admin interface has not been built. Install the release package or run "npm run build" in apps/admin.', 'sw-backupit' ) . '</p></div></div>';
-			return;
+			echo '<div class="notice notice-error"><p>' . esc_html__( 'The sw-backupit admin interface has not been built. Install the release package or run "npm run build" in apps/admin.', 'sw-backupit' ) . '</p></div>';
+		} else {
+			echo '<div id="sw-backupit-app"></div><noscript>' . esc_html__( 'sw-backupit requires JavaScript.', 'sw-backupit' ) . '</noscript>';
 		}
-		echo '<div class="wrap swbi-wrap"><div id="sw-backupit-app"></div><noscript>' . esc_html__( 'sw-backupit requires JavaScript.', 'sw-backupit' ) . '</noscript></div>';
+		?>
+		<footer class="swbi-admin-footer">
+			<p class="description"><?php esc_html_e( 'Open source by Stefan Warnat – free to use, free to change, better together.', 'sw-backupit' ); ?></p>
+		</footer>
+		</div>
+		<?php
 	}
 
 	public function enqueue( string $hook ): void {
