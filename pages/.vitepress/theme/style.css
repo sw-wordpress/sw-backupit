@@ -1,0 +1,14 @@
+/* layout-bottom remains visible on sidebar, overview and 404 pages. */
+.swbi-docs-footer {
+  border-top: 1px solid var(--vp-c-divider);
+  padding: 24px;
+  text-align: center;
+  font-size: 14px;
+  color: var(--vp-c-text-2);
+}
+
+@media (min-width: 960px) {
+  .swbi-docs-footer {
+    padding-left: calc(var(--vp-sidebar-width) + 24px);
+  }
+}

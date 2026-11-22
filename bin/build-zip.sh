@@ -41,6 +41,7 @@ rsync -a --exclude-from="$UNTRACKED" --exclude-from=- "$ROOT/" "$STAGE/$NAME/" <
 /restore-app
 /.github
 /node_modules
+/pages
 /apps
 /tests
 /coverage

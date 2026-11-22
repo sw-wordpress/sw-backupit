@@ -88,7 +88,7 @@ jobs:
           for path in sw-backupit.php vendor-prefixed/autoload.php restore-app/vendor/autoload.php assets/admin/app.js assets/js/swbackupit-updates.js packages/wordpress/src/Update/Service.php packages/wordpress/src/Update/Config/trusted-keys.php; do
             grep -Fx "$PLUGIN_SLUG/$path" "$RUNNER_TEMP/zip-contents.txt"
           done
-          if grep -Eq "^$PLUGIN_SLUG/(vendor|tests|apps|bin|node_modules|\.git|\.github)/" "$RUNNER_TEMP/zip-contents.txt"; then
+          if grep -Eq "^$PLUGIN_SLUG/(vendor|tests|apps|bin|pages|node_modules|\.vitepress|\.git|\.github)/" "$RUNNER_TEMP/zip-contents.txt"; then
             echo "Unexpected development or unprefixed vendor files in ZIP" >&2
             exit 1
           fi
