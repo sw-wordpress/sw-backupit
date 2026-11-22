@@ -36,7 +36,8 @@ English, German, French, Italian, Polish.
 4. Under **Schedules** click **Create schedule** to run backups automatically.
 5. To restore, open a backup under **Backups**, click **Restore**, then **Prepare restore** and **Open standalone restore**.
 
-Full guide: [docs/user-guide.md](docs/user-guide.md), commands: [docs/wp-cli.md](docs/wp-cli.md).
+User documentation: [SW-BackupIt guide](https://sw-wordpress.github.io/sw-backupit/) (available after Pages setup and a main-branch deployment), or [read the guide sources](pages/index.md).
+Existing technical guide: [docs/user-guide.md](docs/user-guide.md), commands: [docs/wp-cli.md](docs/wp-cli.md).
 
 ## Configuration
 
@@ -122,6 +123,9 @@ bin/build-zip.sh                     # release ZIP in dist/
 Every change needs tests; line coverage must stay above 80 % for PHP and JavaScript.
 Test setup, release build and SonarQube: [docs/development.md](docs/development.md), translations: [docs/translations.md](docs/translations.md).
 GitHub Actions run the checks on every push.
+
+Documentation build, page plan and Pages setup: [pages/README.md](pages/README.md).
+The docs use an isolated temporary VitePress build, never product npm dependencies; a maintainer must select **Settings → Pages → Source → GitHub Actions** before publication. PR builds do not deploy.
 
 ## License
 

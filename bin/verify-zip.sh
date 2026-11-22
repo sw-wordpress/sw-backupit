@@ -14,7 +14,7 @@ unzip -Z1 "$ZIP" > "$TMP/zip-contents.txt"
 for path in sw-backupit.php vendor-prefixed/autoload.php restore-app/vendor/autoload.php assets/admin/app.js assets/js/swbackupit-updates.js packages/wordpress/src/Update/Service.php packages/wordpress/src/Update/Config/trusted-keys.php; do
   grep -Fx "$SLUG/$path" "$TMP/zip-contents.txt" >/dev/null || { echo "Missing $SLUG/$path" >&2; exit 1; }
 done
-if grep -Eq "^$SLUG/(vendor|tests|apps|bin|node_modules|\.git|\.github)/" "$TMP/zip-contents.txt"; then
+if grep -Eq "^$SLUG/(vendor|tests|apps|bin|pages|node_modules|\.vitepress|\.git|\.github)/" "$TMP/zip-contents.txt"; then
   echo "Unexpected development or unprefixed vendor files in ZIP" >&2
   exit 1
 fi

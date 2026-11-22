@@ -27,6 +27,7 @@ Every change to user-facing text updates all languages (PHP gettext catalogs in 
 ## Dokumentation
 
 - Verfasse Dokumentation möglichst knapp und ohne Wiederholungen, um Tokens zu sparen. Beschränke sie auf nötige Entscheidungen, Sicherheitsdetails und Testhinweise; verlinke vorhandene Dokumentation statt Inhalte zu duplizieren.
+- Bei jeder Änderung muss `pages/Changelog.md` im selben Arbeitsschritt aktualisiert werden. Noch nicht veröffentlichte Änderungen werden unter `Unreleased` in der passenden Kategorie `Feature`, `Bugs` oder `Other topics` eingetragen. Beschreibe die Änderung knapp und sachlich; fasse zusammengehörige Änderungen zusammen und vermeide doppelte Einträge. Kategorien und Versionsabschnitte dürfen nur erscheinen, wenn sie Einträge enthalten. Bei einer Veröffentlichung werden die zugehörigen Unreleased-Einträge der tatsächlichen Version mit Veröffentlichungsdatum zugeordnet.
 
 ## Tests und Coverage
 

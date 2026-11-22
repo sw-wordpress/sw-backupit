@@ -18,3 +18,9 @@
 # Local analysis output
 /coverage/
 /.scannerwork/
+
+# Documentation builds stay outside the checkout; ignore accidental local output.
+/pages/.vitepress/cache/
+/pages/.vitepress/dist/
+/pages/node_modules/
+/pages/.vitepress/node_modules/
