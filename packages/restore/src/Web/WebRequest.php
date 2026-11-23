@@ -34,7 +34,9 @@ final readonly class WebRequest
 
     public function isHttps(): bool
     {
-        return ($this->server['HTTPS'] ?? '') !== '' && ($this->server['HTTPS'] ?? 'off') !== 'off';
+        $https = $this->server['HTTPS'] ?? '';
+
+        return $https !== '' && $https !== 'off';
     }
 
     public function post(string $name, string $default = ''): string
