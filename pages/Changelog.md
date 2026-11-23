@@ -6,4 +6,5 @@ Published releases [1.0.0](https://github.com/sw-wordpress/sw-backupit/releases/
 
 ### Other topics
 
+- Explain the explicit **Lock and remove the restore application** finishing step and manual cleanup when automatic file removal fails.
 - Add English user documentation for installation, profiles, schedules, storage, encryption, recovery and troubleshooting, with real demo screenshots, a searchable GitHub Pages site and a documentation build check.
