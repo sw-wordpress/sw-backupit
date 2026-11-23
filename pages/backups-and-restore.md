@@ -39,7 +39,8 @@ Restore replaces selected files and database content with older data. Changes si
 4. Authenticate with the token. Select the backup and provide its encryption secret if needed.
 5. Enter the intended target directory and database connection, and type the target directory and database name again to confirm them. Review verification/comparison and any migration/selection options before starting.
 6. Follow progress; if interrupted, reload to resume from saved state. Do not treat a failed phase as success.
-7. After completion, check the site's front end, admin login and application data. The successful web wizard locks itself and removes its files; verify that temporary restore access is no longer usable and clean up any leftover uploaded recovery data privately.
+7. After the restore reports success, click **Lock and remove the restore application** before closing the wizard. Confirm its final message: the application is locked and its files were removed. If automatic file removal fails, follow the instruction to delete the restore directory manually.
+8. Check the site's front end, admin login and application data. Verify that temporary restore access is no longer usable and clean up any leftover uploaded recovery data privately. Merely seeing successful restore progress or closing the browser does not lock or remove the application.
 
 ## Recover when WordPress is unavailable
 
