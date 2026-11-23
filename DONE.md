@@ -132,3 +132,6 @@ See `docs/implementation-plan.md` and `docs/architecture.md`: NDJSON index (no p
 ## 2026-11-17 – Shared authorship line
 - Add the translated open-source line below the plugin administration content and below the README title; remove the duplicate README license attribution. Update all PHP catalogs and compile them with gettext. WordPress regression checks the English rendering and the exact German translation from the compiled catalog.
 - Validation: PHP unit/integration/e2e 192 tests (3 optional skips), WordPress 189 tests (6 skips), merged PHP line coverage 82.09%; frontend 138 tests, 82.55% lines. PHPStan, coding standards and translation checks pass.
+
+## 2026-11-23 – PHPStan update (#58)
+- Evaluate the restore wizard's HTTPS flag once and cover the existing detection behavior with PHPUnit.
