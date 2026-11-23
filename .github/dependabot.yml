@@ -8,6 +8,10 @@ updates:
       interval: weekly
       day: monday
     open-pull-requests-limit: 5
+    ignore:
+      # ZipStream 3.2 and newer require PHP 8.3 or newer. Revisit when dropping PHP 8.2 support.
+      - dependency-name: maennchen/zipstream-php
+        versions: ['>=3.2']
     groups:
       composer-security:
         applies-to: security-updates
