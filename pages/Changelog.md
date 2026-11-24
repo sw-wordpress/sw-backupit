@@ -4,6 +4,10 @@ Published releases [1.0.0](https://github.com/sw-wordpress/sw-backupit/releases/
 
 ## Unreleased
 
+### Bugs
+
+- Enforce permissions for backup transfers, profile copies with storage targets and active schedules. Require fresh SFTP credentials when changing the server or login settings.
+
 ### Other topics
 
 - Update PHPStan to 2.3.7 and simplify the restore wizard's HTTPS check to satisfy the analysis.

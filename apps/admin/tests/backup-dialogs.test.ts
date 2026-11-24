@@ -35,6 +35,20 @@ describe('BackupSheet comparison permission', () => {
   });
 });
 
+it('offers backup transfers only when storage and download permissions are both granted', async () => {
+  for (const caps of [
+    ['swbi_view', 'swbi_manage_storage'],
+    ['swbi_view', 'swbi_download'],
+    ['swbi_view', 'swbi_manage_storage', 'swbi_download'],
+  ] as const) {
+    setup([...caps]);
+    const w = mountComponent(BackupSheet, { modelValue: true, backupId: listBackups()[0]!.id });
+    await settle(8);
+    expect(Boolean(buttonByText(/Copy \/ move/))).toBe(caps.length === 3);
+    w.unmount();
+  }
+});
+
 describe('CompareDialog', () => {
   it('runs a metadata comparison and renders the summary', async () => {
     const backup = listBackups()[0]!;

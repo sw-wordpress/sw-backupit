@@ -4,6 +4,7 @@ import { useI18n } from 'vue-i18n';
 import { useApi } from '@/api';
 import FormSection from '@/components/ui/FormSection.vue';
 import FormSheet from '@/components/ui/FormSheet.vue';
+import { useCapabilities } from '@/composables/useCapabilities';
 import { useFormError } from '@/composables/useFormError';
 import { useNotify } from '@/composables/useNotify';
 import { useLookupsStore } from '@/stores/lookups';
@@ -18,6 +19,7 @@ const props = defineProps<{
 const emit = defineEmits<{ (e: 'saved', schedule: Schedule): void }>();
 
 const { t } = useI18n();
+const { can } = useCapabilities();
 const notify = useNotify();
 const formError = useFormError();
 const lookups = useLookupsStore();
@@ -31,7 +33,7 @@ function blank(): ScheduleInput {
   return {
     name: '',
     profile_id: lookups.profiles[0]?.id ?? 0,
-    enabled: true,
+    enabled: can('swbi_run'),
     frequency: 'daily',
     cron_expression: '',
     timezone: props.defaultTimezone,
@@ -144,7 +146,11 @@ async function save(): Promise<void> {
           :rules="[(v: number) => v > 0 || t('common.required')]"
           lazy-rules="ondemand"
         />
-        <q-toggle v-model="form.enabled" :label="t('schedules.enabled')" />
+        <q-toggle
+          v-model="form.enabled"
+          :disable="!can('swbi_run')"
+          :label="t('schedules.enabled')"
+        />
       </FormSection>
       <FormSection
         :title="t('schedules.sections.timing')"

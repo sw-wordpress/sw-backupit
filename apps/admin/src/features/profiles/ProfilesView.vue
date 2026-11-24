@@ -211,6 +211,7 @@ function retentionSummary(p: Profile): string {
                     ><q-tooltip>{{ t('common.edit') }}</q-tooltip></q-btn
                   >
                   <q-btn
+                    v-if="p.storage_target_ids.length === 0 || can('swbi_manage_storage')"
                     flat
                     round
                     dense

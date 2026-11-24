@@ -188,6 +188,8 @@ directory or the web server's document root is refused with 400 unless `allow_pu
 ## Schedules
 Weekly/monthly schedules additionally use `weekday` (0 = Sunday … 6) and `monthday` (1–31, clamped to the month length); all schedules use `time_of_day` (`HH:MM`) and `timezone`. `hourly` uses the minute of `time_of_day`. `POST /schedules/{id}/run` returns the started Job (`409` if another backup runs).
 
+Creating or updating an enabled schedule requires `swbi_run` in addition to `swbi_manage_profiles`. Profile managers can create and edit disabled schedules and disable active schedules.
+
 ## Backups
 * `GET /backups/{id}/download?part=volume|manifest|index|database&volume=N&_wpnonce=<rest nonce>` streams one file (`volume` is the 1-based number for `volume` and `database`).
 * `GET /backups/{id}/package?_wpnonce=<rest nonce>` (`swbi_download`) streams the complete recovery package as one ZIP
@@ -196,7 +198,7 @@ Weekly/monthly schedules additionally use `weekday` (0 = Sunday … 6) and `mont
 * `POST /backups/{id}/compare` body `{ "mode": "metadata|sha256" }` → `{ only_in_backup, only_local, modified, identical, incomparable, samples: { <category>: [path…] } }` (synchronous; use the CLI for very large sites).
 * `POST /backups/{id}/restore/prepare` → `{ restore_url, token, token_expires_at, target_path, warnings[] }`. **The token is shown once.** The restore itself runs in the standalone web wizard behind `restore_url` (or the restore CLI); `POST /backups/{id}/restore` always answers `501 swbi_use_wizard`.
 * `POST /backups/{id}/protect` body `{ "protected": true|false }` returns the Backup. `DELETE /backups/{id}?confirm=<id>` needs the exact id; protected backups answer `409`.
-* `POST /backups/{id}/transfer` (`swbi_manage_storage`; with `move` additionally `swbi_delete`) body
+* `POST /backups/{id}/transfer` (`swbi_manage_storage` and `swbi_download`; with `move` additionally `swbi_delete`) body
   `{ "target_id": <id>, "source_id": <id>|0|null, "move": false }` → `202` + Transfer. Copies the stored files (encrypted backups stay
   encrypted) from the source (`0` = local staging, `null` = local copy when available, else a verified storage target) to the target,
   verifies every file there and uploads the manifest last. Missing base backups of the chain are copied first (never moved). `move`
@@ -209,6 +211,8 @@ Weekly/monthly schedules additionally use `weekday` (0 = Sunday … 6) and `mont
 
 ## Storage targets
 Config keys: `local`: `path`; `sftp`: `host, port, username, root, host_fingerprint, trust_unknown_host, allow_private_network, timeout`; `s3`: `endpoint, region, bucket, prefix, path_style, allow_private_network`. Credentials (write-only): `sftp`: `password, private_key, passphrase`; `s3`: `access_key, secret_key`. Updating without `credentials` keeps the stored secrets.
+Changing a credentialed SFTP target's host, port, username or host-key settings requires a password or private key in the request. Only the new credentials are stored for the changed connection. Changing the storage type discards credentials from the previous type.
+
 * `GET …/{id}/discover` → list envelope of `{ backup_id, created_at, size_bytes, type, profile_name, already_imported, error }`.
 * `POST …/{id}/import` body `{ "backup_ids": [uuid…], "download": false }` → `{ "imported": n }` (registers backups in the catalog; with `download` the data is fetched into the local staging area).
 * `DELETE` answers `409` while a profile uses the target. Private/loopback endpoints are refused unless `allow_private_network` is set (SSRF protection).
@@ -237,4 +241,4 @@ Config keys: `local`: `path`; `sftp`: `host, port, username, root, host_fingerpr
 * Storage target config additions: `lock_days` (all types, retention lock in days) and `object_lock: { mode: GOVERNANCE|COMPLIANCE, days }` (s3).
 * Audit `object_type` values: `job, backup, profile, schedule, storage_target, encryption_key, settings` (`backup_started` is logged on the `job`).
 
-Selecting storage targets on profile creation/update or overriding the target for a run additionally requires `swbi_manage_storage`. An operator may still edit other profile fields without changing its destination list.
+Selecting storage targets on profile creation/update, copying a profile with storage targets or overriding the target for a run additionally requires `swbi_manage_storage`. An operator may still edit other profile fields without changing its destination list.

@@ -154,7 +154,7 @@ final class BackupsController extends BaseController {
 			array(
 				'methods'             => \WP_REST_Server::CREATABLE,
 				'callback'            => array( $this, 'transfer' ),
-				'permission_callback' => $this->can( Capabilities::MANAGE_STORAGE ),
+				'permission_callback' => static fn (): bool => current_user_can( Capabilities::MANAGE_STORAGE ) && current_user_can( Capabilities::DOWNLOAD ),
 				'args'                => $id + array(
 					'target_id' => array(
 						'type'     => 'integer',

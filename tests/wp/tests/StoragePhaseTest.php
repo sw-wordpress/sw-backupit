@@ -93,6 +93,34 @@ class StoragePhaseTest extends WP_UnitTestCase {
 		$this->assertSame( 'Bucket renamed', $target->name );
 	}
 
+	public function test_sftp_credentials_stay_with_the_original_connection(): void {
+		$config = array( 'host' => '192.0.2.11', 'username' => 'fixture', 'host_fingerprint' => 'fixture-key', 'root' => '/' );
+		$created = $this->request(
+			'POST',
+			'/storage-targets',
+			array( 'name' => 'SFTP fixture', 'type' => 'sftp', 'config' => $config, 'credentials' => array( 'private_key' => 'fixture-private-key', 'passphrase' => 'fixture-passphrase' ) )
+		);
+		$this->assertSame( 201, $created->get_status() );
+		$id    = (int) $created->get_data()['id'];
+		$route = '/storage-targets/' . $id;
+		$repo  = Services::instance()->storage_targets();
+		$path  = array_replace( $config, array( 'root' => '/archive', 'port' => 22 ) );
+		$this->assertSame( 200, $this->request( 'PUT', $route, array( 'config' => $path ) )->get_status() );
+		$this->assertSame( 'fixture-private-key', $repo->find( $id )->credentials['private_key'] );
+
+		foreach ( array( 'host' => '192.0.2.12', 'port' => 2222, 'username' => 'other', 'host_fingerprint' => 'other-key', 'trust_unknown_host' => true ) as $field => $value ) {
+			$changed = array_replace( $path, array( $field => $value ) );
+			$this->assertSame( 400, $this->request( 'PUT', $route, array( 'config' => $changed ) )->get_status(), $field );
+			$this->assertSame( $path, $repo->find( $id )->config );
+		}
+
+		$changed = array_replace( $path, array( 'host' => '192.0.2.12' ) );
+		$this->assertSame( 200, $this->request( 'PUT', $route, array( 'config' => $changed, 'credentials' => array( 'password' => 'new-fixture-password' ) ) )->get_status() );
+		$this->assertSame( array( 'password' => 'new-fixture-password' ), $repo->find( $id )->credentials );
+		$this->assertSame( 200, $this->request( 'PUT', $route, array( 'type' => 'local', 'config' => array( 'path' => $this->remote ) ) )->get_status() );
+		$this->assertSame( array(), $repo->find( $id )->credentials );
+	}
+
 	public function test_subscribers_cannot_manage_storage_or_keys(): void {
 		wp_set_current_user( self::factory()->user->create( array( 'role' => 'subscriber' ) ) );
 		$this->assertSame( 403, $this->request( 'POST', '/storage-targets', array( 'name' => 'x', 'type' => 'local', 'config' => array( 'path' => $this->remote ) ) )->get_status() );

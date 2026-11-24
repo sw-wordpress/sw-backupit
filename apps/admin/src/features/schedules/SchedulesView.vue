@@ -180,7 +180,7 @@ async function doDelete(): Promise<void> {
               <td :data-label="t('schedules.enabled')">
                 <q-toggle
                   :model-value="s.enabled"
-                  :disable="!canManage || togglingId === s.id"
+                  :disable="!canManage || (!s.enabled && !can('swbi_run')) || togglingId === s.id"
                   :aria-label="t('schedules.toggleNamed', { name: s.name })"
                   @update:model-value="toggle(s, $event)"
                 />
@@ -228,11 +228,13 @@ async function doDelete(): Promise<void> {
                     flat
                     round
                     dense
-                    :icon="canManage ? 'r_edit' : 'r_visibility'"
+                    :icon="canManage && (!s.enabled || can('swbi_run')) ? 'r_edit' : 'r_visibility'"
                     :aria-label="t('profiles.editNamed', { name: s.name })"
                     @click="openEdit(s)"
                     ><q-tooltip>{{
-                      canManage ? t('common.edit') : t('common.details')
+                      canManage && (!s.enabled || can('swbi_run'))
+                        ? t('common.edit')
+                        : t('common.details')
                     }}</q-tooltip></q-btn
                   >
                   <q-btn
@@ -263,7 +265,7 @@ async function doDelete(): Promise<void> {
     <ScheduleSheet
       v-model="sheetOpen"
       :schedule="editing"
-      :readonly="!canManage"
+      :readonly="!canManage || (editing?.enabled === true && !can('swbi_run'))"
       :default-timezone="defaultTimezone"
       @saved="list.load()"
     />

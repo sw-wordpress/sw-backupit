@@ -172,6 +172,9 @@ final class SchedulesController extends BaseController {
 		if ( isset( $input['enabled'] ) ) {
 			$merged['enabled'] = rest_sanitize_boolean( $input['enabled'] ) ? 1 : 0;
 		}
+		if ( (bool) $merged['enabled'] && ! current_user_can( Capabilities::RUN ) ) {
+			return $this->error( 'rest_forbidden', __( 'You do not have permission to access this page.', 'sw-backupit' ), 403 );
+		}
 		if ( isset( $input['retry'] ) && is_array( $input['retry'] ) ) {
 			$merged['retry_max']     = isset( $input['retry']['max_attempts'] ) ? (int) $input['retry']['max_attempts'] : $merged['retry_max'];
 			$merged['retry_backoff'] = isset( $input['retry']['backoff_seconds'] ) ? (int) $input['retry']['backoff_seconds'] : $merged['retry_backoff'];

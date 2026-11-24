@@ -104,11 +104,7 @@ final class ProfileRepository {
 		return 1 === $wpdb->delete( $this->table(), array( 'id' => $id ) ); // phpcs:ignore WordPress.DB.DirectDatabaseQuery
 	}
 
-	public function duplicate( int $id ): ?BackupProfile {
-		$source = $this->find( $id );
-		if ( null === $source ) {
-			return null;
-		}
+	public function duplicate( BackupProfile $source ): BackupProfile {
 		$data         = $source->toArray();
 		$data['name'] = sprintf(
 			/* translators: %s: profile name */

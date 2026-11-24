@@ -50,6 +50,19 @@ async function clickTab(name: RegExp): Promise<void> {
 }
 
 describe('schedules view', () => {
+  it('lets managers without run permission disable schedules and view active schedules', async () => {
+    setup(['swbi_view', 'swbi_manage_profiles']);
+    const { wrapper } = await open('/schedules', /Nightly/);
+    const active = document.querySelector('[role="switch"][aria-checked="true"]')!;
+    const inactive = document.querySelector('[role="switch"][aria-checked="false"]')!;
+    expect(active.getAttribute('aria-disabled')).not.toBe('true');
+    expect(inactive.getAttribute('aria-disabled')).toBe('true');
+    await click(/Edit Nightly/);
+    await waitFor(() => /Maximum attempts/.test(document.body.textContent ?? ''));
+    expect(document.querySelector('[role="dialog"] fieldset')?.hasAttribute('disabled')).toBe(true);
+    wrapper.unmount();
+  });
+
   it('runs, toggles, edits, creates and deletes schedules', async () => {
     const { wrapper } = await open('/schedules', /Nightly/);
     await click(/Run Nightly now/);
@@ -87,6 +100,14 @@ describe('schedules view', () => {
 });
 
 describe('profiles view', () => {
+  it('hides duplication for profiles with storage targets from profile-only managers', async () => {
+    setup(['swbi_view', 'swbi_manage_profiles']);
+    const { wrapper } = await open('/profiles', /Nightly Full/);
+    expect(document.querySelector('[aria-label="Edit Nightly Full"]')).not.toBeNull();
+    expect(document.querySelector('[aria-label="Duplicate Nightly Full"]')).toBeNull();
+    wrapper.unmount();
+  });
+
   it('renders backend profiles that have no GFS retention settings', async () => {
     const original = fetchMock.getMockImplementation()!;
     fetchMock.mockImplementation(async (...args) => {

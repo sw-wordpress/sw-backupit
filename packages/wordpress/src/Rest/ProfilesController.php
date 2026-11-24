@@ -164,10 +164,15 @@ final class ProfilesController extends BaseController {
 	}
 
 	public function duplicate( \WP_REST_Request $request ): \WP_REST_Response|\WP_Error {
-		$copy = $this->services()->profiles()->duplicate( (int) $request['id'] );
-		return null === $copy
-			? $this->error( 'swbi_not_found', __( 'Profile not found.', 'sw-backupit' ), 404 )
-			: new \WP_REST_Response( $this->services()->profiles()->to_rest( $copy ), 201 );
+		$repo    = $this->services()->profiles();
+		$profile = $repo->find( (int) $request['id'] );
+		if ( null === $profile ) {
+			return $this->error( 'swbi_not_found', __( 'Profile not found.', 'sw-backupit' ), 404 );
+		}
+		if ( array() !== $profile->storageTargetIds && ! current_user_can( Capabilities::MANAGE_STORAGE ) ) {
+			return $this->storage_forbidden();
+		}
+		return new \WP_REST_Response( $repo->to_rest( $repo->duplicate( $profile ) ), 201 );
 	}
 
 	public function run( \WP_REST_Request $request ): \WP_REST_Response|\WP_Error {

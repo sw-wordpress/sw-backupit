@@ -6,7 +6,7 @@
 #, fuzzy
 msgid ""
 msgstr ""
-"Project-Id-Version: sw-backupit 0.8.1\n"
+"Project-Id-Version: sw-backupit 1.0.0\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
@@ -324,7 +324,8 @@ msgid "sw-backupit"
 msgstr ""
 
 #: packages/wordpress/src/Admin/AdminPage.php:41
-#: packages/wordpress/src/Rest/ProfilesController.php:197
+#: packages/wordpress/src/Rest/ProfilesController.php:202
+#: packages/wordpress/src/Rest/SchedulesController.php:176
 msgid "You do not have permission to access this page."
 msgstr ""
 
@@ -346,13 +347,17 @@ msgid "Local staging"
 msgstr ""
 
 #. translators: %s: profile name
-#: packages/wordpress/src/Repository/ProfileRepository.php:115
+#: packages/wordpress/src/Repository/ProfileRepository.php:111
 #, php-format
 msgid "%s (copy)"
 msgstr ""
 
-#: packages/wordpress/src/Repository/StorageTargetRepository.php:84
+#: packages/wordpress/src/Repository/StorageTargetRepository.php:85
 msgid "The directory is inside the web root, where backups could be downloaded by anyone. Choose a directory outside the web root."
+msgstr ""
+
+#: packages/wordpress/src/Repository/StorageTargetRepository.php:99
+msgid "Enter the password or private key again when changing the SFTP server or login settings."
 msgstr ""
 
 #. translators: 1: storage target name, 2: number of days
@@ -501,8 +506,8 @@ msgstr ""
 #: packages/wordpress/src/Rest/ProfilesController.php:110
 #: packages/wordpress/src/Rest/ProfilesController.php:144
 #: packages/wordpress/src/Rest/ProfilesController.php:163
-#: packages/wordpress/src/Rest/ProfilesController.php:169
-#: packages/wordpress/src/Rest/ProfilesController.php:176
+#: packages/wordpress/src/Rest/ProfilesController.php:170
+#: packages/wordpress/src/Rest/ProfilesController.php:181
 msgid "Profile not found."
 msgstr ""
 
@@ -514,7 +519,7 @@ msgstr ""
 msgid "The profile is used by a schedule. Delete the schedule first."
 msgstr ""
 
-#: packages/wordpress/src/Rest/ProfilesController.php:184
+#: packages/wordpress/src/Rest/ProfilesController.php:189
 #: packages/wordpress/src/Runner/TransferService.php:83
 #: packages/wordpress/src/Support/CoreMessages.php:209
 msgid "The storage target does not exist."
@@ -531,40 +536,40 @@ msgstr ""
 msgid "The schedule could not be started."
 msgstr ""
 
-#: packages/wordpress/src/Rest/SchedulesController.php:182
+#: packages/wordpress/src/Rest/SchedulesController.php:185
 msgid "Name is required."
 msgstr ""
 
-#: packages/wordpress/src/Rest/SchedulesController.php:185
+#: packages/wordpress/src/Rest/SchedulesController.php:188
 msgid "Profile does not exist."
 msgstr ""
 
-#: packages/wordpress/src/Rest/SchedulesController.php:188
+#: packages/wordpress/src/Rest/SchedulesController.php:191
 msgid "Unknown frequency."
 msgstr ""
 
-#: packages/wordpress/src/Rest/SchedulesController.php:191
+#: packages/wordpress/src/Rest/SchedulesController.php:194
 msgid "Invalid cron expression."
 msgstr ""
 
-#: packages/wordpress/src/Rest/SchedulesController.php:194
+#: packages/wordpress/src/Rest/SchedulesController.php:197
 #: packages/wordpress/src/Support/Settings.php:115
 msgid "Unknown timezone."
 msgstr ""
 
-#: packages/wordpress/src/Rest/SchedulesController.php:197
+#: packages/wordpress/src/Rest/SchedulesController.php:200
 msgid "Time must be HH:MM."
 msgstr ""
 
-#: packages/wordpress/src/Rest/SchedulesController.php:200
+#: packages/wordpress/src/Rest/SchedulesController.php:203
 msgid "Weekday or day of month out of range."
 msgstr ""
 
-#: packages/wordpress/src/Rest/SchedulesController.php:203
+#: packages/wordpress/src/Rest/SchedulesController.php:206
 msgid "Retry settings are out of range."
 msgstr ""
 
-#: packages/wordpress/src/Rest/SchedulesController.php:206
+#: packages/wordpress/src/Rest/SchedulesController.php:209
 msgid "The schedule is invalid."
 msgstr ""
 
