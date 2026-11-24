@@ -71,9 +71,10 @@ final class StorageTargetRepository implements StorageResolverInterface {
 		if ( null !== $id && null === $current ) {
 			throw new ConfigurationException( 'Storage target not found.' );
 		}
-		$type   = (string) ( $input['type'] ?? ( $current['type'] ?? '' ) );
-		$name   = trim( (string) ( $input['name'] ?? ( $current['name'] ?? '' ) ) );
-		$config = is_array( $input['config'] ?? null ) ? $input['config'] : ( null === $current ? array() : (array) json_decode( (string) $current['config'], true ) );
+		$type           = (string) ( $input['type'] ?? ( $current['type'] ?? '' ) );
+		$name           = trim( (string) ( $input['name'] ?? ( $current['name'] ?? '' ) ) );
+		$current_config = null === $current ? array() : (array) json_decode( (string) $current['config'], true );
+		$config         = is_array( $input['config'] ?? null ) ? $input['config'] : $current_config;
 		if ( '' === $name || ! isset( self::CONFIG_KEYS[ $type ] ) ) {
 			throw new ConfigurationException( 'A name and a valid storage type are required.' );
 		}
@@ -84,14 +85,22 @@ final class StorageTargetRepository implements StorageResolverInterface {
 			throw new ConfigurationException( __( 'The directory is inside the web root, where backups could be downloaded by anyone. Choose a directory outside the web root.', 'sw-backupit' ) );
 		}
 
-		$credentials = null === $current ? array() : $this->decrypt_credentials( $current );
+		$new_credentials = array();
 		if ( is_array( $input['credentials'] ?? null ) ) {
 			foreach ( array_intersect_key( $input['credentials'], array_flip( self::CREDENTIAL_KEYS[ $type ] ) ) as $key => $value ) {
 				if ( is_string( $value ) && '' !== $value ) {
-					$credentials[ $key ] = $value;
+					$new_credentials[ $key ] = $value;
 				}
 			}
 		}
+		$stored_credentials = null !== $current && $type === $current['type'] ? $this->decrypt_credentials( $current ) : array();
+		if ( 'sftp' === $type && array() !== $stored_credentials && self::sftp_identity( $config ) !== self::sftp_identity( $current_config ) ) {
+			if ( ! isset( $new_credentials['password'] ) && ! isset( $new_credentials['private_key'] ) ) {
+				throw new ConfigurationException( __( 'Enter the password or private key again when changing the SFTP server or login settings.', 'sw-backupit' ) );
+			}
+			$stored_credentials = array();
+		}
+		$credentials = $new_credentials + $stored_credentials;
 		// Validates endpoint/path/SSRF rules without connecting.
 		( new StorageFactory() )->create( new StorageTarget( (int) $id, $name, $type, $config, $credentials ) );
 
@@ -115,6 +124,20 @@ final class StorageTargetRepository implements StorageResolverInterface {
 		}
 		$wpdb->update( $this->table(), $data, array( 'id' => $id ) ); // phpcs:ignore WordPress.DB.DirectDatabaseQuery
 		return $id;
+	}
+
+	/**
+	 * @param array<string, mixed> $config SFTP configuration.
+	 * @return array{string, int, string, string, bool}
+	 */
+	private static function sftp_identity( array $config ): array {
+		return array(
+			strtolower( (string) ( $config['host'] ?? '' ) ),
+			(int) ( $config['port'] ?? 22 ),
+			(string) ( $config['username'] ?? '' ),
+			(string) ( $config['host_fingerprint'] ?? '' ),
+			(bool) ( $config['trust_unknown_host'] ?? false ),
+		);
 	}
 
 	public function delete( int $id ): bool {

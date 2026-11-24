@@ -155,6 +155,25 @@ type ScheduleVm = {
 };
 
 describe('ScheduleSheet', () => {
+  it('creates a disabled schedule when the profile editor lacks run permission', async () => {
+    fetchMock = setup(['swbi_view', 'swbi_manage_profiles']);
+    const w = mountComponent(ScheduleSheet, {
+      modelValue: false,
+      schedule: null,
+      defaultTimezone: 'UTC',
+    });
+    await w.setProps({ modelValue: true });
+    await settle(6);
+    expect(
+      document.querySelector('[role="dialog"] [role="switch"]')?.getAttribute('aria-disabled'),
+    ).toBe('true');
+    const vm = w.vm as unknown as ScheduleVm;
+    vm.form.name = 'Draft schedule';
+    await vm.save();
+    expect(bodies(/schedules$/, 'POST')[0]!.enabled).toBe(false);
+    w.unmount();
+  });
+
   it('creates a cron schedule and trims the expression', async () => {
     const w = mountComponent(ScheduleSheet, {
       modelValue: false,

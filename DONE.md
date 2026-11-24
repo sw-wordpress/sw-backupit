@@ -135,3 +135,6 @@ See `docs/implementation-plan.md` and `docs/architecture.md`: NDJSON index (no p
 
 ## 2026-11-23 – PHPStan update (#58)
 - Evaluate the restore wizard's HTTPS flag once and cover the existing detection behavior with PHPUnit.
+
+## 2026-11-24 – Delegated permissions
+- Require download rights for transfers, storage rights for copying assigned destinations, run rights for enabled schedules, and credential replacement when changing an SFTP server or login.

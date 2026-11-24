@@ -181,6 +181,55 @@ class SecurityRegressionTest extends WP_UnitTestCase {
 		}
 	}
 
+	public function test_duplicate_applies_the_storage_target_permission_to_the_copied_profile(): void {
+		if ( is_multisite() ) {
+			$this->markTestSkipped( 'Granular mutation capabilities are only delegable on single site.' );
+		}
+		$repo   = Services::instance()->profiles();
+		$local  = $repo->create( array( 'name' => 'Local only', 'type' => 'files' ) );
+		$remote = $repo->create( array( 'name' => 'Replica', 'type' => 'files', 'storage_target_ids' => array( 1 ) ) );
+		$user   = self::factory()->user->create_and_get( array( 'role' => 'subscriber' ) );
+		$user->add_cap( Capabilities::MANAGE_PROFILES );
+		wp_set_current_user( $user->ID );
+		$this->assertSame( 403, $this->request( 'POST', '/profiles/' . $remote->id . '/duplicate' )->get_status() );
+		$this->assertCount( 2, $repo->all() );
+		$this->assertSame( 201, $this->request( 'POST', '/profiles/' . $local->id . '/duplicate' )->get_status() );
+
+		$user->add_cap( Capabilities::MANAGE_STORAGE );
+		wp_set_current_user( 0 );
+		wp_set_current_user( $user->ID );
+		$copy = $this->request( 'POST', '/profiles/' . $remote->id . '/duplicate' );
+		$this->assertSame( 201, $copy->get_status() );
+		$this->assertSame( array( 1 ), $copy->get_data()['storage_target_ids'] );
+	}
+
+	public function test_enabled_schedules_require_the_run_permission(): void {
+		if ( is_multisite() ) {
+			$this->markTestSkipped( 'Granular mutation capabilities are only delegable on single site.' );
+		}
+		$profile = Services::instance()->profiles()->create( array( 'name' => 'Scheduled', 'type' => 'files' ) );
+		$user    = self::factory()->user->create_and_get( array( 'role' => 'subscriber' ) );
+		$user->add_cap( Capabilities::MANAGE_PROFILES );
+		wp_set_current_user( $user->ID );
+		$input = array( 'name' => 'Nightly', 'profile_id' => $profile->id );
+		$this->assertSame( 403, $this->request( 'POST', '/schedules', $input )->get_status(), 'implicit enablement needs the run permission' );
+		$draft = $this->request( 'POST', '/schedules', $input + array( 'enabled' => false ) );
+		$this->assertSame( 201, $draft->get_status() );
+		$route = '/schedules/' . $draft->get_data()['id'];
+		$this->assertSame( 403, $this->request( 'PUT', $route, array( 'enabled' => true ) )->get_status() );
+		$this->assertNull( Services::instance()->schedules()->find( $draft->get_data()['id'] )['next_run_at'] );
+
+		$user->add_cap( Capabilities::RUN );
+		wp_set_current_user( 0 );
+		wp_set_current_user( $user->ID );
+		$this->assertSame( 200, $this->request( 'PUT', $route, array( 'enabled' => true ) )->get_status() );
+		$user->remove_cap( Capabilities::RUN );
+		wp_set_current_user( 0 );
+		wp_set_current_user( $user->ID );
+		$this->assertSame( 403, $this->request( 'PATCH', $route, array( 'time_of_day' => '03:00' ) )->get_status() );
+		$this->assertSame( 200, $this->request( 'PATCH', $route, array( 'enabled' => false ) )->get_status() );
+	}
+
 	public function test_malformed_identifiers_never_reach_the_database_layer(): void {
 		foreach ( array( '/jobs/not-a-uuid', '/jobs/..%2F..%2Fetc', "/backups/' OR 1=1 --", '/backups/../../etc/passwd/files', '/profiles/abc', '/schedules/1;DROP TABLE x' ) as $route ) {
 			$status = $this->request( 'GET', $route )->get_status();

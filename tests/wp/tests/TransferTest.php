@@ -203,12 +203,21 @@ class TransferTest extends WP_UnitTestCase {
 		get_userdata( $operator )->add_cap( Capabilities::MANAGE_STORAGE );
 		wp_set_current_user( $operator );
 		if ( ! is_multisite() ) {
+			$this->assertSame( 403, $this->request( 'POST', '/backups/' . $id . '/transfer', array( 'target_id' => (int) $other['id'] ) )->get_status(), 'copying needs the download permission' );
+			get_userdata( $operator )->add_cap( Capabilities::DOWNLOAD );
+			wp_set_current_user( 0 );
+			wp_set_current_user( $operator );
 			$this->assertSame( 403, $this->request( 'POST', '/backups/' . $id . '/transfer', array( 'target_id' => (int) $other['id'], 'move' => true ) )->get_status(), 'moving needs the delete permission' );
 		}
-		wp_set_current_user( $this->admin );
 
-		$queued = $this->request( 'POST', '/backups/' . $id . '/transfer', array( 'target_id' => (int) $other['id'] ) )->get_data();
+		if ( is_multisite() ) {
+			wp_set_current_user( $this->admin );
+		}
+		$copy = $this->request( 'POST', '/backups/' . $id . '/transfer', array( 'target_id' => (int) $other['id'] ) );
+		$this->assertSame( 202, $copy->get_status() );
+		$queued = $copy->get_data();
 		$this->assertSame( 200, $this->request( 'POST', '/transfers/' . $queued['id'] . '/cancel' )->get_status() );
+		wp_set_current_user( $this->admin );
 		$this->assertSame( 'cancelled', $this->finish_transfers()[0]['status'] );
 		$this->assertDirectoryDoesNotExist( $other['path'] . '/' . $id );
 		$this->assertArrayNotHasKey( (int) $other['id'], $this->locations( $id ) );

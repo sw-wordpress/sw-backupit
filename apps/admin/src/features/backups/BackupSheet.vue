@@ -224,7 +224,7 @@ const verifyOk = computed(
           @click="compareOpen = true"
         />
         <q-btn
-          v-if="can('swbi_manage_storage')"
+          v-if="can('swbi_manage_storage') && can('swbi_download')"
           outline
           no-caps
           icon="r_drive_file_move"
